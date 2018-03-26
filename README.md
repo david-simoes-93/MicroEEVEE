@@ -9,4 +9,5 @@ Install dependencies with
 
     python3 -m venv ./venv
     source venv/bin/activate
-    pip3 install pygame
+    sudo pip install --upgrade pip
+    sudo pip3 install pygame
