@@ -8,6 +8,7 @@ MazeRunnerNii
 PathFinderD
 PathFinderNii
 venv
+.idea
 
 # C extensions
 *.so
