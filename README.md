@@ -11,3 +11,5 @@ Install dependencies with
     source venv/bin/activate
     sudo pip install --upgrade pip
     sudo pip3 install pygame
+    (cd CiberSim; make)
+    (cd CiberViewer; make)
