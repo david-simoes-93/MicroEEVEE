@@ -1,7 +1,9 @@
 from CiberEEVEE.croblink3 import CRobLinkAngs
-from CiberEEVEE.mapgrid import Maze
-from CiberEEVEE.Utils import updateRobotPos
+from CiberEEVEE.mapping import Maze
+from CiberEEVEE.pathplanner import AStar
+from CiberEEVEE.utils import *
 import sys
+import numpy as np
 
 
 def filter_buffer(buffer, val):
@@ -32,6 +34,7 @@ pos_cheese = None
 my_x, my_y, prev_left, pref_right = 0, 0, 0, 0
 pos_start = [my_x, my_y]
 my_map = Maze()
+path_planner = AStar()
 
 front_buffer = [0, 0, 0]
 left_buffer = [0, 0, 0]
@@ -57,25 +60,62 @@ while True:
         else:
             cif.setVisitingLed(0)
 
-    if not cif.measures.collision:
-        my_x, my_y, my_dir, prev_left, pref_right = \
-            updateRobotPos(prev_left, pref_right, motor_command_left, motor_command_right,
-                           my_x, my_y, compass)
+    my_x, my_y, my_dir, prev_left, pref_right = \
+        update_robot_pos(prev_left, pref_right, motor_command_left, motor_command_right,
+                         my_x, my_y, compass, cif.measures.collision)
     my_map.update(my_x, my_y, left_sensor, front_sensor, right_sensor, back_sensor,
-                  compass, cif.measures.ground)
+                  my_dir, cif.measures.ground, cif.measures.collision)
     my_map.render()
 
-    print("%4.2f %4.2f %4.2f %4.2fº %d" % (
-          left_sensor, front_sensor, right_sensor, compass, cif.measures.ground))
+    print("%4.2f %4.2f %4.2f %4.2f %4.2fº %d" % (
+        left_sensor, front_sensor, right_sensor, compass, my_dir, cif.measures.ground))
     print()
 
-    #input("rdy?")
+    # input("rdy?")
 
     if cif.measures.time == 0:
         continue
 
-    motor_command_left, motor_command_right = 0.1, 0.1
-    cif.driveMotors(motor_command_left, motor_command_right)
+    if pos_cheese is None:
+        target_path = list(path_planner.astar(my_map.my_cell, my_map.maze[31][9]))
+        my_map.reset_debug_dots()
+        for cell in target_path:
+            my_map.add_debug_dot(cell.coords)
+        # if we know we have clear path to second cell, go straight there
+        # otherwise, reach center of first cell
+        next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[1].coords)
+        # if we're too far from second cell, follow first cell
+        if dist_manhattan([my_x, my_y], next_cell_coords) > 2.2:
+            print("dist too big", dist_manhattan([my_x, my_y], next_cell_coords))
+            next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[0].coords)
+        target_dir = get_angle_between_points([my_x, my_y], next_cell_coords)  # from my_pos to center of target cell
+
+        max_speed = 0.1
+        target_dir = normalize_angle(target_dir - my_dir)
+        #print(pos_start, next_cell_coords, target_dir)
+
+        # rotate in place
+        if target_dir < -45:
+            motor_command_left, motor_command_right = -max_speed, max_speed
+        elif target_dir > 45:
+            motor_command_left, motor_command_right = max_speed, -max_speed
+        else:
+            # TODO reactive control here
+            motor_command_left = (target_dir + 90) / 180 * (max_speed * 2)
+            motor_command_right = (max_speed * 2) - motor_command_left
+
+            # reactive obstacle dodge!
+            speed = np.abs(motor_command_left)+np.abs(motor_command_right)
+            min_sensor = np.min([front_sensor,left_sensor, right_sensor])
+            if front_sensor<0.3:
+                motor_command_left = 0
+                motor_command_right = 0
+            #el
+            if speed > min_sensor:
+                motor_command_left *= min_sensor/speed
+                motor_command_right *= min_sensor/speed
+        print(motor_command_left, motor_command_right)
+        cif.driveMotors(motor_command_left, motor_command_right)
 
 
     # if sim_state == STOP:
