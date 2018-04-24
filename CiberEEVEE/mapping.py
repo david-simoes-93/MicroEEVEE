@@ -37,6 +37,63 @@ class Maze(object):
         self.target = None
         self.sensor_dots, self.wall_dots, self.debug_dots = [], [], []
 
+    def pick_exploration_target(self, path_planner, dir):
+        if -45 <= dir <= 45:
+            prev_cell = self.my_cell.neighbor_west
+        elif -135 <= dir < -45:
+            prev_cell = self.my_cell.neighbor_south
+        elif 45 < dir <= 135:
+            prev_cell = self.my_cell.neighbor_north
+        else:
+            prev_cell = self.my_cell.neighbor_east
+        to_be_explored = [[prev_cell, self.my_cell, 0]]
+        already_explored = []
+
+        while to_be_explored[0][1].explored:
+            [prev_cell, curr_cell, curr_dist] = to_be_explored.pop(0)
+            already_explored.append(curr_cell)
+
+            neighbors = []
+            for neighbor in path_planner.neighbors(curr_cell):
+                if neighbor not in already_explored:
+                    neighbors.append([curr_cell, neighbor, curr_dist +
+                                       path_planner.distance_between(prev_cell, curr_cell, neighbor)])
+
+            # sort to_be_explored by dist
+            to_be_explored = sorted(to_be_explored+neighbors, key=lambda x: x[2])
+
+        return to_be_explored[0][1]
+
+    def reset_odometry(self, my_x, my_y, front_sensor, compass):
+        print("pos:", my_x, my_y)
+
+        #front_sensor_pos_in_eevee = [my_x + 0.5 * math.cos(compass), my_y + 0.5 * math.sin(compass)]
+
+        # find wall we're hitting
+        if -15 <= compass <= 15:
+            wall = self.my_cell.wall_east
+            wall_coord_x = self.get_gps_coords_from_cell_coords(wall.line[0])[0]
+            front_sensor_pos_in_eevee_x = wall_coord_x - front_sensor
+            my_x = front_sensor_pos_in_eevee_x - 0.5 * math.cos(compass)
+        elif -105 <= compass < -75:
+            wall = self.my_cell.wall_north
+            wall_coord_y = self.get_gps_coords_from_cell_coords(wall.line[0])[1]
+            front_sensor_pos_in_eevee_y = wall_coord_y + front_sensor
+            my_y = front_sensor_pos_in_eevee_y - 0.5 * math.sin(compass)
+        elif 75 < compass <= 105:
+            wall = self.my_cell.wall_south
+            wall_coord_y = self.get_gps_coords_from_cell_coords(wall.line[0])[1]
+            front_sensor_pos_in_eevee_y = wall_coord_y - front_sensor
+            my_y = front_sensor_pos_in_eevee_y - 0.5 * math.sin(compass)
+        elif compass >= 165 or compass <= -165:
+            wall = self.my_cell.wall_west
+            wall_coord_x = self.get_gps_coords_from_cell_coords(wall.line[0])[0]
+            front_sensor_pos_in_eevee_x = wall_coord_x + front_sensor
+            my_x = front_sensor_pos_in_eevee_x - 0.5 * math.cos(compass)
+
+        print("new pos:", my_x, my_y)
+        return my_x, my_y
+
     def render(self, close=False):
         if close:
             pygame.quit()
@@ -108,6 +165,7 @@ class Maze(object):
         self.eevee = self.get_cell_coords_from_gps_coords([my_x, my_y])
         my_cell = self.maze[int(round(self.eevee[0]))][int(round(self.eevee[1]))]
         self.my_cell = my_cell
+        self.my_cell.explored = True
         compass = compass * math.pi / 180
         self.sensor_dots, self.wall_dots = [], []
 
@@ -260,6 +318,8 @@ class Cell(object):
         self.wall_east = Wall([[x + .4375, y - .4375], [x + .4375, y + .4375]], self, "east")
         self.walls = [self.wall_north, self.wall_south, self.wall_west, self.wall_east]
         self.neighbor_north, self.neighbor_south, self.neighbor_east, self.neighbor_west = None, None, None, None
+
+        self.explored = False
 
     def __str__(self):
         return str(self.coords)

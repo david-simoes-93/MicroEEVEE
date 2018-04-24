@@ -41,8 +41,16 @@ class AStar:
         """Gives the real distance between two adjacent nodes n1 and n2 (i.e n2 belongs to the list of n1's neighbors).
            n2 is guaranteed to belong to the list returned by the call to neighbors(n1).
            This method must be implemented in a subclass."""
-        #TODO if in line, return 1; if 90º turn, return 1.5; if 180º turn, return 2
-        return 1
+        # turning back
+        if n0 == n2:
+            return 2
+
+        # going in a straight line
+        if n0.coords[0] == n1.coords[0] == n2.coords[0] or n0.coords[1] == n1.coords[1] == n2.coords[1]:
+            return 1
+
+        # having to turn
+        return 1.5
 
     def neighbors(self, node):
         """For a given node, returns (or yields) the list of its neighbors. this method must be implemented in a subclass"""
@@ -73,7 +81,7 @@ class AStar:
         else:
             return reversed(list(_gen()))
 
-    def astar(self, start, goal, reversePath=False):
+    def astar(self, start, goal, reversePath=False, current=None):
         if self.is_goal_reached(start, goal):
             return [start]
         searchNodes = AStar.SearchNodeDict()
@@ -81,7 +89,8 @@ class AStar:
             start, gscore=.0, fscore=self.heuristic_cost_estimate(start, goal))
         openSet = []
         heappush(openSet, startNode)
-        current = startNode
+        if current is None:
+            current = startNode
         while openSet:
             previous = current
             current = heappop(openSet)
