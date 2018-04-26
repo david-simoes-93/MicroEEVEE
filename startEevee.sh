@@ -1,4 +1,7 @@
 #/bin/bash
+
+source venv/bin/activate 
+
 (cd CiberSim; ./simulator)&
 sleep 1 
 

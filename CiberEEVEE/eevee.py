@@ -5,23 +5,6 @@ from CiberEEVEE.utils import *
 import sys
 import numpy as np
 
-
-def filter_buffer(buffer, val):
-    if val < 0.4:
-        val = 0.4
-    val = 1 / val
-
-    buffer.pop(0)
-    buffer.append(val)
-    return sorted(buffer)[int(len(buffer) / 2)]  # median
-    # return np.mean(buffer)                  # average
-
-
-def stop():
-    cif.driveMotors(0.0, 0.0)
-    # updateRobotPos(0.0, 0.0)
-
-
 # Connect to server
 if len(sys.argv) < 2:
     sys.argv.append("localhost")
@@ -31,7 +14,7 @@ if cif.status != 0:
     quit()
 
 pos_cheese = None
-my_x, my_y, prev_left, pref_right = 0, 0, 0, 0
+my_x, my_y, prev_left, prev_right = 0, 0, 0, 0
 pos_start = [my_x, my_y]
 my_map = Maze()
 path_planner = AStar()
@@ -42,6 +25,7 @@ right_buffer = [0, 0, 0]
 back_buffer = [0, 0, 0]
 
 motor_command_left, motor_command_right = 0, 0
+resetting_odo_turn_counter, resetting_odo_turn_cell = 0, None
 
 while True:
     # Read sensors
@@ -50,7 +34,7 @@ while True:
     left_sensor = filter_buffer(left_buffer, cif.measures.irSensor[1])
     right_sensor = filter_buffer(right_buffer, cif.measures.irSensor[2])
     back_sensor = filter_buffer(back_buffer, cif.measures.irSensor[3])
-    compass = -cif.measures.compass
+    compass = -cif.measures.compass  # TODO compass has 4 cycle delay
 
     # Read cheese ground
     if pos_cheese is not None:
@@ -60,16 +44,19 @@ while True:
         else:
             cif.setVisitingLed(0)
 
-    my_x, my_y, my_dir, prev_left, pref_right = \
-        update_robot_pos(prev_left, pref_right, motor_command_left, motor_command_right,
+    my_x, my_y, my_dir, prev_left, prev_right = \
+        update_robot_pos(prev_left, prev_right, motor_command_left, motor_command_right,
                          my_x, my_y, compass, cif.measures.collision)
     my_map.update(my_x, my_y, left_sensor, front_sensor, right_sensor, back_sensor,
                   my_dir, cif.measures.ground, cif.measures.collision)
     my_map.render()
 
-    #print("%4.2f %4.2f %4.2f %4.2f %4.2fº %d" % (
+    if np.var(right_buffer) < 0.0005 and np.var(left_buffer) < 0.0005 and left_sensor < 0.6 and right_sensor < 0.6:
+        my_x, my_y = my_map.reset_side_odometry(my_x, my_y, left_sensor, right_sensor, my_dir)
+
+    # print("%4.2f %4.2f %4.2f %4.2f %4.2fº %d" % (
     #    left_sensor, front_sensor, right_sensor, compass, my_dir, cif.measures.ground))
-    #print()
+    # print()
 
     # input("rdy?")
 
@@ -84,19 +71,19 @@ while True:
 
         next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[1].coords)
         # if we're too far from second cell, follow first cell
-        if dist_manhattan([my_x, my_y], next_cell_coords) > 2.2:
+        if dist_manhattan([my_x, my_y], next_cell_coords) > 2.4:
             next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[0].coords)
 
         target_dir = get_angle_between_points([my_x, my_y], next_cell_coords)  # from my_pos to center of target cell
 
-        max_speed = 0.1
+        max_speed = 0.10  # max is 0.15
         target_dir = normalize_angle(target_dir - my_dir)
         # print(pos_start, next_cell_coords, target_dir)
 
         # rotate in place
-        if target_dir < -45:
+        if target_dir < -45 and resetting_odo_turn_counter == 0:
             motor_command_left, motor_command_right = -max_speed, max_speed
-        elif target_dir > 45:
+        elif target_dir > 45 and resetting_odo_turn_counter == 0:
             motor_command_left, motor_command_right = max_speed, -max_speed
         else:
             motor_command_left = (target_dir + 90) / 180 * (max_speed * 2)
@@ -108,12 +95,20 @@ while True:
 
             # wall in front
             if front_sensor < 0.3:
-                motor_command_left = 0
-                motor_command_right = 0
+                if resetting_odo_turn_cell != my_map.my_cell:
+                    resetting_odo_turn_counter += 1
 
-                #my_x, my_y = \
-                my_map.reset_odometry(my_x, my_y, front_sensor, compass)
+                motor_command_left, motor_command_right = stop_speed(prev_left, prev_right)
 
+                if resetting_odo_turn_counter > len(front_buffer) + 1:
+                    my_x, my_y = my_map.reset_odometry(my_x, my_y, front_sensor, my_dir, resetting_odo_turn_counter)
+                    resetting_odo_turn_counter = 0
+                    resetting_odo_turn_cell = my_map.my_cell
+            else:
+                resetting_odo_turn_counter = 0
+
+            # TODO if horizontal/vertical and left/right sensors are stable (so going through some tunel),
+            #   adjust odometry
 
             # close to left wall, ensure we are moving lil bit to the right
             if left_sensor < 0.3:
@@ -125,7 +120,7 @@ while True:
                 # if speed > min_sensor:
                 #    motor_command_left *= min_sensor/speed
                 #    motor_command_right *= min_sensor/speed
-        #print(motor_command_left, motor_command_right)
+        # print(motor_command_left, motor_command_right)
         cif.driveMotors(motor_command_left, motor_command_right)
 
 

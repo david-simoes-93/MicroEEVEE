@@ -94,3 +94,19 @@ def get_angle_between_points(c, e):
     # dx = e[0] - c[0]
     theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
     return theta * 180 / np.pi  # rads to degs
+
+
+def filter_buffer(buffer, val):
+    if val < 0.4:
+        val = 0.4
+    val = 1 / val
+
+    buffer.pop(0)
+    buffer.append(val)
+    return sorted(buffer)[int(len(buffer) / 2)]  # median
+    # return np.mean(buffer)                  # average
+
+
+def stop_speed(prev_left, prev_right):
+    stop_speed_val = -0.5 * prev_left - 0.5 * prev_right
+    return stop_speed_val, stop_speed_val
