@@ -18,25 +18,24 @@
 #define max_val 255
 #define min_val -255
 
-struct Cell
-{
-	/* data */
-	struct Wall* north;
-	struct Wall* south;
-	struct Wall* east;
-	struct Wall* west;
-	struct Wall* walls[4] = {north, south, west, east};
-	int coords[2];
-	//uint_8 visited = 0;
+struct Cell {
+    /* data */
+    struct Wall *north;
+    struct Wall* south;
+    struct Wall* east;
+    struct Wall* west;
+    struct Wall walls[4]; // = {north, south, west, east};
+    int coords[2];
+    int explored = 0;
+    //uint_8 visited = 0;
 };
 
 
-struct Wall
-{
-	int weight= 0;
-	int wall = 0; //wall true, no_wall, wall_confirmed --> mask
-	float line[2][2];
-	
+struct Wall {
+    int weight;
+    int wall; //wall true, no_wall, wall_confirmed --> mask
+    float line[2][2];
+
 };
 struct Cell maze[rows][cols];
 
@@ -46,26 +45,28 @@ struct Cell maze[rows][cols];
 void init();
 
 /*ignora os valores acima de 60 cm: demasiado ruido*/
-void update_map(double x, double y, double left, double front, double right ,double compass, int ground );
+void update_map(float, float, float, float, float, float);
 
 /*adiciona o valor*/
-void update_single_sensor(double sensor_val, struct Cell[8], double sensor_positions[3][2] ,  double sensor_pos_in_eevee[2]);
+void update_single_sensor(float sensor_val, struct Cell *, float **, float *);
 
 /*mapeia o peso de confiança para dar a parede*/
-int map_weight(double dist);
+int map_weight(float dist);
 
 
 /*index of wall according to heading*/
-int wall_index(double heading);
+int wall_index(float heading);
 
 
 /*Functions of Wall*/
-void weight(struct Wall* w, int val);
+void weight(struct Wall *w, int val);
 
-void confirm_no_wall(struct Wall* w);
+void confirm_no_wall(struct Wall *w);
 
-bool confirmed_no_wall(struct Wall* w);
-bool no_wall(struct Wall* w);
-bool wall(struct Wall* w);
+bool confirmed_no_wall(struct Wall *w);
+
+bool no_wall(struct Wall *w);
+
+bool wall(struct Wall *w);
 
 /* a* to find path*/

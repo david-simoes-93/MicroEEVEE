@@ -25,19 +25,11 @@
 
 // cNodebLinks
 
-#ifndef MicWindows
-
-#include <values.h>
-
-#else
-
 #ifndef MAXFLOAT
 #define MAXFLOAT (1e30)
 #endif
 #ifndef MAXINT
 #define MAXINT (0x7fffffff)
-#endif
-
 #endif
 
 

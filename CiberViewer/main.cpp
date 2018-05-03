@@ -1,7 +1,7 @@
 /*
     This file is part of ciberRatoToolsSrc.
 
-    Copyright (C) 2001-2016 Universidade de Aveiro
+    Copyright (C) 2001-2018 Universidade de Aveiro
 
     ciberRatoToolsSrc is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -113,9 +113,9 @@ int main( int argc, char **argv )
 
 	cout << "\n\tUniversidade de Aveiro\n";
 	cout << "\tDepartamento de Electronica e Telecomunicacoes\n";
-    cout << "\tCiberRato 2016\n";
+    cout << "\tExplorer 2018\n";
     cout << "\n\tViewer v2.0\n\n";
-    cout << "\tAntonio Neves \tan@ieeta.pt\n";
+    cout << "\tAntonio Neves \t\tan@ieeta.pt\n";
     cout << "\tJoao Figueiredo \tjoao.figueiredo@hotpop.com\n";
     cout << "\tMiguel Rodrigues \tmiguel.rodrigues@ua.pt\n\n";
 
@@ -144,7 +144,7 @@ int main( int argc, char **argv )
     //fflush( stdout );
 	
     CRQLabView *labGUI = new CRQLabView(param);  //Built view
-    labGUI->setWindowTitle("CiberRato 2016");
+    labGUI->setWindowTitle("Explorer 2018");
     labGUI->show();
 
     Visualizador.connect( &Visualizador, SIGNAL( lastWindowClosed() ),

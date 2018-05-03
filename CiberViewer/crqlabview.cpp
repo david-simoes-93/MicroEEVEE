@@ -56,10 +56,10 @@ void CRQLabView::on_actionAbout_triggered()
                                          "<h2>Viewer</h2>"
                                          "<ul>"
                                          "<li>Universidade de Aveiro"
-                                         "<li>CiberRato 2016 Contest"
+                                         "<li>Explorer 2018 Contest"
                                          "<li>http://microrato.ua.pt"
                                          "</ul>"
-                                         "<b>Copyright 2002-2016 Antnio Neves, Joo Figueiredo, Miguel Rodrigues</b>",
+                                         "<b>Copyright 2002-2018 Antnio Neves, Joo Figueiredo, Miguel Rodrigues</b>",
                                          QMessageBox::Ok, this);
     about->show();
 }

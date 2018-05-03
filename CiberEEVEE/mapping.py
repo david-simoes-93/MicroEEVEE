@@ -76,14 +76,13 @@ class Maze(object):
     def reset_side_odometry(self, my_x, my_y, left_sensor, right_sensor, compass):
         if self.prev_side_odometry_reset_cell == self.my_cell:
             return my_x, my_y
-        self.prev_side_odometry_reset_cell = self.my_cell
 
+        self.prev_side_odometry_reset_cell = self.my_cell
         compass_rad_left = compass * math.pi / 180 + math.pi/2
         compass_rad_right = compass * math.pi / 180 - math.pi/2
 
-        print("pos:", my_x, my_y, self.my_cell, "sensors", left_sensor, right_sensor, compass)
+        #print("pos:", my_x, my_y, self.my_cell, "sensors", left_sensor, right_sensor, compass)
 
-        # find wall we're hitting
         if -15 <= compass <= 15:
             wall_left = self.my_cell.wall_north
             wall_right = self.my_cell.wall_south
@@ -121,14 +120,14 @@ class Maze(object):
             my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left)) \
                    + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
 
-        print("new pos:", my_x, my_y)
+        #print("new pos:", my_x, my_y)
 
         return my_x, my_y
 
-    def reset_odometry(self, my_x, my_y, front_sensor, compass, trust_turns):
+    def reset_odometry(self, my_x, my_y, front_sensor, compass):
         compass_rad = compass * math.pi / 180
 
-        print("pos:", my_x, my_y, self.my_cell, "sensors", front_sensor, compass)
+        #print("pos:", my_x, my_y, self.my_cell, "sensors", front_sensor, compass)
         wall = None
         # front_sensor_pos_in_eevee = [my_x + 0.5 * math.cos(compass), my_y + 0.5 * math.sin(compass)]
 
@@ -157,7 +156,7 @@ class Maze(object):
         if wall is not None:
             wall.confirm_wall()
             wall.get_adjacent_wall().confirm_wall()
-            print("new pos:", my_x, my_y)
+            #print("new pos:", my_x, my_y)
 
         return my_x, my_y
 

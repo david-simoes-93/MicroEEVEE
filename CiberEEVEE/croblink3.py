@@ -1,3 +1,4 @@
+
 import socket
 
 UDP_IP = "127.0.0.1"
@@ -5,129 +6,147 @@ UDP_PORT = 6000
 
 NUM_IR_SENSORS = 4
 
-
 class CRobLink:
-    def __init__(self, robName, robId, host):
+
+
+    def __init__ (self, robName, robId, host):
         self.robName = robName
         self.robId = robId
         self.host = host
 
-        self.sock = socket.socket(socket.AF_INET,  # Internet
-                                  socket.SOCK_DGRAM)  # UDP
 
-        msg = ('<Robot Id="' + str(robId) + '" Name="' + robName + '" />')
-        self.sock.sendto(msg.encode(), (host, UDP_PORT))
-        data, (host, self.port) = self.sock.recvfrom(1024)
-        # print "received message:", data, " port ", self.port
+        self.sock = socket.socket(socket.AF_INET, # Internet
+                             socket.SOCK_DGRAM) # UDP
+        
+        msg = '<Robot Id="'+str(robId)+'" Name="'+robName+'" />'
+        
+        self.sock.sendto(msg.encode(), (host, UDP_PORT))  # TODO condider host arg
+        data, (host,self.port) = self.sock.recvfrom(1024)
+        #print "received message:", data, " port ", self.port
 
         parser = sax.make_parser()
-
+        
         # Tell it what handler to use
         handler = StructureHandler()
-        parser.setContentHandler(handler)
-
+        parser.setContentHandler( handler )
+        
         # Parse reply 
 
         d2 = data[:-1]
-        #        try:
-        sax.parseString(d2, handler)
-        #        except SAXParseException:
-        #            self.status = -1
-        #            return
+#        try:
+        sax.parseString( d2, handler )
+#        except SAXParseException:
+#            self.status = -1
+#            return 
         self.status = handler.status
 
+
     def readSensors(self):
-        data, (host, port) = self.sock.recvfrom(4096)
+        data, (host,port) = self.sock.recvfrom(4096)
         d2 = data[:-1]
 
-        # print "RECV : \"" + d2 +'"'
+        #print "RECV : \"" + d2 +'"'
         parser = sax.make_parser()
         # Tell it what handler to use
         handler = StructureHandler()
-        parser.setContentHandler(handler)
+        parser.setContentHandler( handler )
 
-        #        try:
-        sax.parseString(d2, handler)
-        #        except SAXParseException:
-        #            status = -1
-        #            return
+#        try:
+        sax.parseString( d2, handler )
+#        except SAXParseException:
+#            status = -1
+#            return 
         self.status = handler.status
-        self.measures = handler.measures
-
+        self.measures  = handler.measures
+        
     def driveMotors(self, lPow, rPow):
-        msg = '<Actions LeftMotor="' + str(lPow) + '" RightMotor="' + str(rPow) + '"/>'
-        self.sock.sendto(msg.encode(), (UDP_IP, self.port))
+        msg = '<Actions LeftMotor="'+str(lPow)+'" RightMotor="'+str(rPow)+'"/>'
+        self.sock.sendto(msg.encode(),(self.host,self.port))
 
-    def setReturningLed(self, val):
-        msg = '<Actions LeftMotor="0.0" RightMotor="0.0" ReturningLed="' + ("On" if val else "Off") + '"/>'
-        self.sock.sendto(msg.encode(), (UDP_IP, self.port))
+    def setReturningLed(self,val):
+        msg = '<Actions LeftMotor="0.0" RightMotor="0.0" ReturningLed="'+ ("On" if val else "Off") +'"/>'
+        self.sock.sendto(msg.encode(),(self.host,self.port))
 
-    def setVisitingLed(self, val):
-        msg = '<Actions LeftMotor="0.0" RightMotor="0.0" VisitingLed="' + ("On" if val else "Off") + '"/>'
-        self.sock.sendto(msg.encode(), (UDP_IP, self.port))
+    def setVisitingLed(self,val):
+        msg = '<Actions LeftMotor="0.0" RightMotor="0.0" VisitingLed="'+ ("On" if val else "Off") +'"/>'
+        self.sock.sendto(msg.encode(),(self.host,self.port))
 
     def finish(self):
         msg = '<Actions LeftMotor="0.0" RightMotor="0.0" EndLed="On"/>'
-        self.sock.sendto(msg.encode(), (UDP_IP, self.port))
+        self.sock.sendto(msg.encode(),(self.host,self.port))
 
-        # my_status = lambda self : self.status
+    def requestSensors(self, sensorList):
+        msg = '<Actions>\n\t<SensorRequests '
+        for sens in sensorList:
+             msg += sens+'=\"Yes\" '
+        msg += '/>\n</Actions>' 
+        self.sock.sendto(msg.encode(),(self.host,self.port))
+
+    #my_status = lambda self : self.status
 
 
 class CRobLinkAngs(CRobLink):
-    def __init__(self, robName, robId, angs, host):
+
+
+    def __init__ (self, robName, robId, angs, host):
         self.robName = robName
         self.robId = robId
         self.host = host
         self.angs = angs
 
-        self.sock = socket.socket(socket.AF_INET,  # Internet
-                                  socket.SOCK_DGRAM)  # UDP
 
-        msg = '<Robot Id="' + str(robId) + '" Name="' + robName + '">'
+        self.sock = socket.socket(socket.AF_INET, # Internet
+                             socket.SOCK_DGRAM) # UDP
+        
+        msg = '<Robot Id="'+str(robId)+'" Name="'+robName+'">'
         for ir in range(NUM_IR_SENSORS):
-            msg += '<IRSensor Id="' + str(ir) + '" Angle="' + str(angs[ir]) + '" />'
-        msg += '</Robot>'
+            msg+='<IRSensor Id="'+str(ir)+'" Angle="'+str(angs[ir])+'" />'
+        msg+='</Robot>'
 
-        # print "msg ", msg
-
-        self.sock.sendto(msg.encode(), (host, UDP_PORT))
-        data, (host, self.port) = self.sock.recvfrom(1024)
-        # print "received message:", data, " port ", self.port
+        #print "msg ", msg
+        
+        self.sock.sendto(msg.encode(), (host, UDP_PORT))  # TODO condider host arg
+        data, (host,self.port) = self.sock.recvfrom(1024)
+        #print "received message:", data, " port ", self.port
 
         parser = sax.make_parser()
-
+        
         # Tell it what handler to use
         handler = StructureHandler()
-        parser.setContentHandler(handler)
+        parser.setContentHandler( handler )
+        
+        # Parse reply 
 
-        # Parse reply
         d2 = data[:-1]
-        sax.parseString(d2, handler)
-
+#        try:
+        sax.parseString( d2, handler )
+#        except SAXParseException:
+#            self.status = -1
+#            return 
         self.status = handler.status
 
-
 class CMeasures:
-    def __init__(self):
-        self.compassReady = False
-        self.compass = 0.0;
-        self.irSensorReady = [False for i in range(NUM_IR_SENSORS)]
-        self.irSensor = [0.0 for i in range(NUM_IR_SENSORS)]
-        self.beaconReady = False  # TODO consider more than one beacon
+
+    def __init__ (self):
+        self.compassReady=False
+        self.compass=0.0; 
+        self.irSensorReady=[False for i in range(NUM_IR_SENSORS)]
+        self.irSensor=[0.0 for i in range(NUM_IR_SENSORS)]
+        self.beaconReady = False   # TODO consider more than one beacon
         self.beacon = (False, 0.0)
         self.time = 0
 
         self.groundReady = False
         self.ground = -1
         self.collisionReady = False
-        self.collision = False
-        self.start = False
-        self.stop = False
+        self.collision = False 
+        self.start = False 
+        self.stop = False 
         self.endLed = False
         self.returningLed = False
         self.visitingLed = False
-        self.x = 0.0
-        self.y = 0.0
+        self.x = 0.0   
+        self.y = 0.0   
         self.dir = 0.0
 
         self.scoreReady = False
@@ -141,14 +160,16 @@ class CMeasures:
         self.gpsReady = False
         self.gpsDirReady = False
 
-        self.hearMessage = ''
+
+        self.hearMessage=''
+
 
 
 from xml import sax
 
-
 class StructureHandler(sax.ContentHandler):
-    def __init__(self):
+
+    def __init__ (self):
         self.status = 0
         self.measures = CMeasures()
 
@@ -157,46 +178,46 @@ class StructureHandler(sax.ContentHandler):
             if "Status" not in attrs.keys():
                 self.status = -1
                 return
-
-            if attrs["Status"] == "Ok":
+                
+            if attrs["Status"]=="Ok":
                 self.status = 0
                 return
             self.status = -1
-        elif name == "Measures":
+        elif name=="Measures":
             self.measures.time = int(attrs["Time"])
-        elif name == "Sensors":
-            self.measures.compassReady = ("Compass" in attrs.keys())
+        elif name=="Sensors":
+            self.measures.compassReady         = ("Compass" in attrs.keys())
             if self.measures.compassReady:
-                self.measures.compass = float(attrs["Compass"])
+                self.measures.compass =   float(attrs["Compass"])
 
-            self.measures.collisionReady = ("Collision" in attrs.keys())
+            self.measures.collisionReady         = ("Collision" in attrs.keys())
             if self.measures.collisionReady:
                 self.measures.collision = (attrs["Collision"] == "Yes")
 
-            self.measures.groundReady = ("Ground" in attrs.keys())
+            self.measures.groundReady         = ("Ground" in attrs.keys())
             if self.measures.groundReady:
-                self.measures.ground = int(attrs["Ground"])
+                self.measures.ground =    int(attrs["Ground"])
 
         elif name == "IRSensor":
             id = int(attrs["Id"])
-            # print "IRSensor id ", id
-            if id < NUM_IR_SENSORS:
+            #print "IRSensor id ", id
+            if id < NUM_IR_SENSORS: 
                 self.measures.irSensorReady[id] = True
-                # print "IRSensor val ", attrs["Value"]
-                self.measures.irSensor[id] = float(attrs["Value"].replace(",", "."))
-            else:
+                #print "IRSensor val ", attrs["Value"]
+                self.measures.irSensor[id] = float(attrs["Value"].replace(",","."))
+            else: 
                 self.status = -1
         elif name == "BeaconSensor":
             id = attrs["Id"]
-            # if id<self.measures.beaconReady.len():
+            #if id<self.measures.beaconReady.len():
             if 1:
-                self.measures.beaconReady = True
+                self.measures.beaconReady=True
                 if attrs["Value"] == "NotVisible":
-                    # self.measures.beaconReady[id]=(False,0.0)
-                    self.measures.beacon = (False, 0.0)
+                    #self.measures.beaconReady[id]=(False,0.0)
+                    self.measures.beacon=(False,0.0)
                 else:
-                    # self.measures.beaconReady[id]=(True,attrs["Value"])
-                    self.measures.beacon = (True, float(attrs["Value"].replace(",", ".")))
+                    #self.measures.beaconReady[id]=(True,attrs["Value"])
+                    self.measures.beacon=(True,float(attrs["Value"].replace(",",".")))
             else:
                 self.status = -1
         elif name == "GPS":
@@ -205,10 +226,10 @@ class StructureHandler(sax.ContentHandler):
                 self.measures.x = float(attrs["X"])
                 self.measures.y = float(attrs["Y"])
                 if "Dir" in attrs.keys():
-                    self.measures.gpsDirReady = True
-                    self.measures.dir = float(attrs["Dir"].replace(",", "."))
+                     self.measures.gpsDirReady = True
+                     self.measures.dir = float(attrs["Dir"].replace(",","."))
                 else:
-                    self.measures.gpsDirReady = False
+                     self.measures.gpsDirReady = False
             else:
                 self.measures.gpsReady = False
         elif name == "Leds":
@@ -219,21 +240,22 @@ class StructureHandler(sax.ContentHandler):
             self.measures.start = (attrs["Start"] == "On")
             self.measures.stop = (attrs["Stop"] == "On")
         elif name == "Score":
-            self.measures.scoreReady = ("Score" in attrs.keys())
+            self.measures.scoreReady         = ("Score" in attrs.keys())
             if self.measures.scoreReady:
-                self.measures.score = int(attrs["Score"])
-            self.measures.arrivalTimeReady = ("ArrivalTime" in attrs.keys())
+                 self.measures.score=int(attrs["Score"])
+            self.measures.arrivalTimeReady         = ("ArrivalTime" in attrs.keys())
             if self.measures.arrivalTimeReady:
-                self.measures.arrivalTime = int(attrs["ArrivalTime"])
-            self.measures.returningTimeReady = ("ReturningTime" in attrs.keys())
+                 self.measures.arrivalTime=int(attrs["ArrivalTime"])
+            self.measures.returningTimeReady         = ("ReturningTime" in attrs.keys())
             if self.measures.returningTimeReady:
-                self.measures.returningTime = int(attrs["ReturningTime"])
-            self.measures.collisionsReady = ("Collisions" in attrs.keys())
+                 self.measures.returningTime=int(attrs["ReturningTime"])
+            self.measures.collisionsReady         = ("Collisions" in attrs.keys())
             if self.measures.collisionsReady:
-                self.measures.collisions = int(attrs["Collisions"])
+                 self.measures.collisions=int(attrs["Collisions"])
         elif name == "Message":
             self.hearFrom = int(attrs["From"])
 
 
-        #    def endElement(self, name):
-        # print 'End of element:', name
+#    def endElement(self, name):
+        #print 'End of element:', name
+

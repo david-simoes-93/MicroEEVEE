@@ -114,7 +114,7 @@ static const char *GRID =
 static const char *SIMPARAM =
         "<Parameters SimTime=\"1800\" KeyTime=\"1350\" CycleTime=\"50\"\n"
 		"\t\tCompassNoise=\"2.0\" BeaconNoise=\"2.0\" ObstacleNoise=\"0.1\"\n"
-		"\t\tNRequestsPerCycle=\"0\"\n"
+		"\t\tNRequestsPerCycle=\"4\"\n"
 		"\t\tCompassLatency=\"0\" BeaconLatency=\"0\"\n"
         "\t\tMotorsNoise=\"1.5\"\n"
         "\t\tReturnTimePenalty=\"25\" ArrivalTimePenalty=\"100\"\n"
@@ -1446,7 +1446,7 @@ void cbSimulator::processEditParameters(void)
 	cbBeaconSensor::sensorAperture   = param->beaconAperture;
 
     cbRobot::GPSOn             = param->GPSOn;
-    cbRobot::beaconSensorOn             = param->beaconSensorOn;
+    cbRobot::beaconSensorOn    = param->beaconSensorOn;
 	cbRobot::scoreSensorOn     = param->scoreSensorOn;
 
     //Scores

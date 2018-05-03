@@ -85,7 +85,18 @@ def update_robot_pos(prev_left, prev_right, in_left, in_right, my_x, my_y, my_di
         new_my_y = my_y
     new_my_dir = my_dir + rot
 
+    #if compass is not None:
+    #    new_my_dir = 0.5 * new_my_dir + 0.5 * (compass * np.pi / 180)
+
     return new_my_x, new_my_y, new_my_dir * 180 / np.pi, out_left, out_right
+
+
+# returns new pose based on previous pose and odometry model
+def update_robot_pos_time_delay(prev_left, prev_right, in_lefts, in_rights, my_x, my_y, my_dir, collidings):
+    for i in range(4):
+        my_x, my_y, my_dir, prev_left, prev_right = update_robot_pos(
+            prev_left, prev_right, in_lefts[i], in_rights[i], my_x, my_y, my_dir, collidings[i])
+    return my_x, my_y, my_dir
 
 
 # returns angle between line [c,e] and x-axis in degress

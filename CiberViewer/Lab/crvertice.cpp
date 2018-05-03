@@ -29,7 +29,7 @@ CRVertice::CRVertice()
 	xf=0.0;
 	yf=0.0;
 }
-CRVertice::CRVertice(float x_value=0, float y_value=0)
+CRVertice::CRVertice(float x_value, float y_value=0)
 {
 	xf=x_value;
 	yf=y_value;

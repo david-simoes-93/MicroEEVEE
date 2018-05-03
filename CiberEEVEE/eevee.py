@@ -24,109 +24,128 @@ left_buffer = [0, 0, 0]
 right_buffer = [0, 0, 0]
 back_buffer = [0, 0, 0]
 
+prev_lefts, prev_rights, motor_command_lefts, motor_command_rights, my_xs, my_ys, collisions = \
+    [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]
+
 motor_command_left, motor_command_right = 0, 0
 resetting_odo_turn_counter, resetting_odo_turn_cell = 0, None
+compass, front_sensor, left_sensor, right_sensor, back_sensor, ground, my_dir = 0, 0, 0, 0, 0, False, 0
 
+turn, did_left = 0, False
 while True:
     # Read sensors
     cif.readSensors()
-    front_sensor = filter_buffer(front_buffer, cif.measures.irSensor[0])
-    left_sensor = filter_buffer(left_buffer, cif.measures.irSensor[1])
-    right_sensor = filter_buffer(right_buffer, cif.measures.irSensor[2])
-    back_sensor = filter_buffer(back_buffer, cif.measures.irSensor[3])
-    compass = -cif.measures.compass  # TODO compass has 4 cycle delay
+    if cif.measures.irSensorReady[0]:
+        front_sensor = filter_buffer(front_buffer, cif.measures.irSensor[0])
+    if cif.measures.irSensorReady[1]:
+        left_sensor = filter_buffer(left_buffer, cif.measures.irSensor[1])
+    if cif.measures.irSensorReady[2]:
+        right_sensor = filter_buffer(right_buffer, cif.measures.irSensor[2])
+    if cif.measures.irSensorReady[3]:
+        back_sensor = filter_buffer(back_buffer, cif.measures.irSensor[3])
+    compass = -cif.measures.compass if cif.measures.compassReady else my_dir  # TODO compass has 4 cycle delay
+    ground = cif.measures.ground if cif.measures.groundReady else None
+
+    if turn % 2 == 0:
+        cif.requestSensors(['IRSensor0', 'IRSensor1', 'IRSensor2', 'Compass'])
+    else:
+        if did_left:
+            cif.requestSensors(['IRSensor0', 'IRSensor1', 'Ground', 'IRSensor3'])
+        else:
+            cif.requestSensors(['IRSensor0', 'IRSensor2', 'Ground', 'IRSensor3'])
+        did_left = not did_left
+    turn += 1
+    # print("--")
 
     # Read cheese ground
-    if pos_cheese is not None:
-        if cif.measures.ground == 0:
+    if pos_cheese is not None and ground is not None:
+        if ground == 0:
             pos_cheese = (my_x, my_y)
             cif.setVisitingLed(1)
         else:
             cif.setVisitingLed(0)
 
+    # odometry, mapping
     my_x, my_y, my_dir, prev_left, prev_right = \
         update_robot_pos(prev_left, prev_right, motor_command_left, motor_command_right,
                          my_x, my_y, compass, cif.measures.collision)
+    update_robot_pos_time_delay(prev_lefts[0], prev_rights[0], motor_command_lefts, motor_command_rights,
+                                my_xs[0], my_ys[0], compass, collisions)
+    # print(compass, my_dir)
     my_map.update(my_x, my_y, left_sensor, front_sensor, right_sensor, back_sensor,
                   my_dir, cif.measures.ground, cif.measures.collision)
     my_map.render()
-
-    if np.var(right_buffer) < 0.0005 and np.var(left_buffer) < 0.0005 and left_sensor < 0.6 and right_sensor < 0.6:
-        my_x, my_y = my_map.reset_side_odometry(my_x, my_y, left_sensor, right_sensor, my_dir)
 
     # print("%4.2f %4.2f %4.2f %4.2f %4.2fº %d" % (
     #    left_sensor, front_sensor, right_sensor, compass, my_dir, cif.measures.ground))
     # print()
 
-    # input("rdy?")
-
+    # wait until simulation has started
     if cif.measures.time == 0:
+        cif.driveMotors(0, 0)
         continue
 
+    # if going on a tunnel for some time, then reset odometry based on side sensors
+    if np.var(right_buffer) < 0.0005 and np.var(left_buffer) < 0.0005 and left_sensor < 0.6 and right_sensor < 0.6:
+        my_x, my_y = my_map.reset_side_odometry(my_x, my_y, left_sensor, right_sensor, my_dir)
+
+    # explore
     if pos_cheese is None:
         target_path = list(path_planner.astar(my_map.my_cell, my_map.pick_exploration_target(AStar(), my_dir)))
         my_map.reset_debug_dots()
         for cell in target_path:
             my_map.add_debug_dot(cell.coords)
 
+        # start following the second cell in the path (since the first cell is likely to be the current one)
         next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[1].coords)
-        # if we're too far from second cell, follow first cell
+        # if we're too far from second cell, follow first cell to its center
         if dist_manhattan([my_x, my_y], next_cell_coords) > 2.4:
             next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[0].coords)
 
+        # actual turning direction
         target_dir = get_angle_between_points([my_x, my_y], next_cell_coords)  # from my_pos to center of target cell
 
         max_speed = 0.10  # max is 0.15
         target_dir = normalize_angle(target_dir - my_dir)
         # print(pos_start, next_cell_coords, target_dir)
 
-        # rotate in place
-        if target_dir < -45 and resetting_odo_turn_counter == 0:
-            motor_command_left, motor_command_right = -max_speed, max_speed
-        elif target_dir > 45 and resetting_odo_turn_counter == 0:
-            motor_command_left, motor_command_right = max_speed, -max_speed
-        else:
-            motor_command_left = (target_dir + 90) / 180 * (max_speed * 2)
-            motor_command_right = (max_speed * 2) - motor_command_left
+    # rotate in place
+    if target_dir < -45 and resetting_odo_turn_counter == 0:
+        motor_command_left, motor_command_right = -max_speed, max_speed
+    elif target_dir > 45 and resetting_odo_turn_counter == 0:
+        motor_command_left, motor_command_right = max_speed, -max_speed
+    # or move forward or turning slightly
+    else:
+        motor_command_left = (target_dir + 90) / 180 * (max_speed * 2)
+        motor_command_right = (max_speed * 2) - motor_command_left
 
-            # reactive obstacle dodge!
-            speed = np.abs(motor_command_left) + np.abs(motor_command_right)
-            min_sensor = np.min([front_sensor, left_sensor, right_sensor])
+        # reactive obstacle dodge!
+        speed = np.abs(motor_command_left) + np.abs(motor_command_right)
+        min_sensor = np.min([front_sensor, left_sensor, right_sensor])
 
-            # wall in front
-            if front_sensor < 0.3:
-                if resetting_odo_turn_cell != my_map.my_cell:
-                    resetting_odo_turn_counter += 1
+        # if wall in front, lets wait a few cycles until we've filled the front buffer with the same reading
+        # and reset odometry
+        if front_sensor < 0.3:
+            if resetting_odo_turn_cell != my_map.my_cell:
+                resetting_odo_turn_counter += 1
 
-                motor_command_left, motor_command_right = stop_speed(prev_left, prev_right)
+            motor_command_left, motor_command_right = stop_speed(prev_left, prev_right)
 
-                if resetting_odo_turn_counter > len(front_buffer) + 1:
-                    my_x, my_y = my_map.reset_odometry(my_x, my_y, front_sensor, my_dir, resetting_odo_turn_counter)
-                    resetting_odo_turn_counter = 0
-                    resetting_odo_turn_cell = my_map.my_cell
-            else:
+            if resetting_odo_turn_counter > len(front_buffer) + 1:
+                my_x, my_y = my_map.reset_odometry(my_x, my_y, front_sensor, my_dir)
                 resetting_odo_turn_counter = 0
+                resetting_odo_turn_cell = my_map.my_cell
+        else:
+            resetting_odo_turn_counter = 0
 
-            # TODO if horizontal/vertical and left/right sensors are stable (so going through some tunel),
-            #   adjust odometry
+        # close to left wall, ensure we are moving lil bit to the right
+        if left_sensor < 0.3:
+            motor_command_right = min(motor_command_right, motor_command_left * 0.9)
+        # close to right wall, ensure we are moving lil bit to the left
+        if right_sensor < 0.3:
+            motor_command_left = min(motor_command_right * 0.9, motor_command_left)
 
-            # close to left wall, ensure we are moving lil bit to the right
-            if left_sensor < 0.3:
-                motor_command_right = min(motor_command_right, motor_command_left * 0.9)
-            # close to right wall, ensure we are moving lil bit to the left
-            if right_sensor < 0.3:
-                motor_command_left = min(motor_command_right * 0.9, motor_command_left)
-                # el
-                # if speed > min_sensor:
-                #    motor_command_left *= min_sensor/speed
-                #    motor_command_right *= min_sensor/speed
-        # print(motor_command_left, motor_command_right)
-        cif.driveMotors(motor_command_left, motor_command_right)
-
-
-        # if sim_state == STOP:
-        #    stop()
-        #    print("End.")
-        #    exit()
+    # print(motor_command_left, motor_command_right)
+    cif.driveMotors(motor_command_left, motor_command_right)
 
 my_map.render(close=True)

@@ -93,7 +93,7 @@ public:
     {
         if (cbSimulatorGUI->objectName().isEmpty())
             cbSimulatorGUI->setObjectName(QString::fromUtf8("cbSimulatorGUI"));
-        cbSimulatorGUI->resize(796, 325);
+        cbSimulatorGUI->resize(994, 750);
         actionReset = new QAction(cbSimulatorGUI);
         actionReset->setObjectName(QString::fromUtf8("actionReset"));
         QIcon icon;
@@ -195,8 +195,8 @@ public:
         centralwidget = new QWidget(cbSimulatorGUI);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         verticalLayout = new QVBoxLayout(centralwidget);
-        verticalLayout->setContentsMargins(0, 0, 0, 0);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
+        verticalLayout->setContentsMargins(0, 0, 0, 0);
         messages = new QTextEdit(centralwidget);
         messages->setObjectName(QString::fromUtf8("messages"));
         messages->setReadOnly(true);
@@ -206,7 +206,7 @@ public:
         cbSimulatorGUI->setCentralWidget(centralwidget);
         menubar = new QMenuBar(cbSimulatorGUI);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 796, 21));
+        menubar->setGeometry(QRect(0, 0, 994, 25));
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuConfiguration = new QMenu(menuFile);
@@ -327,7 +327,7 @@ public:
         palette.setBrush(QPalette::Disabled, QPalette::ToolTipText, brush);
         lcdNumber_TimeRemain->setPalette(palette);
         lcdNumber_TimeRemain->setFrameShape(QFrame::NoFrame);
-        lcdNumber_TimeRemain->setNumDigits(4);
+        lcdNumber_TimeRemain->setDigitCount(4);
         lcdNumber_TimeRemain->setSegmentStyle(QLCDNumber::Flat);
 
         gridLayout->addWidget(lcdNumber_TimeRemain, 1, 0, 1, 1);
@@ -459,7 +459,7 @@ public:
 
     void retranslateUi(QMainWindow *cbSimulatorGUI)
     {
-        cbSimulatorGUI->setWindowTitle(QApplication::translate("cbSimulatorGUI", "CiberRato Simulator 2016", 0, QApplication::UnicodeUTF8));
+        cbSimulatorGUI->setWindowTitle(QApplication::translate("cbSimulatorGUI", "Explorer Simulator 2016", 0, QApplication::UnicodeUTF8));
         actionReset->setText(QApplication::translate("cbSimulatorGUI", "&Reset", 0, QApplication::UnicodeUTF8));
         actionReset->setShortcut(QApplication::translate("cbSimulatorGUI", "Ctrl+R", 0, QApplication::UnicodeUTF8));
         actionSimulator_Help->setText(QApplication::translate("cbSimulatorGUI", "&Help", 0, QApplication::UnicodeUTF8));

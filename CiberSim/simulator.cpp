@@ -1,7 +1,7 @@
 /*
     This file is part of ciberRatoToolsSrc.
 
-    Copyright (C) 2001-2016 Universidade de Aveiro
+    Copyright (C) 2001-2018 Universidade de Aveiro
 
     ciberRatoToolsSrc is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ double  cbGPSSensor::offsetX   = randUniform(0.0, 1000.0);
 double  cbGPSSensor::offsetY   = randUniform(0.0, 1000.0);
 double  cbGPSSensor::offsetDeg = 0.0;  // a different value would not be consistent with XY reference frame nor with compass
 
-bool    cbRobot::GPSOn = false;
+bool    cbRobot::GPSOn = true;
 bool    cbRobot::beaconSensorOn = false;
 bool    cbRobot::GPSDirOn = false;
 bool    cbRobot::scoreSensorOn = false;
@@ -117,12 +117,12 @@ int     cbRobot::homeReward = 100;
 //Requests
 unsigned int    cbRobot::maxSensorsRequested = 4;
 
-bool    cbIRSensor::sensorRequestable        = false;
-bool    cbBeaconSensor::sensorRequestable    = false;
-bool    cbCompassSensor::sensorRequestable   = false;
-bool    cbGroundSensor::sensorRequestable    = false;
+bool    cbIRSensor::sensorRequestable        = true;
+bool    cbBeaconSensor::sensorRequestable    = true;
+bool    cbCompassSensor::sensorRequestable   = true;
+bool    cbGroundSensor::sensorRequestable    = true;
 bool    cbCollisionSensor::sensorRequestable = false;
-bool    cbGPSSensor::sensorRequestable       = false;
+bool    cbGPSSensor::sensorRequestable       = true;
 
 //Latencies
 int     cbIRSensor::sensorLatency        =  0;
@@ -158,7 +158,7 @@ void CommandLineError()
 int main(int argc, char *argv[])
 {
 	/* Copyright and wellcome message */
-    printf(" CiberRato 2016 Simulator\n Copyright (C) 2001-2016 Universidade de Aveiro\n");
+    printf(" Explorer 2018 Simulator\n Copyright (C) 2001-2018 Universidade de Aveiro\n");
     fflush(stdout);
 
 	/* extract option values */
@@ -324,9 +324,9 @@ int main(int argc, char *argv[])
 	if (gridFilename) // a grid file is given
 		simulator.changeGrid(gridFilename);
 
-        //simulator.printTargetRelativePositions();  // first lab, slot still not connected to labChanged and gridChanged
+    //simulator.printTargetRelativePositions();  // first lab, slot still not connected to labChanged and gridChanged
 
-        printf("BeaconSensor: %d\n", cbRobot::beaconSensorOn);
+    //printf("BeaconSensor: %d\n", cbRobot::beaconSensorOn);
 
 
     if(logFilename)
