@@ -13,48 +13,57 @@ void init() {
             float y = (float) j;
             if (j > 0) {
                 /*go find the adjacent wall*/
-                maze[j][i].
-                north = maze[j - 1][i].
-                south;
+                maze[j][i].north_wall = maze[j - 1][i].south_wall;
             } else if (j == rows - 1) {
                 struct Wall tmp;
                 tmp.line = {{x - 0.4375, y + 0.4375},
                             {x + 0.4375, y + 0.4375}}; //line coords
-                maze[j][i].
-                south = &tmp;
+                maze[j][i].south_wall = &tmp;
             } else {
                 /*create a new one*/
                 struct Wall tmp;
                 tmp.line = {{x - 0.4375, y - 0.4375},
                             {x + 0.4375, y - 0.4375}}; //line coords
-                maze[j][i].
-                north = &tmp;
+                maze[j][i].north_wall = &tmp;
             }
 
             if (i > 0) {
                 /*go find the adjacent wall*/
-                maze[j][i].
-                west = maze[j][i - 1].
-                east;
+                maze[j][i].west_wall = maze[j][i - 1].east_wall;
             } else if (i == cols - 1) {
                 /*last wall on te map without adjacent wall*/
                 struct Wall tmp;
                 tmp.line = {{x + 0.4375, y - 0.4375},
-                            {x + 0.4375, y + 0.4375}}
-                maze[j][i].
-                east = &tmp;
+                            {x + 0.4375, y + 0.4375}};
+                maze[j][i].east_wall = &tmp;
             } else {
                 /*create a new one*/
                 struct Wall tmp;
                 tmp.line = {{x - 0.4375, y - 0.4375},
-                            {x - 0.4375, y + 0.4375}}
-                maze[j][i].
-                west = &tmp;
+                            {x - 0.4375, y + 0.4375}};
+                maze[j][i].west_wall = &tmp;
             }
 
         }
 
 
+    }
+}
+
+void print_map(){
+    for(int x=0; x<cols; x++){
+        for(int y=0; y<rows; y++){
+            if((maze[x][y].west_wall->wall & wall_mask) != 0)
+                printf("|");
+            else
+                printf(" ");
+
+            if((maze[x][y].south_wall->wall & wall_mask) != 0)
+                printf("_");
+            else
+                printf(" ");
+        }
+        printf("\n");
     }
 }
 

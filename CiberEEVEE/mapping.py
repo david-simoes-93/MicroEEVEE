@@ -241,7 +241,7 @@ class Maze(object):
         my_cell = self.maze[int(round(self.eevee[0]))][int(round(self.eevee[1]))]
         self.my_cell = my_cell
 
-        if ground is not None:
+        if ground is not None:  #TODO should check we're close enough to the cell's center
             self.my_cell.explored = True
             if ground == 0:
                 self.cheese = my_cell
