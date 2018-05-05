@@ -43,7 +43,7 @@ while True:
         right_sensor = filter_buffer(right_buffer, cif.measures.irSensor[2])
     if cif.measures.irSensorReady[3]:
         back_sensor = filter_buffer(back_buffer, cif.measures.irSensor[3])
-    compass = -cif.measures.compass if cif.measures.compassReady else my_dir  # TODO compass has 4 cycle delay
+    delayed_compass = -cif.measures.compass if cif.measures.compassReady else my_dir
     ground = cif.measures.ground if cif.measures.groundReady else None
 
     if turn % 2 == 0:
@@ -57,21 +57,35 @@ while True:
     turn += 1
     # print("--")
 
-    # Read cheese ground
+    """# Read cheese ground
     if pos_cheese is not None and ground is not None:
         if ground == 0:
             pos_cheese = (my_x, my_y)
             cif.setVisitingLed(1)
         else:
-            cif.setVisitingLed(0)
+            cif.setVisitingLed(0)"""
+
+    # update this cycle's compass from delayed reading
+    prev_lefts = prev_lefts[1:] + [prev_left]
+    prev_rights = prev_rights[1:] + [prev_right]
+    motor_command_lefts = motor_command_lefts[1:] + [motor_command_left]
+    motor_command_rights = motor_command_rights[1:] + [motor_command_right]
+    compass = update_delayed_compass(prev_lefts, prev_rights,
+                                     motor_command_lefts, motor_command_rights, delayed_compass)
 
     # odometry, mapping
     my_x, my_y, my_dir, prev_left, prev_right = \
         update_robot_pos(prev_left, prev_right, motor_command_left, motor_command_right,
                          my_x, my_y, compass, cif.measures.collision)
-    update_robot_pos_time_delay(prev_lefts[0], prev_rights[0], motor_command_lefts, motor_command_rights,
-                                my_xs[0], my_ys[0], compass, collisions)
-    # print(compass, my_dir)
+
+    # update odometry from 4 cycles ago: creates jitter, not sure why
+    #my_xs = my_xs[1:] + [my_x]
+    #my_ys = my_ys[1:] + [my_y]
+    #collisions = collisions[1:] + [cif.measures.collision]
+    #my_x, my_y, my_dir, prev_left, prev_right = \
+    #    update_robot_pos_time_delay(prev_lefts[0], prev_rights[0], motor_command_lefts, motor_command_rights,
+    #                            my_xs[0], my_ys[0], delayed_compass, collisions)
+
     my_map.update(my_x, my_y, left_sensor, front_sensor, right_sensor, back_sensor,
                   my_dir, cif.measures.ground, cif.measures.collision)
     my_map.render()
