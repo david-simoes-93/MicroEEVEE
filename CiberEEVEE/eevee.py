@@ -104,24 +104,55 @@ while True:
         my_x, my_y = my_map.reset_side_odometry(my_x, my_y, left_sensor, right_sensor, my_dir)
 
     # explore
-    if pos_cheese is None:
+    if True: # my_map.cheese is None:
         target_path = list(path_planner.astar(my_map.my_cell, my_map.pick_exploration_target(AStar(), my_dir)))
         my_map.reset_debug_dots()
         for cell in target_path:
             my_map.add_debug_dot(cell.coords)
 
-        # start following the second cell in the path (since the first cell is likely to be the current one)
-        next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[1].coords)
-        # if we're too far from second cell, follow first cell to its center
-        if dist_manhattan([my_x, my_y], next_cell_coords) > 2.4:
-            next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[0].coords)
+        next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[0].coords)
+
+        # consider following the second cell in the path if we wont hit any corners turning
+        if len(target_path) > 1:
+            second_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[1].coords)
+            # follow second cell if we have explored the first cell OR we go near enough the first cell that it will be
+            if dist_manhattan([my_x, my_y], second_cell_coords) < 2.4:
+                if target_path[0].explored or dist_to_line_segment(next_cell_coords, [my_x, my_y], second_cell_coords)<0.5:
+                    next_cell_coords = second_cell_coords
 
         # actual turning direction
         target_dir = get_angle_between_points([my_x, my_y], next_cell_coords)  # from my_pos to center of target cell
 
         max_speed = 0.10  # max is 0.15
         target_dir = normalize_angle(target_dir - my_dir)
-        # print(pos_start, next_cell_coords, target_dir)
+    else:   # TODO: if enough time, explore shortest path first
+        # TODO: enable led only when facing proper direction
+        cif.setVisitingLed(1)
+        target_path = list(path_planner.astar(my_map.my_cell, my_map.home))
+        my_map.reset_debug_dots()
+        for cell in target_path:
+            my_map.add_debug_dot(cell.coords)
+
+        next_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[0].coords)
+
+        # consider following the second cell in the path if we wont hit any corners turning
+        if len(target_path) > 1:
+            second_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[1].coords)
+            # follow second cell if we have explored the first cell OR we go near enough the first cell that it will be
+            if dist_manhattan([my_x, my_y], second_cell_coords) < 2.4:
+                if target_path[0].explored or dist_to_line_segment(next_cell_coords, [my_x, my_y],
+                                                                   second_cell_coords) < 0.5:
+                    next_cell_coords = second_cell_coords
+
+        # actual turning direction
+        target_dir = get_angle_between_points([my_x, my_y], next_cell_coords)  # from my_pos to center of target cell
+        max_speed = 0.15
+        target_dir = normalize_angle(target_dir - my_dir)
+
+        if dist(my_map.home.coords, my_map.eevee)<0.1:
+            cif.setReturningLed(1)
+            cif.finish()
+            exit()
 
     # rotate in place
     if target_dir < -45 and resetting_odo_turn_counter == 0:
