@@ -50,6 +50,24 @@ void init(){
 		
 
 	}
+
+}
+
+void print_map(){
+    for(int x=0; x<cols; x++){
+        for(int y=0; y<rows; y++){
+            if((maze[x][y].west_wall->wall & wall_mask) != 0)
+                printf("|");
+            else
+                printf(" ");
+
+            if((maze[x][y].south_wall->wall & wall_mask) != 0)
+                printf("_");
+            else
+                printf(" ");
+        }
+        printf("\n");
+    }
 }
 
 /*ignora os valores acima de 60 cm: demasiado ruido*/
@@ -150,68 +168,3 @@ bool wall(struct Wall* w){
 	return (w.wall & 0x01) == 1 ? true: false; 
 }
 
-
-//##########################################################################################################
-//############################# JAVA ############################
-
-// added a new beacon line, mark a new beacon point, try and find a path there
-public Cell getDirectionTarget(Cell curr, double dir, Cell actualCurr) {
-    boolean contains = false;
-    // check if we have any beacon line pointing at the beacon and starting close to current position
-    for (Line l : beaconLines) {
-        if (getDistanceBetweenCells(l.a, curr) < 3) {
-            contains = true;
-            break;
-        }
-    }
-
-    int dist = 5 * 3;
-    int newX = (int) (curr.x + Math.cos(dir) * dist);
-    int newY = (int) (curr.y - Math.sin(dir) * dist);
-    Cell endLine = new Cell(newX, newY);
-
-    // if we have no such line, add a new line and mark the point it intersects with other lines
-    if (!contains) {
-        Line newLine = new Line(curr, endLine);
-        beaconLines.add(new Line(curr, endLine));
-
-        double x3 = newLine.a.x;
-        double y3 = newLine.a.y;
-        double x4 = newLine.b.x;
-        double y4 = newLine.b.y;
-
-        for (int i = 0; i < beaconLines.size() - 1; i++) {
-            double x1 = beaconLines.get(i).a.x;
-            double y1 = beaconLines.get(i).a.y;
-            double x2 = beaconLines.get(i).b.x;
-            double y2 = beaconLines.get(i).b.y;
-
-            //if parallel with other line, skip it
-            if ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4) == 0) {
-                continue;
-            }
-
-            //intersect with other line
-            double Px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4))
-                    / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
-            double Py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4))
-                    / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
-
-            //if point between both lines' end points, keep it
-            if (Px > Math.min(x3, x4) && Px < Math.max(x3, x4) && Py > Math.min(y3, y4) && Py < Math.max(y3, y4)) {
-                if (gui != null) {
-                    gui.paintPoint((int) Px, (int) Py, Color.RED);
-                }
-                setUniqueBeaconPoint((int) Px, (int) Py);
-            }
-        }
-    }
-
-    if (!beaconPoints.isEmpty()) {
-        return getWayToBeacon(actualCurr);
-    } else {
-        Cell tar = new Cell(newX, newY);
-        tar = findClosestFreeCell(tar, 2);
-        return StarSearchExplorerZone(actualCurr, tar, 2, 3);
-    }
-}

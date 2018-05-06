@@ -69,7 +69,7 @@ def get_wall_color(wall):
 
 # returns new pose based on previous pose and odometry model
 def update_robot_pos(prev_left, prev_right, in_left, in_right, my_x, my_y, my_dir, colliding):
-    my_dir = my_dir * np.pi / 180  # to radian
+    my_dir_rad = my_dir * np.pi / 180  # to radian
     out_left = in_left * 0.5 + prev_left * 0.5
     out_right = in_right * 0.5 + prev_right * 0.5
 
@@ -78,8 +78,8 @@ def update_robot_pos(prev_left, prev_right, in_left, in_right, my_x, my_y, my_di
     lin = (out_right + out_left) / 2.0
 
     if not colliding:
-        new_my_x = my_x + lin * np.cos(my_dir)
-        new_my_y = my_y + lin * np.sin(my_dir)
+        new_my_x = my_x + lin * np.cos(my_dir_rad)
+        new_my_y = my_y + lin * np.sin(my_dir_rad)
     else:
         new_my_x = my_x
         new_my_y = my_y
@@ -88,7 +88,20 @@ def update_robot_pos(prev_left, prev_right, in_left, in_right, my_x, my_y, my_di
     #if compass is not None:
     #    new_my_dir = 0.5 * new_my_dir + 0.5 * (compass * np.pi / 180)
 
-    return new_my_x, new_my_y, new_my_dir * 180 / np.pi, out_left, out_right
+    return new_my_x, new_my_y, new_my_dir, out_left, out_right
+
+
+# returns new dir based on previous dir from 4 cycles ago and odometry model
+def update_delayed_compass(prev_left, prev_right, in_left, in_right, my_dir):
+    diam = 1.0
+
+    for i in range(4):
+        out_left = in_left[i] * 0.5 + prev_left[i] * 0.5
+        out_right = in_right[i] * 0.5 + prev_right[i] * 0.5
+        rot = (out_right - out_left) / diam
+        my_dir = my_dir + rot
+
+    return my_dir
 
 
 # returns new pose based on previous pose and odometry model
@@ -96,7 +109,7 @@ def update_robot_pos_time_delay(prev_left, prev_right, in_lefts, in_rights, my_x
     for i in range(4):
         my_x, my_y, my_dir, prev_left, prev_right = update_robot_pos(
             prev_left, prev_right, in_lefts[i], in_rights[i], my_x, my_y, my_dir, collidings[i])
-    return my_x, my_y, my_dir
+    return my_x, my_y, my_dir, prev_left, prev_right
 
 
 # returns angle between line [c,e] and x-axis in degress

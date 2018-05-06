@@ -20,16 +20,21 @@
 
 struct Cell {
     /* data */
-    struct Wall *north;
-    struct Wall* south;
-    struct Wall* east;
-    struct Wall* west;
-    struct Wall walls[4]; // = {north, south, west, east};
+    struct Wall* north_wall;
+    struct Wall* south_wall;
+    struct Wall* east_wall;
+    struct Wall* west_wall;
+    struct Wall* walls[4]; // = {north_wall, south, west, east};
     int coords[2];
-    int explored = 0;
+    int explored;
     //uint_8 visited = 0;
 };
 
+
+#define wall_mask         = 0b00000001
+#define no_wall_mask      = 0b00000010
+#define wall_conf_mask    = 0b00000101
+#define no_wall_conf_mask = 0b00001010
 
 struct Wall {
     int weight;
@@ -52,6 +57,9 @@ void update_single_sensor(float sensor_val, struct Cell *, float **, float *);
 
 /*mapeia o peso de confiança para dar a parede*/
 int map_weight(float dist);
+
+/* prints current map to console */
+void print_map();
 
 
 /*index of wall according to heading*/

@@ -30,14 +30,14 @@ class Maze(object):
         self.max_dist_threshold = 2  # maximum sensor distance measured
         self.sensor_cutoff_point = 1.3  # we ignore sensor measures beyond this point
 
-        self.cheese = None
-        self.home = None
         self.eevee = [self.width / 2, self.height / 2]
         self.my_cell = self.maze[int(self.width / 2)][int(self.height / 2)]
-        self.target = None
         self.sensor_dots, self.wall_dots, self.debug_dots = [], [], []
         self.trust_val = 6
         self.prev_side_odometry_reset_cell = None
+
+        self.cheese = None
+        self.home = self.my_cell
 
     def pick_exploration_target(self, path_planner, dir):
         if -45 <= dir <= 45:
@@ -175,6 +175,17 @@ class Maze(object):
 
         self.screen.fill((255, 255, 255))
 
+        # Draw cheese, home
+        pygame.draw.circle(self.screen, (0, 255, 0),
+                         [round(self.home.coords[0] * cell_resolution),
+                          round(self.home.coords[1] * cell_resolution)],
+                          half_cell_resolution)
+        if self.cheese is not None:
+            pygame.draw.circle(self.screen, (255, 255, 0),
+                               [round(self.cheese.coords[0] * cell_resolution),
+                                round(self.cheese.coords[1] * cell_resolution)],
+                               half_cell_resolution)
+
         # Draw obstacles
         for row in self.maze:
             for cell in row:
@@ -201,9 +212,6 @@ class Maze(object):
             pygame.draw.rect(self.screen, (255, 0, 255),
                              [round(debug_dot[0] * cell_resolution), round(debug_dot[1] * cell_resolution),
                               1, 1])
-
-        # Draw cheese, target, home
-        # TODO
 
         self.gui_window.blit(pygame.transform.scale(self.screen, self.screen_res), (0, 0))
         pygame.display.flip()
@@ -232,7 +240,12 @@ class Maze(object):
         self.eevee = self.get_cell_coords_from_gps_coords([my_x, my_y])
         my_cell = self.maze[int(round(self.eevee[0]))][int(round(self.eevee[1]))]
         self.my_cell = my_cell
-        self.my_cell.explored = True
+
+        if ground is not None:  #TODO should check we're close enough to the cell's center
+            self.my_cell.explored = True
+            if ground == 0:
+                self.cheese = my_cell
+
         compass = compass * math.pi / 180
         self.sensor_dots, self.wall_dots = [], []
 
