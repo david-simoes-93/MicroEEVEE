@@ -1,107 +1,132 @@
-#include <queue>
-#include <limits>
-#include <math>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "AStar.h"
+#include "MazeMap.h"
 
-// the top of the priority queue is the greatest element by default,
-// but we want the smallest, so flip the sign
-bool operator<(struct Node &n1, struct Node &n2) {
-  return n1.cost > n2.cost;
+float dist_manhattan(int i0, int j0, int i1, int j1) {
+    return abs(i0 - i1) + abs(j0 - j1);
 }
 
-bool operator==(const Node &n1, const Node &n2) {
-  return n1.idx == n2.idx;
-}
+int main(int argc, char **argv) {
+    int h = 20, w = 30;
+    int sx = 1, sy = 1;
+    int gx = 10, gy = 10;
+
+    int i, j;
+    int ***paths = (int ***) malloc(w * sizeof(int **));
+
+    for (i = 0; i < w; i++) {
+        paths[i] = (int **) malloc(h * sizeof(int *));
+
+        for (j = 0; j < h; j++) {
+            paths[i][j] = (int *) malloc(2 * sizeof(int));
+        }
+    }
+
+    init_maze();
+    int worked = astar(h, w, sx, sy, gx, gy, paths);
+    printf("%d\n", worked);
 
 
-// L_1 norm (manhattan distance)
-float l1_norm(int i0, int j0, int i1, int j1) {
-  return std::abs(i0 - i1) + std::abs(j0 - j1);
+    while(worked){
+        printf("%d %d; ", paths[gx][gy][0], paths[gx][gy][1]);
+        int prev_x = paths[gx][gy][0], prev_y = paths[gx][gy][1];
+        gx=prev_x;
+        gy=prev_y;
+        if (gx==sx && gy==sy)
+            break;
+    }
+
+    return 0;
 }
 
 // weights:        flattened h x w grid of costs
 // h, w:           height and width of grid
 // start, goal:    index of start/goal in flattened grid
 // diag_ok:        if true, allows diagonal moves (8-conn.)
-// paths (output): for each node, stores previous node in path
-bool astar(
-      const float* weights, const int h, const int w,
-      const int start, const int goal, bool diag_ok,
-      int* paths) {
-	
-	int N_neigh = 4;
-  const float INF = std::numeric_limits<float>::infinity();
+// paths (output): int[w][h][2], stores for each node its previous node in the path
+int astar(
+        const int h, const int w,
+        const int start_x, const int start_y, const int goal_x, const int goal_y,
+        int ***paths) {
 
- struct Node start_node = {.idx = start, .cost = 0.};
-  struct Node goal_node = {.idx = goal, .cost = 0.};
+    int N_neigh = 4;
+    const float INF = 10000;
 
-  float* costs = new float[h * w];
-  for (int i = 0; i < h * w; ++i)
-    costs[i] = INF;
-  costs[start] = 0.;
+    struct Node start_node = {.x = start_x, .y = start_y, .cost = 0.};
+    struct Node goal_node = {.x = goal_x, .y=goal_y, .cost = 0.};
 
-  std::priority_queue<Node> nodes_to_visit;
-  nodes_to_visit.push(start_node);
+    float costs[w][h];
+    for (int i = 0; i < h; ++i)
+        for (int j = 0; j < w; ++j)
+            costs[j][i] = INF;
+    costs[start_x][start_y] = 0.;
 
-  int* nbrs = new int[ N_neigh];
+    int length_nodes_to_visit = 1;
+    struct Node nodes_to_visit[h * w];
+    nodes_to_visit[0] = start_node;
 
-  bool solution_found = false;
-  while (!nodes_to_visit.empty()) {
-    // .top() doesn't actually remove the node
-    Node cur = nodes_to_visit.top();
+    int nbrs[N_neigh][2];
 
-    if (cur == goal_node) {
-      solution_found = true;
-      break;
-    }
+    int solution_found = 0;
+    while (length_nodes_to_visit > 0) {
+        struct Node cur = nodes_to_visit[0];
 
-    nodes_to_visit.pop();
-
-    int row = cur.idx / w;
-    int col = cur.idx % w;
-
-    
-
-	// check bounds and find up to eight neighbors: top to bottom, left to right
-    nbrs[0] = (row > 0)                                ? cur.idx - w       : -1;
-    nbrs[1] = (col > 0)                                ? cur.idx - 1       : -1;
-    nbrs[2] = (col + 1 < w)                            ? cur.idx + 1       : -1;
-    nbrs[3] = (row + 1 < h)                            ? cur.idx + w       : -1;
-    
-    
-
-    float heuristic_cost;
-    for (int i = 0; i < N_neigh; ++i) {
-      if (nbrs[i] >= 0) {
-        // the sum of the cost so far and the cost of this move
-        float new_cost = costs[cur.idx] + weights[nbrs[i]];
-        if (new_cost < costs[nbrs[i]]) {
-          // estimate the cost to the goal based on legal moves
-          //if (diag_ok) {
-          //  heuristic_cost = linf_norm(nbrs[i] / w, nbrs[i] % w,
-           //                            goal    / w, goal    % w);
-          //}
-          //else {
-            heuristic_cost = l1_norm(nbrs[i] / w, nbrs[i] % w,
-                                     goal    / w, goal    % w);
-          //}
-
-          // paths with lower expected cost are explored first
-          float priority = new_cost + heuristic_cost;
-          nodes_to_visit.push(Node(nbrs[i], priority));
-
-          costs[nbrs[i]] = new_cost;
-          paths[nbrs[i]] = cur.idx;
+        if (cur.x == goal_node.x && cur.y == goal_node.y) {
+            solution_found = 1;
+            break;
         }
-      }
+
+        // pop
+        for (int i = 1; i < length_nodes_to_visit+1; ++i) {
+            nodes_to_visit[i - 1].x = nodes_to_visit[i].x;
+            nodes_to_visit[i - 1].y = nodes_to_visit[i].y;
+            nodes_to_visit[i - 1].cost = nodes_to_visit[i].cost;
+        }
+        --length_nodes_to_visit;
+
+        // check bounds and find up to eight neighbors: top to bottom, left to right
+        nbrs[0][0] = cur.x;
+        nbrs[0][1] = cur.y - 1;
+        nbrs[1][0] = cur.x;
+        nbrs[1][1] = cur.y + 1 < h ? cur.y + 1 : -1;
+        nbrs[2][0] = cur.x - 1;
+        nbrs[2][1] = cur.y;
+        nbrs[3][0] = cur.x + 1 < w ? cur.x + 1 : -1;
+        nbrs[3][1] = cur.y;
+
+        float heuristic_cost;
+        for (int i = 0; i < N_neigh; ++i) {
+            if (nbrs[i][0] >= 0 && nbrs[i][1] >= 0) {
+                // the sum of the cost so far and the cost of this move
+                float new_cost = costs[cur.x][cur.y] + 1;
+                if (new_cost < costs[nbrs[i][0]][nbrs[i][1]]) {
+                    heuristic_cost = dist_manhattan(nbrs[i][0], nbrs[i][1], goal_x, goal_y);
+
+                    // paths with lower expected cost are explored first
+                    float priority = new_cost + heuristic_cost;
+                    //struct Node node_to_visit = {.x = nbrs[i][0], .y = nbrs[i][1], .cost = priority};
+                    int insert_index;
+                    for (insert_index = 0; insert_index < length_nodes_to_visit; ++insert_index) {
+                        if (nodes_to_visit[insert_index].cost > priority)
+                            break;
+                    }
+                    for (int j = length_nodes_to_visit; j > insert_index; --j) {
+                        nodes_to_visit[j] = nodes_to_visit[j-1];
+                    }
+                    nodes_to_visit[insert_index].x = nbrs[i][0];
+                    nodes_to_visit[insert_index].y = nbrs[i][1];
+                    nodes_to_visit[insert_index].cost = priority;
+                    ++length_nodes_to_visit;
+
+                    costs[nbrs[i][0]][nbrs[i][1]] = new_cost;
+                    paths[nbrs[i][0]][nbrs[i][1]][0] = cur.x;
+                    paths[nbrs[i][0]][nbrs[i][1]][1] = cur.y;
+                }
+            }
+        }
     }
-  }
 
-  delete[] costs;
-  delete[] nbrs;
-
-  return solution_found;
+    return solution_found;
 }

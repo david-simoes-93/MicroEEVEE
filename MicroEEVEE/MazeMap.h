@@ -14,6 +14,9 @@
 #define west 2
 #define east 3
 
+#define pi_over_6 0.52359877559
+#define pi_over_2 1.57079632679
+
 /*wall value*/
 #define max_val 255
 #define min_val -255
@@ -31,15 +34,15 @@ struct Cell {
 };
 
 
-#define wall_mask         = 0b00000001
-#define no_wall_mask      = 0b00000010
-#define wall_conf_mask    = 0b00000101
-#define no_wall_conf_mask = 0b00001010
+#define wall_mask         0b00000001
+#define no_wall_mask      0b00000010
+#define wall_conf_mask    0b00000101
+#define no_wall_conf_mask 0b00001010
 
 struct Wall {
     int weight;
     int wall; //wall true, no_wall, wall_confirmed --> mask
-    float line[2][2];
+    double line[2][2];
 
 };
 struct Cell maze[rows][cols];
@@ -50,20 +53,20 @@ struct Cell maze[rows][cols];
 void init_maze();
 
 /*ignora os valores acima de 60 cm: demasiado ruido*/
-void update_map(float, float, float, float, float, float);
+void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int right_sensor, double compass);
 
 /*adiciona o valor*/
-void update_single_sensor(float sensor_val, struct Cell *, float **, float *);
+void update_single_sensor(double sensor_val, struct Cell *, double **, double *);
 
 /*mapeia o peso de confiança para dar a parede*/
-int map_weight(float dist);
+int map_weight(double dist);
 
 /* prints current map to console */
 void print_map();
 
 
 /*index of wall according to heading*/
-int wall_index(float heading);
+int wall_index(double heading);
 
 
 /*Functions of Wall*/
