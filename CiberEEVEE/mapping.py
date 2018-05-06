@@ -48,6 +48,8 @@ class Maze(object):
             prev_cell = self.my_cell.neighbor_north
         else:
             prev_cell = self.my_cell.neighbor_east
+        is_my_cell_explored = self.my_cell.explored
+        self.my_cell.explored = True
         to_be_explored = [[prev_cell, self.my_cell, 0]]
         already_explored = []
 
@@ -63,6 +65,7 @@ class Maze(object):
 
             # sort to_be_explored by dist
             to_be_explored = sorted(to_be_explored + neighbors, key=lambda x: x[2])
+        self.my_cell.explored = is_my_cell_explored
 
         if len(to_be_explored) > 0:
             return to_be_explored[0][1]
@@ -78,10 +81,10 @@ class Maze(object):
             return my_x, my_y
 
         self.prev_side_odometry_reset_cell = self.my_cell
-        compass_rad_left = compass * math.pi / 180 + math.pi/2
-        compass_rad_right = compass * math.pi / 180 - math.pi/2
+        compass_rad_left = compass * math.pi / 180 + math.pi / 2
+        compass_rad_right = compass * math.pi / 180 - math.pi / 2
 
-        #print("pos:", my_x, my_y, self.my_cell, "sensors", left_sensor, right_sensor, compass)
+        # print("pos:", my_x, my_y, self.my_cell, "sensors", left_sensor, right_sensor, compass)
 
         if -15 <= compass <= 15:
             wall_left = self.my_cell.wall_north
@@ -90,8 +93,8 @@ class Maze(object):
             wall_right_coord_y = self.get_gps_coords_from_cell_coords(wall_right.line[0])[1]
             left_sensor_pos_in_eevee_y = wall_left_coord_y + left_sensor
             right_sensor_pos_in_eevee_y = wall_right_coord_y - right_sensor
-            my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left))\
-                + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
+            my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left)) \
+                   + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
         elif -105 <= compass < -75:
             wall_left = self.my_cell.wall_west
             wall_right = self.my_cell.wall_east
@@ -120,14 +123,14 @@ class Maze(object):
             my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left)) \
                    + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
 
-        #print("new pos:", my_x, my_y)
+        # print("new pos:", my_x, my_y)
 
         return my_x, my_y
 
     def reset_odometry(self, my_x, my_y, front_sensor, compass):
         compass_rad = compass * math.pi / 180
 
-        #print("pos:", my_x, my_y, self.my_cell, "sensors", front_sensor, compass)
+        # print("pos:", my_x, my_y, self.my_cell, "sensors", front_sensor, compass)
         wall = None
         # front_sensor_pos_in_eevee = [my_x + 0.5 * math.cos(compass), my_y + 0.5 * math.sin(compass)]
 
@@ -156,7 +159,7 @@ class Maze(object):
         if wall is not None:
             wall.confirm_wall()
             wall.get_adjacent_wall().confirm_wall()
-            #print("new pos:", my_x, my_y)
+            # print("new pos:", my_x, my_y)
 
         return my_x, my_y
 
@@ -177,9 +180,9 @@ class Maze(object):
 
         # Draw cheese, home
         pygame.draw.circle(self.screen, (0, 255, 0),
-                         [round(self.home.coords[0] * cell_resolution),
-                          round(self.home.coords[1] * cell_resolution)],
-                          half_cell_resolution)
+                           [round(self.home.coords[0] * cell_resolution),
+                            round(self.home.coords[1] * cell_resolution)],
+                           int(half_cell_resolution / 2))
         if self.cheese is not None:
             pygame.draw.circle(self.screen, (255, 255, 0),
                                [round(self.cheese.coords[0] * cell_resolution),
@@ -241,10 +244,14 @@ class Maze(object):
         my_cell = self.maze[int(round(self.eevee[0]))][int(round(self.eevee[1]))]
         self.my_cell = my_cell
 
-        if ground is not None:  #TODO should check we're close enough to the cell's center
-            self.my_cell.explored = True
-            if ground == 0:
-                self.cheese = my_cell
+        # if close enough to cell center such that we're within cheese's boundaries
+        if ground is not None:
+            dist_to_cell_center = \
+                np.sqrt((self.eevee[0] - my_cell.coords[0]) ** 2 + (self.eevee[1] - my_cell.coords[1]) ** 2)
+            if dist_to_cell_center < 0.25:
+                self.my_cell.explored = True
+                if ground == 0:
+                    self.cheese = my_cell
 
         compass = compass * math.pi / 180
         self.sensor_dots, self.wall_dots = [], []
