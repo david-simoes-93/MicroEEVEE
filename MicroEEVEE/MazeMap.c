@@ -1,9 +1,11 @@
 #include "MazeMap.h"
 #include <math>
 /*Functions of Maze*/
+#define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
+#define max(X,Y) (((X) >= (Y)) ? (X) : (Y))
 
 /*init map*/
-void init() {
+void init_maze() {
 
     /*TODO cell.coord*/
     int i, j;
@@ -67,13 +69,55 @@ void print_map(){
     }
 }
 
+void get_cell_coords_from_gps_coords(float x, float y, int* tmp){
+    
+    int t[2];
+    t[0] = (int)x/45 + 8;
+    t[1] = (int)y/45 + 8;
+    tmp = t;
+
+}
+
+// returns dot product of "v" and "w"
+float dist2(float* v, float* w){
+    return (v[0] - w[0])*(v[0] - w[0]) + (v[1] - w[1]) *(v[1] - w[1]);
+}
+    
+
+// returns euclidian distance between "v" and "w"
+float dist(float* v,float* w){
+    return sqrt(dist2(v, w));
+}
+
+
+// returns the square of the distance of point "p" to line segment between "v" and "w"
+float dist_to_segment_squared(float* p, float v, float w){
+    float l2 = dist2(v, w);
+    if (l2 == 0) { return dist2(p, v) ;}
+        
+
+    float t;
+    t = ((p[0] - v[0]) * (w[0] - v[0]) + (p[1] - v[1]) * (w[1] - v[1])) / l2 ;
+    t = max([0, min([1, t])]);
+
+    return dist2(p, [v[0] + t * (w[0] - v[0]), v[1] + t * (w[1] - v[1])]);
+}
+
+// returns distance of point "p" to line segment between "v" and "w"
+float dist_to_line_segment(float* p, float v,  float w){
+    return sqrt(dist_to_segment_squared( p, v, w));
+}
+    
+
+
 /*ignora os valores acima de 60 cm: demasiado ruido*/
 // compass in RADIANS
 void update_map(float my_x, float my_y, int left_sensor, int front_sensor, int right_sensor, float compass) {
     float sensor_cutoff_point = 0; //TODO
     float my_pos[2] = {my_x, my_y};
 
-    int *my_cell_index = get_cell_coords_from_gps_coords(my_x, my_y);
+    int *my_cell_index;
+    get_cell_coords_from_gps_coords(my_x, my_y,my_cell_index );
     struct Cell my_cell = maze[my_cell_index[0]][my_cell_index[1]];
     my_cell.explored = 1;
 
@@ -132,7 +176,8 @@ void update_map(float my_x, float my_y, int left_sensor, int front_sensor, int r
 
 /*adiciona o valor*/
 void update_single_sensor(float sensor_val, struct Cell *nearby_cells, float **sensor_positions,
-                          float *sensor_pos_in_eevee) {
+                          float *sensor_pos_in_eevee) 
+{
     float sensor_cutoff_point = 0; //TODO
     float max_dist_threshold = 0; //TODO
 
@@ -261,4 +306,86 @@ bool no_wall(struct Wall *w) {
 
 bool wall(struct Wall *w) {
     return (w.wall & 0x01) == 1 ? true : false;
+}
+
+
+
+struct Line {
+    float *a;
+    float *b;
+}
+
+struct Line beaconLines[10];
+
+int count_beacon_line;
+count_beacon_line = 0;
+int index_beacon = 0;
+// added a new beacon line, mark a new beacon point, try and find a path there
+int* getDirectionTarget(float* curr, float dir, Cell actualCurr) {
+    bool contains = false;
+    // check if we have any beacon line pointing at the beacon and starting close to current position
+    for (int i = 0; i < count_beacon_line; ++i)
+    {
+
+        if ( dist(beaconLines[i].a, curr) < 3) {
+            contains = true;
+            break;
+        }
+    }
+
+    // compute line
+    int dist = 5 * 3;
+    float newX, newY;
+    newX = (curr[0] + cos(dir) * dist);
+    newY = (curr[1] - sin(dir) * dist);
+    float endLine[2] = {newX, newY };
+
+    // if we have no such line, add a new line and mark the point it intersects with other lines
+    if (!contains) {
+        struct Line newLine = {.a = curr, .b = &endLine };
+        beaconLines[index_beacon%10] = newLine;
+        index_beacon = (index_beacon+1) %10;
+        count_beacon_line = (count_beacon_line >= 10) ? count_beacon_line : count_beacon_line+1 ;
+
+        float x3 = newLine.a[0];
+        float y3 = newLine.a[1];
+        float x4 = newLine.b[0];
+        float y4 = newLine.b[1];
+
+        for (   int i = 0;  i < count_beacon_line - 1; i++) {
+            float x1 = beaconLines[i].a[0];
+            float y1 = beaconLines[i].a[1];
+            float x2 = beaconLines[i].b[0];
+            float y2 = beaconLines[i].b[1];
+
+            //if parallel with other line, skip it
+            if ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4) == 0) {
+                continue;
+            }
+
+            //intersect with other line
+            float Px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4))
+                       / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
+            float Py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4))
+                       / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
+
+            //if point between both lines' end points, keep it
+            if (Px > min(x3, x4) && Px < max(x3, x4) && Py > min(y3, y4) && Py < max(y3, y4 )) {
+                // if (gui != null) {
+                //     gui.paintPoint((int) Px, (int) Py, Color.RED);
+                // }
+                
+                setUniqueBeaconPoint((  int) Px, (int) Py);
+            }
+        }
+    }
+
+    // if (!beaconPoints.isEmpty() ) {
+    //     return  getWayToBeacon(actualCurr);
+    // } 
+    // else {
+    //     Cell tar = new  Cell(newX, newY );
+    //     tar = findClosestFreeCell(tar, 2);
+    //     return  StarSearchExplorerZone(actualCurr, tar, 2, 3);
+    // }
 }

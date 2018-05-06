@@ -5,17 +5,17 @@
 
 #include "Sensors.h"
 
-bool update_map_and_recalculate();
+#include "MazeMap.h" //maze[][]
 
-//next_cell = [1,2]
-bool update_map_and_recalculate(int* next_cell){
-	//if updated map influences path return true
-	return false;
-}
+bool recalculate_path(int *);
+
 
 int count_beacon;
 
-
+struct path
+{
+	
+};
 
 int main(void)
 {
@@ -43,6 +43,8 @@ int main(void)
     int count_ticks; 
     count_ticks = 0;
 
+    init_maze();
+
 
     /*-------------------*/
    
@@ -64,13 +66,14 @@ int main(void)
         		getRobotPos(&x, &y, &t);
 
         		//update map
-        		double my_x, double my_y , int , int , int , double
         		update_map( (float)x, (float)y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight, (float)t)
 
             
     		break;
 
     		case 2;
+    			recalculate_path();
+
     			count_ticks = 0;
     		break
     	}
@@ -87,6 +90,12 @@ int main(void)
 
 //##########################################################################################################
 //############################# JAVA ############################
+
+
+struct Line {
+	float a[2];
+	float b[2];
+}
 
 // added a new beacon line, mark a new beacon point, try and find a path there
 public Cell getDirectionTarget(Cell curr, float dir, Cell actualCurr) {

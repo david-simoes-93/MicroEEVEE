@@ -47,7 +47,7 @@ struct Cell maze[rows][cols];
 /*Functions of Maze*/
 
 /*init map*/
-void init();
+void init_maze();
 
 /*ignora os valores acima de 60 cm: demasiado ruido*/
 void update_map(float, float, float, float, float, float);
