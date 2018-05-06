@@ -45,12 +45,13 @@ int main(void)
 
 
     /*-------------------*/
-    //update_map(float my_x, float my_y, float left_sensor, float front_sensor, float right_sensor, float compass)
+   
     while(!stopButton()){
     	count_ticks++;
     	waitTick20ms(); 
     	switch(count_ticks){
     		case 1 :
+    		// tick 40ms
     			// Fill in "analogSensors" structure
 	            readAnalogSensors(); 
 	            
@@ -58,6 +59,14 @@ int main(void)
 	            groundSensor = readLineSensors(70); 
 		    	
 		    	gndVals[c] = groundSensor;	c=(c+1)%5; //buffer 
+
+		    	/* Track robot position and orientation */
+        		getRobotPos(&x, &y, &t);
+
+        		//update map
+        		double my_x, double my_y , int , int , int , double
+        		update_map( (float)x, (float)y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight, (float)t)
+
             
     		break;
 
@@ -66,8 +75,7 @@ int main(void)
     		break
     	}
 
-    	/* Track robot position and orientation */
-        getRobotPos(&x, &y, &t);
+    	
 
     }
 
