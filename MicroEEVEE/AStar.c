@@ -19,7 +19,9 @@ int main(int argc, char **argv) {
             paths[i][j] = (int *) malloc(2 * sizeof(int));
         }
     }
+    printf("init...\n");
     init_maze();
+    printf("init ok\n");
 
     int x;
     for (x = 0; x < 5; ++x) {

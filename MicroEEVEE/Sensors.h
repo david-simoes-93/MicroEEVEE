@@ -20,7 +20,8 @@ extern "C" {
 #define compass 	(t * 180 / PI)
 
 int visible, followPoints;
-double x, y, t, oldCompass; 
+int x, y;
+double t, oldCompass;
 double obstValFront, obstValLeft, obstValRight;
 int groundSensor, beaconDir, currServoPos;
 

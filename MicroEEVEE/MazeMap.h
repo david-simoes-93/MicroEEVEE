@@ -6,6 +6,9 @@
 #include <stdio.h>
 #define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
 #define max(X,Y) (((X) >= (Y)) ? (X) : (Y))
+#define bool int
+#define true 1
+#define false 0
 #endif
 
 #include <stdlib.h>
@@ -15,8 +18,8 @@
 #define MAZE_MAP_H
 
 #define n_cells 8
-#define rows n_cells*2-1
-#define cols n_cells*2-1
+#define rows (n_cells*2-1)
+#define cols (n_cells*2-1)
 #define m_point 22.5 // 45/2
 
 /*index*/
@@ -50,10 +53,13 @@ struct Cell {
 #define wall_conf_mask    0b00000101
 #define no_wall_conf_mask 0b00001010
 
+#define sensor_cutoff_point 45
+#define max_dist_threshold  60
+
 struct Wall {
     int weight;
     int wall; //is_wall true, is_no_wall, wall_confirmed --> mask
-    double line[2][2];
+    int line[2][2];
 
 };
 struct Cell maze[cols][rows];
@@ -63,40 +69,63 @@ struct Cell maze[cols][rows];
 /*init map*/
 void init_maze();
 
+
+void get_cell_coords_from_gps_coords(int x, int y, int t[2]);
+// returns dot product of "v" and "w"
+double dist2(int* v, int* w);
+
+// returns euclidian distance between "v" and "w"
+double dist(int* v,int* w);
+
+
+// returns the square of the distance of point "p" to line segment between "v" and "w"
+double dist_to_segment_squared(int* p, int* v, int* w);
+
+// returns distance of point "p" to line segment between "v" and "w"
+double dist_to_line_segment(int* p, int* v,  int* w);
+
 /*ignora os valores acima de 60 cm: demasiado ruido*/
-void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int right_sensor, double compass);
+// compass in RADIANS
+void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right_sensor, double compass);
+
+void print_map();
 
 /*adiciona o valor*/
-void update_single_sensor(double sensor_val, struct Cell[9], double[3][2], double[2]);
+void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[3][2],
+                          int sensor_pos_in_eevee[2]);
 
-/*mapeia o peso de confiança para dar a parede*/
-int trust_based_on_distance(double dist);
-
-/* prints current map to console */
-void print_map();
+int intersects(int *AB, int* CD, int *PQ, int* RS) ;
 
 /* returns desired dir based on target point */
 double get_target_dir(int, int, double, int, int);
 
-/*index of is_wall according to heading*/
-int wall_index(double heading);
+int trust_based_on_distance(int dist);
 
 
 /*Functions of Wall*/
-void weigh_wall(struct Wall *w, double val);
+void weigh_wall(struct Wall *w, double val) ;
+
 
 void confirm_no_wall(struct Wall *w);
-void confirm_wall(struct Wall *w);
 
-int is_confirmed_no_wall(struct Wall *w);
+void confirm_wall(struct Wall *w) ;
+
+int is_confirmed_no_wall(struct Wall *w) ;
 
 int is_no_wall(struct Wall *w);
 
-int is_wall(struct Wall *w);
+int is_wall(struct Wall *w) ;
 
-int intersects(double *l0_a, double* l0_b, double *l1_a, double* l1_b);
 
-void setUniqueBeaconPoint(double px, double py);
+// add a new beacon line, mark a new beacon point and return avg beacon point
+bool getDirectionTarget(int* curr, int dir, int *beaconPoint) ;
+
+bool getBeaconAvgPoint(int *bp);
+
+bool setUniqueBeaconPoint(int px, int py);
+
 
 /* a* to find path*/
 #endif
+
+

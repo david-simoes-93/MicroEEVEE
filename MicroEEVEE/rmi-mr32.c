@@ -449,6 +449,14 @@ void getRobotPos(double *xx, double *yy, double *tt)
    EnableInterrupts();
 }
 
+void getRobotPos_int(int *xx, int *yy, double *tt){
+   DisableInterrupts();
+   *xx = (int) xpos * 100;
+   *yy = (int)ypos * 100;
+   *tt = theta;
+
+   EnableInterrupts();
+}
 void setRobotPos(double xx, double yy, double tt)
 {
    DisableInterrupts();
