@@ -136,10 +136,7 @@ void get_cell_index_from_gps_coords(int x, int y, int *t) {
 
 }
 
-void get_middle_coords_from_index(int x, int y, int *px, int *py) {
-    //t[0] = min(cols-1,max((int) (x / 4500 + (n_cells-1)+0.5),0));
-    //t[1] = min(rows-1,max((int) (y / 4500 + (n_cells-1)+0.5),0));
-
+void get_gps_coords_from_cell_index(int x, int y, int *px, int *py) {
     *px = (x - 0.5 - (n_cells-1)) * 4500 ;
     *py = (y - 0.5 - (n_cells-1)) * 4500 ;
 

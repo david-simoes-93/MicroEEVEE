@@ -102,7 +102,7 @@ double get_target_dir(int, int, double, int, int);
 
 double trust_based_on_distance(int dist);
 
-void get_middle_coords_from_index(int x, int y, int *px, int *py);
+void get_gps_coords_from_cell_index(int x, int y, int *px, int *py);
 /*Functions of Wall*/
 void weigh_wall(struct Wall *w, double val) ;
 

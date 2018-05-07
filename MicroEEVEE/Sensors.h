@@ -27,6 +27,16 @@ double obstValFront, obstValLeft, obstValRight;
 int groundSensor, beaconDir, currServoPos;
 
 
+// Target is start position
+double radiusConst = 200;
+int targetX = 0, targetY = 0;
+int modder = -1;
+int left = 0, right = 0;
+
+bool bVis = false, oldBVis = false, oldBVis2 = false;
+bool rotate_right = false;
+
+
 int gndVals[5];
 int pointsList[2][100];
 int pointsListPointer;
@@ -36,7 +46,6 @@ int removePoint();
 void markPoint();
 void getLastPoint();
 void addPoint(double x2, double y2);
-int lastPointX, lastPointY ;
 
 int isOnRadius( double x, double y, double nextX, double nextY, int radius);
 double dot_product(double v[], double u[], int n);
