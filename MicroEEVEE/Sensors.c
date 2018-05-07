@@ -134,7 +134,7 @@ int removePoint() {
 }
 
 void markPoint() {
-    if (!followPoints) {
+    if (!returning_home) {
         getLastPoint();
         if (!isOnRadius(x, y, lastPointX, lastPointY, 100)) {
             addPoint(x, y);

@@ -20,7 +20,7 @@ extern "C" {
 #define POS_RIGHT		15
 #define compass 	(t * 180 / PI)
 
-int visible, followPoints;
+int visible, returning_home;
 int x, y;
 double t, oldCompass;
 double obstValFront, obstValLeft, obstValRight;

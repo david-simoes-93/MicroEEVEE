@@ -10,8 +10,8 @@ char *sab_getName() {
 }
 
 void sab_execute() {
-    if (!followPoints) {
-        followPoints = 1;
+    if (!returning_home) {
+        returning_home = 1;
         firstTime = 1;
         visible = 1;
 
@@ -42,7 +42,7 @@ bool sab_isPossible() {
         firstTime = 0;
     }
 
-    if (followPoints)
+    if (returning_home)
         return false;
 
     return gnd;

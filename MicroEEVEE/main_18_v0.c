@@ -174,7 +174,7 @@ int main(void) {
 
 
         if (sx == path_list[path_length-1][0] && sy == path_list[path_length-1][1] ){
-            if(followPoints && sx == 0 && sy == 0) {
+            if(followPoints && sx == 7 && sy == 7) {
                 //reach Home
                 printf("Found Home");
                 break;
