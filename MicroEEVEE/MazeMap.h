@@ -1,4 +1,13 @@
+#define  pcompile
+
+#ifdef pcompile
 #include "rmi-mr32.h"
+#else
+#include <stdio.h>
+#define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
+#define max(X,Y) (((X) >= (Y)) ? (X) : (Y))
+#endif
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -19,7 +28,7 @@
 #define pi_over_6 0.52359877559
 #define pi_over_2 1.57079632679
 
-/*wall value*/
+/*is_wall value*/
 #define max_val 255
 #define min_val -255
 
@@ -43,7 +52,7 @@ struct Cell {
 
 struct Wall {
     int weight;
-    int wall; //wall true, no_wall, wall_confirmed --> mask
+    int wall; //is_wall true, is_no_wall, wall_confirmed --> mask
     double line[2][2];
 
 };
@@ -67,7 +76,7 @@ int trust_based_on_distance(double dist);
 void print_map();
 
 
-/*index of wall according to heading*/
+/*index of is_wall according to heading*/
 int wall_index(double heading);
 
 
@@ -77,11 +86,11 @@ void weigh_wall(struct Wall *w, double val);
 void confirm_no_wall(struct Wall *w);
 void confirm_wall(struct Wall *w);
 
-int confirmed_no_wall(struct Wall *w);
+int is_confirmed_no_wall(struct Wall *w);
 
-int no_wall(struct Wall *w);
+int is_no_wall(struct Wall *w);
 
-int wall(struct Wall *w);
+int is_wall(struct Wall *w);
 
 int intersects(double *l0_a, double* l0_b, double *l1_a, double* l1_b);
 

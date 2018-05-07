@@ -11,7 +11,7 @@ double grausRodados = 0.0, prevComp = 0.0, prevSpeed=0, mainSide=0;
 int sharpTurnCounter=-1;
 
 void atBeacon(){
-  printf("Stopped following wall!\n");
+  printf("Stopped following is_wall!\n");
   wallOnTheRight = false; 
   wallOnTheLeft = false;
 }
@@ -49,18 +49,18 @@ void ftw_execute() {
     	opposSpeed = dist;
         wallSpeed = 60 + dist/2;                        
         sharpTurnCounter=-1;
-    } else if (mainSide < 35 && weakSide > 25) {    					// MEDIUM WALL ON MAINSIDE (between 15 and 35) and far wall on weak side
+    } else if (mainSide < 35 && weakSide > 25) {    					// MEDIUM WALL ON MAINSIDE (between 15 and 35) and far is_wall on weak side
 		int dist = (mainSide-25);								// Dist between -10 and 10      
 		opposSpeed = 60+dist;									// 70,50						
         wallSpeed = 60-dist;   
-        prevSpeed=(mainSide-25)*2;													// prevSpeed between -20 and 20; positive means its away from wall
+        prevSpeed=(mainSide-25)*2;													// prevSpeed between -20 and 20; positive means its away from is_wall
         sharpTurnCounter=-1;
-    } else if (mainSide < 35 && weakSide <=25) {    					// MEDIUM WALL ON MAINSIDE (between 15 and 35) but medium wall on weak side as well
+    } else if (mainSide < 35 && weakSide <=25) {    					// MEDIUM WALL ON MAINSIDE (between 15 and 35) but medium is_wall on weak side as well
 	   if(mainSide<weakSide-7.5){
             int dist = (mainSide-25);                           // Dist between -10 and 10
             opposSpeed = 45+dist;                               // 55,35
             wallSpeed = 45-dist;   
-        } else if(weakSide<mainSide-7.5){                                 // off wall is closer!
+        } else if(weakSide<mainSide-7.5){                                 // off is_wall is closer!
             int dist = (weakSide-17.5)*4/3;                     // Dist between -10 and 10
             opposSpeed = 45-dist;                               // 55,35
             wallSpeed = 45+dist;                       
@@ -68,7 +68,7 @@ void ftw_execute() {
             opposSpeed = 45;                               
             wallSpeed = 45;
         }
-    	prevSpeed=(mainSide-25)*2;                                                  // prevSpeed between -20 and 20; positive means its away from wall	
+    	prevSpeed=(mainSide-25)*2;                                                  // prevSpeed between -20 and 20; positive means its away from is_wall
         sharpTurnCounter=-1;											
     }
     else if (mainSide >= 35) {
@@ -117,13 +117,13 @@ bool ftw_isPossible() {
     if(sharpTurnCounter>=0)
         sharpTurnCounter--;
 
-    // Beacon visible, on the right side, with a wall on the right
+    // Beacon visible, on the right side, with a is_wall on the right
     bool rightWallOnBeaconSide = visible && obstValRight < 20 && lastKnownBeaconAngle >= 0 && lastKnownBeaconAngle <= 60;
     bool leftWallOnBeaconSide = visible && obstValLeft < 20 && lastKnownBeaconAngle <= 0 && lastKnownBeaconAngle >= -60;
     bool beaconNotVisWithWall = !visible && (obstValLeft < 20 || obstValRight < 20);
 
     //if(!wallOnTheRight && !wallOnTheLeft && (rightWallOnBeaconSide || leftWallOnBeaconSide || beaconNotVisWithWall))
-		//printf("Gonna start following wall: rightW:%d leftW:%d notVisWall:%d\n",rightWallOnBeaconSide, leftWallOnBeaconSide,beaconNotVisWithWall);
+		//printf("Gonna start following is_wall: rightW:%d leftW:%d notVisWall:%d\n",rightWallOnBeaconSide, leftWallOnBeaconSide,beaconNotVisWithWall);
     
     double distanceNeededToAbandonWall=0;
     if(abs(lastKnownBeaconAngle)<10)
@@ -137,13 +137,13 @@ bool ftw_isPossible() {
         wallOnTheRight = false;
         wallOnTheLeft = false;
     } 
-    // if following wall, beacon has been visible all along, beacon is in front, no obstacles nearby and not in any loops
+    // if following is_wall, beacon has been visible all along, beacon is in front, no obstacles nearby and not in any loops
     else if (facedBeacon && visible && (wallOnTheRight || wallOnTheLeft) && (lastKnownBeaconAngle < 60 && lastKnownBeaconAngle > -60) 
     	&& obstValFront > 15 && mainSide > distanceNeededToAbandonWall && sharpTurnCounter<=0 ){ //&& grausRodados < 180 && grausRodados > -180) {
         wallOnTheRight = false;
         wallOnTheLeft = false;
     } 
-    // IF NOT FOLLOWING WALL and near a wall
+    // IF NOT FOLLOWING WALL and near a is_wall
     else if ((!wallOnTheRight && !wallOnTheLeft) && (rightWallOnBeaconSide || leftWallOnBeaconSide || beaconNotVisWithWall)) {
         wallOnTheLeft = obstValLeft < obstValRight;
         wallOnTheRight = !wallOnTheLeft;

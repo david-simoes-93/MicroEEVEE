@@ -1,9 +1,4 @@
 #include "MazeMap.h"
-//#include <math.h>
-
-/*Functions of Maze*/
-//#define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
-//#define max(X,Y) (((X) >= (Y)) ? (X) : (Y))
 
 /*init map*/
 void init_maze() {
@@ -13,11 +8,11 @@ void init_maze() {
             double x = (double) i;
             double y = (double) j;
 
-            // copy north neighbor's south wall
+            // copy north neighbor's south is_wall
             if (i > 0) {
                 maze[j][i].north_wall = maze[j][i-1].south_wall;
             }
-            else // unless we're in the top row, where we have t actually create the damn wall
+            else // unless we're in the top row, where we have t actually create the damn is_wall
             {
                 struct Wall* ptr = (struct Wall *)malloc((sizeof(struct Wall)));
                 maze[j][i].north_wall = ptr;
@@ -30,7 +25,7 @@ void init_maze() {
 
             }
 
-            // always create bottom wall
+            // always create bottom is_wall
             struct Wall* ptr_south = (struct Wall *)malloc((sizeof(struct Wall)));
             maze[j][i].south_wall = ptr_south;
             ptr_south->weight=0;
@@ -40,7 +35,7 @@ void init_maze() {
             ptr_south->line[1][0]=x+22.5;
             ptr_south->line[1][1]=y+22.5;
 
-            // copy west neighbor's east wall
+            // copy west neighbor's east is_wall
             if (j > 0) {
                 maze[j][i].west_wall = maze[j-1][i].east_wall;
             }
@@ -56,7 +51,7 @@ void init_maze() {
                 ptr->line[1][1]=y+22.5;
             }
 
-            // always create the east wall
+            // always create the east is_wall
             struct Wall* ptr_east = (struct Wall *)malloc((sizeof(struct Wall)));
             maze[j][i].east_wall = ptr_east;
             ptr_east->weight=0;
@@ -92,7 +87,7 @@ void init_maze() {
 void print_map(){
     int x, y;
     for(x=0; x<cols; x++) {
-        if(wall(maze[x][0].north_wall))
+        if(is_wall(maze[x][0].north_wall))
             printf(" _");
         else
             printf("  ");
@@ -102,18 +97,18 @@ void print_map(){
         for(x=0; x<cols; x++){
 
             //printf("%d %d\n", x, y);
-            if(wall(maze[x][y].west_wall))
+            if(is_wall(maze[x][y].west_wall))
                 printf("|");
             else
                 printf(" ");
 
-            if(wall(maze[x][y].south_wall))
+            if(is_wall(maze[x][y].south_wall))
                 printf("_");
             else
                 printf(" ");
         }
 
-        if(wall(maze[cols-1][y].east_wall))
+        if(is_wall(maze[cols - 1][y].east_wall))
             printf("|");
         else
             printf(" ");
@@ -237,7 +232,7 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
     struct Wall *weighted_walls[possible_walls_size];
     if (sensor_val < sensor_cutoff_point)  // self.max_dist_threshold:
     {
-        // check closest ray to any wall
+        // check closest ray to any is_wall
         double ray_dists[3] = {max_dist_threshold, max_dist_threshold, max_dist_threshold};
         struct Wall *ray_walls[3];
 
@@ -250,7 +245,7 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
                 for (wall_index = 0; wall_index < 4; wall_index++) {
                     struct Wall wall = *nearby_cells[cell_index].walls[wall_index];
 
-                    // calculate distance of sensor point to the wall and save closest wall
+                    // calculate distance of sensor point to the wall and save closest is_wall
                     double d = dist_to_line_segment(sensor_positions[sensor_index], wall.line[0], wall.line[1]);
                     if (d < ray_dists[sensor_index]) {
                         ray_dists[sensor_index] = d;
@@ -260,7 +255,7 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
             }
         }
 
-        // store closest possible wall
+        // store closest possible is_wall
         int min_index = 0;
         if (ray_dists[1] < ray_dists[0] && ray_dists[1] < ray_dists[2])
             min_index = 1;
@@ -268,7 +263,7 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
             min_index = 2;
 
 
-        // if that ray is actually close to a wall
+        // if that ray is actually close to a is_wall
         // closest_dot_to_wall_distance = ray_dists[min_index]
         double *closest_dot_to_wall = sensor_positions[min_index];
         struct Wall closest_dot_cell_wall = *ray_walls[min_index];
@@ -280,7 +275,7 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
         currently_weighted_walls++;
     }
 
-    // decrease all other wall intersections score
+    // decrease all other is_wall intersections score
     // check 30º to the left, 0º, and 30º to the right; 3 possible sensor points
     int sensor_index, cell_index, wall_index;
     for (sensor_index = 0; sensor_index < 3; sensor_index++) {
@@ -330,22 +325,22 @@ int trust_based_on_distance(double dist) {
 
 
 // TODO
-/*index of wall according to heading*/
+/*index of is_wall according to heading*/
 int wall_index(double heading);
 
 
 /*Functions of Wall*/
 void weigh_wall(struct Wall *w, double val) {
-    if (!confirmed_no_wall(w)) {
+    if (!is_confirmed_no_wall(w)) {
         w->weight = w->weight + val;
         if (w->weight < min_val) w->weight = min_val;
         if (w->weight > max_val) w->weight = max_val;
-        //wall
+        //is_wall
         if (w->weight > 32)
             w->wall |= wall_mask; //1
         else
             w->wall &= ~wall_mask; //0
-        //no_wall
+        //is_no_wall
         if (w->weight < -32)
             w->wall |= no_wall_mask; //1
         else 
@@ -365,15 +360,15 @@ void confirm_wall(struct Wall *w) {
     w->wall &= wall_conf_mask;
 }
 
-int confirmed_no_wall(struct Wall *w) {
+int is_confirmed_no_wall(struct Wall *w) {
     return (w->wall & no_wall_conf_mask) != 0;
 }
 
-int no_wall(struct Wall *w) {
+int is_no_wall(struct Wall *w) {
     return (w->wall & no_wall_mask) != 0;
 }
 
-int wall(struct Wall *w) {
+int is_wall(struct Wall *w) {
     return (w->wall & wall_mask) != 0;
 }
 

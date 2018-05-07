@@ -1,13 +1,9 @@
-#include "rmi-mr32.h"
-#include <stdlib.h>
-
 #include "AStar.h"
-#include "MazeMap.h"
 
 float dist_manhattan(int i0, int j0, int i1, int j1) {
     return abs(i0 - i1) + abs(j0 - j1);
 }
-/*
+
 int main(int argc, char **argv) {
     int h = rows, w = cols;
     int sx = 1, sy = 1;
@@ -47,7 +43,7 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-*/
+
 // weights:        flattened h x w grid of costs
 // h, w:           height and width of grid
 // start, goal:    index of start/goal in flattened grid
@@ -95,8 +91,13 @@ int astar(
         --length_nodes_to_visit;
 
         // check bounds and find up to eight neighbors: top to bottom, left to right
-        nbrs[0][0] = cur.x;
-        nbrs[0][1] = cur.y - 1;
+        if(cur.y - 1>=0 && is_no_wall(maze[cur.x][cur.y].north_wall)) {
+            nbrs[0][0] = cur.x;
+            nbrs[0][1] = cur.y - 1;
+        }else{
+            nbrs[0][0] = -1;
+            nbrs[0][1] = -1;
+        }
         nbrs[1][0] = cur.x;
         nbrs[1][1] = cur.y + 1 < h ? cur.y + 1 : -1;
         nbrs[2][0] = cur.x - 1;
