@@ -1,4 +1,4 @@
-#define  pcompile
+//#define  pcompile
 
 #ifdef pcompile
 #include "rmi-mr32.h"

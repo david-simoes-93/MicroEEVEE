@@ -4,6 +4,7 @@ float dist_manhattan(int i0, int j0, int i1, int j1) {
     return abs(i0 - i1) + abs(j0 - j1);
 }
 
+#ifndef pcompile
 int main(int argc, char **argv) {
     int h = rows, w = cols;
     int sx = 1, sy = 1;
@@ -43,6 +44,7 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+#endif
 
 // weights:        flattened h x w grid of costs
 // h, w:           height and width of grid
