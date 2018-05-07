@@ -400,7 +400,8 @@ int beaconPoints_size = 0;
 int beaconPoints_index = 0;
 
 // add a new beacon line, mark a new beacon point and return avg beacon point
-bool getDirectionTarget(int *curr, int dir, int *beaconPoint) {
+//dir RADIANS
+bool getDirectionTarget(int* curr, double dir, int *beaconPoint) {
     int contains = 0;
     // check if we have any beacon line pointing at the beacon and starting close to current position
     int i;
@@ -415,8 +416,9 @@ bool getDirectionTarget(int *curr, int dir, int *beaconPoint) {
     // compute line
     int dist = 5 * 3;
     int newX, newY;
-    newX = (curr[0] + cos(dir) * dist);
-    newY = (curr[1] - sin(dir) * dist);
+
+    newX = (int)(curr[0] + cos(dir) * dist);
+    newY = (int)(curr[1] - sin(dir) * dist);
 
     int endLine[2] = {newX, newY};
 

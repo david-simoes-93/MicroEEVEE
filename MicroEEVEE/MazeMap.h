@@ -1,4 +1,4 @@
-//#define  pcompile
+#define  pcompile
 
 #ifdef pcompile
 #include "rmi-mr32.h"
@@ -119,7 +119,7 @@ int is_wall(struct Wall *w) ;
 
 
 // add a new beacon line, mark a new beacon point and return avg beacon point
-bool getDirectionTarget(int* curr, int dir, int *beaconPoint) ;
+bool getDirectionTarget(int* curr, double dir, int *beaconPoint) ;
 
 bool getBeaconAvgPoint(int *bp);
 

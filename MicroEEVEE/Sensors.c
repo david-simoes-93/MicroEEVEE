@@ -44,7 +44,7 @@ void followPoints_() {
 }
 
 void servoControl() {
-    bVis = analogSensors.readBeaconSens();
+    bVis = readBeaconSens();
 
     if (bVis && !oldBVis) {                            // Started seeing beacon!
         if (rotate_right) {
