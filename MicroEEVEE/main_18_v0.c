@@ -41,7 +41,8 @@ int main(void) {
 
     init_maze();
 
-
+    int x, y;
+    double t;
     /*-------------------*/
 
     while (!stopButton()) {
@@ -59,13 +60,11 @@ int main(void) {
                 //gndVals[c] = groundSensor;	c=(c+1)%5; //buffer
 
                 /* Track robot position and orientation */
-                int x, y;
-                double t;
+
                 getRobotPos_int(&x, &y, &t);
 
                 //update map
-                update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,
-                           t);
+                //update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
 
 
                 break;
@@ -81,12 +80,12 @@ int main(void) {
     }
 
     /*calculate beacon*/
-    if (getDirectionTarget({x,y}, dir_beacon, &beaconPoint) ){
+    /*if (getDirectionTarget({x,y}, dir_beacon, &beaconPoint) ){
 
-    }
+    }*/
 
     //decide what to do
-    decide();
+    //decide();
 
     disableObstSens();
     setVel2(0,0);

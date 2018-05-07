@@ -1,8 +1,11 @@
 #include "MazeMap.h"
 #define m_p 2250//22.5*100
 /*init map*/
+
+struct Wall walls_array[cols*rows*2+cols+rows];
+
 void init_maze() {
-    int i, j;
+    int i, j, walls_array_index=0;
     for (i = 0; i < cols; i++) {
         for (j = 0; j < rows; j++) {
             int x = i;
@@ -10,12 +13,13 @@ void init_maze() {
 
             // copy north neighbor's south is_wall
             if (i > 0) {
-                maze[j][i].north_wall = maze[j][i-1].south_wall;
-            }
-            else // unless we're in the top row, where we have t actually create the damn is_wall
+                maze[j][i].north_wall = maze[j][i - 1].south_wall;
+            } else // unless we're in the top row, where we have t actually create the damn is_wall
             {
-                struct Wall* ptr = (struct Wall *)malloc((sizeof(struct Wall)));
+                struct Wall *ptr = &walls_array[walls_array_index]; //(struct Wall *) malloc((sizeof(struct Wall)));
+                walls_array_index++;
                 maze[j][i].north_wall = ptr;
+
                 ptr->weight=0;
                 ptr->wall=0;
                 ptr->line[0][0]=x-m_p;
@@ -26,8 +30,10 @@ void init_maze() {
             }
 
             // always create bottom is_wall
-            struct Wall* ptr_south = (struct Wall *)malloc((sizeof(struct Wall)));
+            struct Wall *ptr_south = &walls_array[walls_array_index]; //(struct Wall *) malloc((sizeof(struct Wall)));
+            walls_array_index++;
             maze[j][i].south_wall = ptr_south;
+
             ptr_south->weight=0;
             ptr_south->wall=0;
             ptr_south->line[0][0]=x-m_p;
@@ -37,12 +43,13 @@ void init_maze() {
 
             // copy west neighbor's east is_wall
             if (j > 0) {
-                maze[j][i].west_wall = maze[j-1][i].east_wall;
-            }
-            else //unless we're on the left column
+                maze[j][i].west_wall = maze[j - 1][i].east_wall;
+            } else //unless we're on the left column
             {
-                struct Wall* ptr = (struct Wall *)malloc((sizeof(struct Wall)));
+                struct Wall *ptr = &walls_array[walls_array_index]; //(struct Wall *) malloc((sizeof(struct Wall)));
+                walls_array_index++;
                 maze[j][i].west_wall = ptr;
+
                 ptr->weight=0;
                 ptr->wall=0;
                 ptr->line[0][0]=x-m_p;
@@ -52,8 +59,10 @@ void init_maze() {
             }
 
             // always create the east is_wall
-            struct Wall* ptr_east = (struct Wall *)malloc((sizeof(struct Wall)));
+            struct Wall *ptr_east = &walls_array[walls_array_index]; //(struct Wall *) malloc((sizeof(struct Wall)));
+            walls_array_index++;
             maze[j][i].east_wall = ptr_east;
+
             ptr_east->weight=0;
             ptr_east->wall=0;
             ptr_east->line[0][0]=x+m_p;
@@ -69,46 +78,46 @@ void init_maze() {
 
     for (i = 0; i < cols; i++) {
         for (j = 0; j < rows; j++) {
-            if (j==0){
+            if (j == 0) {
                 confirm_wall(maze[i][j].north_wall);
-            }else if (j==rows-1){
+            } else if (j == rows - 1) {
                 confirm_wall(maze[i][j].south_wall);
             }
 
-            if (i==0){
+            if (i == 0) {
                 confirm_wall(maze[i][j].west_wall);
-            }else if (i==cols-1){
+            } else if (i == cols - 1) {
                 confirm_wall(maze[i][j].east_wall);
             }
         }
     }
 }
 
-void print_map(){
+void print_map() {
     int x, y;
-    for(x=0; x<cols; x++) {
-        if(is_wall(maze[x][0].north_wall))
+    for (x = 0; x < cols; x++) {
+        if (is_wall(maze[x][0].north_wall))
             printf(" _");
         else
             printf("  ");
     }
     printf("\n");
-    for(y=0; y<rows; y++){
-        for(x=0; x<cols; x++){
+    for (y = 0; y < rows; y++) {
+        for (x = 0; x < cols; x++) {
 
             //printf("%d %d\n", x, y);
-            if(is_wall(maze[x][y].west_wall))
+            if (is_wall(maze[x][y].west_wall))
                 printf("|");
             else
                 printf(" ");
 
-            if(is_wall(maze[x][y].south_wall))
+            if (is_wall(maze[x][y].south_wall))
                 printf("_");
             else
                 printf(" ");
         }
 
-        if(is_wall(maze[cols - 1][y].east_wall))
+        if (is_wall(maze[cols - 1][y].east_wall))
             printf("|");
         else
             printf(" ");
@@ -117,16 +126,17 @@ void print_map(){
 }
 
 
+
 void get_cell_coords_from_gps_coords(int x, int y, int t[2]){
     t[0] = (int)x/4500 + 8;
     t[1] = (int)y/4500 + 8;
 }
 
 // returns dot product of "v" and "w"
-double dist2(int* v, int* w){
-    return (v[0] - w[0])*(v[0] - w[0]) + (v[1] - w[1]) *(v[1] - w[1]);
+double dist2(int* v, int* w) {
+    return (v[0] - w[0]) * (v[0] - w[0]) + (v[1] - w[1]) * (v[1] - w[1]);
 }
-    
+
 
 // returns euclidian distance between "v" and "w"
 double dist(int* v,int* w){
@@ -148,6 +158,18 @@ double dist_to_segment_squared(int* p, int* v, int* w){
     return dist2(p, closest_point_in_line);
 }
 
+
+
+double get_target_dir(int myX, int myY, double myDir, int targetX, int targetY) {
+    double meToTargetVector[2] = {targetX - myX, targetY - myY};
+    double myDirectionVector[2] = {cos(myDir), sin(myDir)};
+
+    double radianTargetDir =
+            atan2(meToTargetVector[1], meToTargetVector[0]) - atan2(myDirectionVector[1], myDirectionVector[0]);
+
+    return radianTargetDir;
+}
+
 // returns distance of point "p" to line segment between "v" and "w"
 double dist_to_line_segment(int* p, int* v,  int* w){
     return sqrt(dist_to_segment_squared( p, v, w));
@@ -160,7 +182,7 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
     int my_pos[2] = {my_x, my_y};
 
     int my_cell_index[2];
-    get_cell_coords_from_gps_coords(my_x, my_y, my_cell_index );
+    get_cell_coords_from_gps_coords(my_x, my_y, my_cell_index);
     struct Cell my_cell = maze[my_cell_index[0]][my_cell_index[1]];
     my_cell.explored = 1;
 
@@ -220,11 +242,10 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
 }
 
 /*adiciona o valor*/
+
 void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[3][2],
                           int sensor_pos_in_eevee[2])
 {
-
-
 
     // if obstacle found
     int possible_walls_size = 3 * 9 * 4;
@@ -307,7 +328,6 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int senso
         }
     }
 }
-
 int intersects(int *AB, int* CD, int *PQ, int* RS) {
     float det = (CD[0] - AB[0]) * (RS[1] - PQ[1]) - (RS[0] - PQ[0]) * (CD[1] - AB[1]);
     if( det == .0)    return 0;
@@ -339,7 +359,7 @@ void weigh_wall(struct Wall *w, double val) {
         //is_no_wall
         if (w->weight < -32)
             w->wall |= no_wall_mask; //1
-        else 
+        else
             w->wall &= ~no_wall_mask; //0
 
     }
@@ -369,7 +389,6 @@ int is_wall(struct Wall *w) {
 }
 
 
-
 struct Line {
     int a[2];
     int b[2];
@@ -377,10 +396,8 @@ struct Line {
 
 struct Line beaconLines[10];
 
-int beaconLines_size;
 int beaconLines_size = 0;
 int index_beacon = 0;
-
 int beaconPoints[10][2];
 int beaconPoints_size = 0;
 int beaconPoints_index = 0;
@@ -394,7 +411,7 @@ bool getDirectionTarget(int* curr, double dir, int *beaconPoint) {
     for (i = 0; i < beaconLines_size; ++i)
     {
 
-        if ( dist(beaconLines[i].a, curr) < 3) {
+        if (dist(beaconLines[i].a, curr) < 3) {
             contains = 1;
             break;
         }
@@ -403,8 +420,10 @@ bool getDirectionTarget(int* curr, double dir, int *beaconPoint) {
     // compute line
     int dist = 5 * 3;
     int newX, newY;
+
     newX = (int)(curr[0] + cos(dir) * dist);
     newY = (int)(curr[1] - sin(dir) * dist);
+
     int endLine[2] = {newX, newY };
 
     // if we have no such line, add a new line and mark the point it intersects with other lines

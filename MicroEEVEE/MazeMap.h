@@ -6,6 +6,9 @@
 #include <stdio.h>
 #define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
 #define max(X,Y) (((X) >= (Y)) ? (X) : (Y))
+#define bool int
+#define true 1
+#define false 0
 #endif
 
 #include <stdlib.h>
@@ -15,8 +18,8 @@
 #define MAZE_MAP_H
 
 #define n_cells 8
-#define rows n_cells*2-1
-#define cols n_cells*2-1
+#define rows (n_cells*2-1)
+#define cols (n_cells*2-1)
 #define m_point 22.5 // 45/2
 
 /*index*/
@@ -85,12 +88,16 @@ double dist_to_line_segment(int* p, int* v,  int* w);
 // compass in RADIANS
 void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right_sensor, double compass);
 
+void print_map();
+
 /*adiciona o valor*/
 void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[3][2],
                           int sensor_pos_in_eevee[2]);
 
 int intersects(int *AB, int* CD, int *PQ, int* RS) ;
 
+/* returns desired dir based on target point */
+double get_target_dir(int, int, double, int, int);
 
 int trust_based_on_distance(int dist);
 

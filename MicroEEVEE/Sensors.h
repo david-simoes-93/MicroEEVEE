@@ -15,7 +15,6 @@
 extern "C" {
 #endif
  
-#define valsSize 7	//6
 #define POS_LEFT		-15
 #define POS_RIGHT		15
 #define compass 	(t * 180 / PI)
@@ -39,9 +38,8 @@ void addPoint(double x2, double y2);
 
 int isOnRadius( double x, double y, double nextX, double nextY, int radius);
 double dot_product(double v[], double u[], int n);
-void initAvg();
-void calculateAverage();
 void servoControl();
+void followPoints_();
 void rotateRel_naive(double deltaAngle);
 
 #ifdef	__cplusplus
