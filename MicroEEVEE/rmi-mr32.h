@@ -150,6 +150,7 @@ void setServoPos(int pos);
  */
 void getRobotPos(double *xp, double *yp, double *hp);
 
+void getRobotPos_int(int *xp, int *yp, double *hp);
 
 /** \brief Set dead reckoning robot position/pose
  * \param xx X coord

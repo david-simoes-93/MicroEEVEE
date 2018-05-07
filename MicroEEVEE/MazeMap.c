@@ -1,12 +1,12 @@
 #include "MazeMap.h"
-
+#define m_p 2250//22.5*100
 /*init map*/
 void init_maze() {
     int i, j;
     for (i = 0; i < cols; i++) {
         for (j = 0; j < rows; j++) {
-            double x = (double) i;
-            double y = (double) j;
+            int x = i;
+            int y =  j;
 
             // copy north neighbor's south is_wall
             if (i > 0) {
@@ -18,10 +18,10 @@ void init_maze() {
                 maze[j][i].north_wall = ptr;
                 ptr->weight=0;
                 ptr->wall=0;
-                ptr->line[0][0]=x-22.5;
-                ptr->line[0][1]=y-22.5;
-                ptr->line[1][0]=x+22.5;
-                ptr->line[1][1]=y-22.5;
+                ptr->line[0][0]=x-m_p;
+                ptr->line[0][1]=y-m_p;
+                ptr->line[1][0]=x+m_p;
+                ptr->line[1][1]=y-m_p;
 
             }
 
@@ -30,10 +30,10 @@ void init_maze() {
             maze[j][i].south_wall = ptr_south;
             ptr_south->weight=0;
             ptr_south->wall=0;
-            ptr_south->line[0][0]=x-22.5;
-            ptr_south->line[0][1]=y+22.5;
-            ptr_south->line[1][0]=x+22.5;
-            ptr_south->line[1][1]=y+22.5;
+            ptr_south->line[0][0]=x-m_p;
+            ptr_south->line[0][1]=y+m_p;
+            ptr_south->line[1][0]=x+m_p;
+            ptr_south->line[1][1]=y+m_p;
 
             // copy west neighbor's east is_wall
             if (j > 0) {
@@ -45,10 +45,10 @@ void init_maze() {
                 maze[j][i].west_wall = ptr;
                 ptr->weight=0;
                 ptr->wall=0;
-                ptr->line[0][0]=x-22.5;
-                ptr->line[0][1]=y-22.5;
-                ptr->line[1][0]=x-22.5;
-                ptr->line[1][1]=y+22.5;
+                ptr->line[0][0]=x-m_p;
+                ptr->line[0][1]=y-m_p;
+                ptr->line[1][0]=x-m_p;
+                ptr->line[1][1]=y+m_p;
             }
 
             // always create the east is_wall
@@ -56,10 +56,10 @@ void init_maze() {
             maze[j][i].east_wall = ptr_east;
             ptr_east->weight=0;
             ptr_east->wall=0;
-            ptr_east->line[0][0]=x+22.5;
-            ptr_east->line[0][1]=y-22.5;
-            ptr_east->line[1][0]=x+22.5;
-            ptr_east->line[1][1]=y+22.5;
+            ptr_east->line[0][0]=x+m_p;
+            ptr_east->line[0][1]=y-m_p;
+            ptr_east->line[1][0]=x+m_p;
+            ptr_east->line[1][1]=y+m_p;
 
 
         }
@@ -117,47 +117,47 @@ void print_map(){
 }
 
 
-void get_cell_coords_from_gps_coords(double x, double y, int t[2]){
-    t[0] = (int)x/45 + 8;
-    t[1] = (int)y/45 + 8;
+void get_cell_coords_from_gps_coords(int x, int y, int t[2]){
+    t[0] = (int)x/4500 + 8;
+    t[1] = (int)y/4500 + 8;
 }
 
 // returns dot product of "v" and "w"
-double dist2(double* v, double* w){
+double dist2(int* v, int* w){
     return (v[0] - w[0])*(v[0] - w[0]) + (v[1] - w[1]) *(v[1] - w[1]);
 }
     
 
 // returns euclidian distance between "v" and "w"
-double dist(double* v,double* w){
+double dist(int* v,int* w){
     return sqrt(dist2(v, w));
 }
 
 
 // returns the square of the distance of point "p" to line segment between "v" and "w"
-double dist_to_segment_squared(double* p, double* v, double* w){
-    double l2 = dist2(v, w);
+double dist_to_segment_squared(int* p, int* v, int* w){
+    int l2 = dist2(v, w);
     if (l2 == 0) { return dist2(p, v) ;}
         
 
-    double t;
+    int t;
     t = ((p[0] - v[0]) * (w[0] - v[0]) + (p[1] - v[1]) * (w[1] - v[1])) / l2 ;
     t = max(0, min(1, t));
 
-    double closest_point_in_line[2] = {v[0] + t * (w[0] - v[0]), v[1] + t * (w[1] - v[1])};
+    int closest_point_in_line[2] = {v[0] + t * (w[0] - v[0]), v[1] + t * (w[1] - v[1])};
     return dist2(p, closest_point_in_line);
 }
 
 // returns distance of point "p" to line segment between "v" and "w"
-double dist_to_line_segment(double* p, double* v,  double* w){
+double dist_to_line_segment(int* p, int* v,  int* w){
     return sqrt(dist_to_segment_squared( p, v, w));
 }
 
 /*ignora os valores acima de 60 cm: demasiado ruido*/
 // compass in RADIANS
-void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int right_sensor, double compass) {
-    double sensor_cutoff_point = 0; //TODO
-    double my_pos[2] = {my_x, my_y};
+void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right_sensor, double compass) {
+
+    int my_pos[2] = {my_x, my_y};
 
     int my_cell_index[2];
     get_cell_coords_from_gps_coords(my_x, my_y, my_cell_index );
@@ -173,37 +173,37 @@ void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int
                                    maze[my_cell_index[0] - 1][my_cell_index[1] - 1],
                                    maze[my_cell_index[0] - 1][my_cell_index[1] + 1],
                                    maze[my_cell_index[0] + 1][my_cell_index[1] - 1]};
-    double min_left_sensor = sensor_cutoff_point, min_front_sensor = sensor_cutoff_point, min_right_sensor = sensor_cutoff_point;
+    int min_left_sensor = sensor_cutoff_point, min_front_sensor = sensor_cutoff_point, min_right_sensor = sensor_cutoff_point;
     if (left_sensor < sensor_cutoff_point) min_left_sensor = left_sensor;
     if (front_sensor < sensor_cutoff_point) min_front_sensor = front_sensor;
     if (right_sensor < sensor_cutoff_point) min_right_sensor = right_sensor;
 
     // save points for front of sensor and 30º to left and right of each sensor (they're cone sensors)
-    double front_sensor_dots[3][2];
-    front_sensor_dots[0][0] = my_x + min_front_sensor / 2 * cos(compass);
-    front_sensor_dots[0][1] = my_y + min_front_sensor / 2 * sin(compass);
-    front_sensor_dots[1][0] = my_x + min_front_sensor / 2 * cos(compass + pi_over_6);
-    front_sensor_dots[1][1] = my_y + min_front_sensor / 2 * sin(compass + pi_over_6);
-    front_sensor_dots[2][0] = my_x + min_front_sensor / 2 * cos(compass - pi_over_6);
-    front_sensor_dots[2][1] = my_y + min_front_sensor / 2 * sin(compass - pi_over_6);
+    int front_sensor_dots[3][2];
+    front_sensor_dots[0][0] = (int) (my_x + min_front_sensor / cos(compass));
+    front_sensor_dots[0][1] = (int) (my_y + min_front_sensor /  sin(compass));
+    front_sensor_dots[1][0] = (int) (my_x + min_front_sensor /  cos(compass + pi_over_6));
+    front_sensor_dots[1][1] = (int) (my_y + min_front_sensor / sin(compass + pi_over_6));
+    front_sensor_dots[2][0] = (int) (my_x + min_front_sensor /  cos(compass - pi_over_6));
+    front_sensor_dots[2][1] = (int) (my_y + min_front_sensor /  sin(compass - pi_over_6));
     update_single_sensor(front_sensor, nearby_cells, front_sensor_dots, my_pos);
 
-    double left_sensor_dots[3][2];
-    left_sensor_dots[0][0] = my_x + min_left_sensor / 2 * cos(compass - pi_over_2);
-    left_sensor_dots[0][1] = my_y + min_left_sensor / 2 * sin(compass - pi_over_2);
-    left_sensor_dots[1][0] = my_x + min_left_sensor / 2 * cos(compass - pi_over_2 + pi_over_6);
-    left_sensor_dots[1][1] = my_y + min_left_sensor / 2 * sin(compass - pi_over_2 + pi_over_6);
-    left_sensor_dots[2][0] = my_x + min_left_sensor / 2 * cos(compass - pi_over_2 - pi_over_6);
-    left_sensor_dots[2][1] = my_y + min_left_sensor / 2 * sin(compass - pi_over_2 - pi_over_6);
+    int left_sensor_dots[3][2];
+    left_sensor_dots[0][0] = (int) (my_x + min_left_sensor /  cos(compass - pi_over_2));
+    left_sensor_dots[0][1] = (int) (my_y + min_left_sensor / sin(compass - pi_over_2));
+    left_sensor_dots[1][0] = (int) (my_x + min_left_sensor /  cos(compass - pi_over_2 + pi_over_6));
+    left_sensor_dots[1][1] = (int) (my_y + min_left_sensor /  sin(compass - pi_over_2 + pi_over_6));
+    left_sensor_dots[2][0] = (int) (my_x + min_left_sensor /  cos(compass - pi_over_2 - pi_over_6));
+    left_sensor_dots[2][1] = (int) (my_y + min_left_sensor /  sin(compass - pi_over_2 - pi_over_6));
     update_single_sensor(left_sensor, nearby_cells, left_sensor_dots, my_pos);
 
-    double right_sensor_dots[3][2];
-    right_sensor_dots[0][0] = my_x + min_right_sensor / 2 * cos(compass + pi_over_2);
-    right_sensor_dots[0][1] = my_y + min_right_sensor / 2 * sin(compass + pi_over_2);
-    right_sensor_dots[1][0] = my_x + min_right_sensor / 2 * cos(compass + pi_over_2 + pi_over_6);
-    right_sensor_dots[1][1] = my_y + min_right_sensor / 2 * sin(compass + pi_over_2 + pi_over_6);
-    right_sensor_dots[2][0] = my_x + min_right_sensor / 2 * cos(compass + pi_over_2 - pi_over_6);
-    right_sensor_dots[2][1] = my_y + min_right_sensor / 2 * sin(compass + pi_over_2 - pi_over_6);
+    int right_sensor_dots[3][2];
+    right_sensor_dots[0][0] = (int) (my_x + min_right_sensor /  cos(compass + pi_over_2));
+    right_sensor_dots[0][1] = (int) (my_y + min_right_sensor /  sin(compass + pi_over_2));
+    right_sensor_dots[1][0] = (int) (my_x + min_right_sensor /  cos(compass + pi_over_2 + pi_over_6));
+    right_sensor_dots[1][1] = (int) (my_y + min_right_sensor /  sin(compass + pi_over_2 + pi_over_6));
+    right_sensor_dots[2][0] = (int) (my_x + min_right_sensor /  cos(compass + pi_over_2 - pi_over_6));
+    right_sensor_dots[2][1] = (int) (my_y + min_right_sensor /  sin(compass + pi_over_2 - pi_over_6));
     update_single_sensor(right_sensor, nearby_cells, right_sensor_dots, my_pos);
 
     // confirm no walls where we are moving through
@@ -220,11 +220,11 @@ void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int
 }
 
 /*adiciona o valor*/
-void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double sensor_positions[3][2],
-                          double sensor_pos_in_eevee[2])
+void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[3][2],
+                          int sensor_pos_in_eevee[2])
 {
-    double sensor_cutoff_point = 0; //TODO
-    double max_dist_threshold = 0; //TODO
+
+
 
     // if obstacle found
     int possible_walls_size = 3 * 9 * 4;
@@ -233,7 +233,7 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
     if (sensor_val < sensor_cutoff_point)  // self.max_dist_threshold:
     {
         // check closest ray to any is_wall
-        double ray_dists[3] = {max_dist_threshold, max_dist_threshold, max_dist_threshold};
+        int ray_dists[3] = {max_dist_threshold, max_dist_threshold, max_dist_threshold};
         struct Wall *ray_walls[3];
 
         // check 30º to the left, 0º, and 30º to the right; 3 possible sensor points
@@ -246,7 +246,7 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
                     struct Wall wall = *nearby_cells[cell_index].walls[wall_index];
 
                     // calculate distance of sensor point to the wall and save closest is_wall
-                    double d = dist_to_line_segment(sensor_positions[sensor_index], wall.line[0], wall.line[1]);
+                    int d = dist_to_line_segment(sensor_positions[sensor_index], wall.line[0], wall.line[1]);
                     if (d < ray_dists[sensor_index]) {
                         ray_dists[sensor_index] = d;
                         ray_walls[sensor_index] = &wall;
@@ -265,11 +265,11 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
 
         // if that ray is actually close to a is_wall
         // closest_dot_to_wall_distance = ray_dists[min_index]
-        double *closest_dot_to_wall = sensor_positions[min_index];
+        //int *closest_dot_to_wall = sensor_positions[min_index];
         struct Wall closest_dot_cell_wall = *ray_walls[min_index];
 
-        double trust_val = trust_based_on_distance(dist_to_line_segment(
-                sensor_pos_in_eevee, closest_dot_cell_wall.line[0], closest_dot_cell_wall.line[1])); //TODO
+        int trust_val = trust_based_on_distance(dist_to_line_segment(
+                sensor_pos_in_eevee, closest_dot_cell_wall.line[0], closest_dot_cell_wall.line[1]));
         weigh_wall(&closest_dot_cell_wall, trust_val);
         weighted_walls[0] = &closest_dot_cell_wall;
         currently_weighted_walls++;
@@ -295,9 +295,9 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
                 }
                 if (wall_not_in_weighted_walls &&
                     intersects(wall->line[0], wall->line[1], sensor_pos_in_eevee, sensor_positions[sensor_index])) {
-                    double dist = dist_to_line_segment(sensor_pos_in_eevee, wall->line[0], wall->line[1]);
+                    int dist = dist_to_line_segment(sensor_pos_in_eevee, wall->line[0], wall->line[1]);
                     if (dist < 1) {
-                        double trust_val = trust_based_on_distance(dist);
+                        int trust_val = trust_based_on_distance(dist);
                         weigh_wall(wall, -trust_val);
                         weighted_walls[currently_weighted_walls] = wall;
                         currently_weighted_walls++;
@@ -308,25 +308,21 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
     }
 }
 
-int intersects(double *l0_a, double* l0_b, double *l1_a, double* l1_b) {
-    //TODO
+int intersects(int *AB, int* CD, int *PQ, int* RS) {
+    float det = (CD[0] - AB[0]) * (RS[1] - PQ[1]) - (RS[0] - PQ[0]) * (CD[1] - AB[1]);
+    if( det == .0)    return 0;
 
-    return 0;
-}
+    float lambda_ = ((RS[1] - PQ[1]) * (RS[0] - AB[0]) + (PQ[0] - RS[0]) * (RS[1] - AB[1])) / det ;
+    float gamma = ((AB[1] - CD[1]) * (RS[0] - AB[0]) + (CD[0] - AB[0]) * (RS[1] - AB[1])) / det ;
 
-/*mapeia o peso de confiança para dar a parede*/
-int trust_based_on_distance(double dist) {
-    double output_start = -255;
-    double output_end = 255;
-    double input_start = 45; //cm
-    double input_end = 7;
-    return (int) (output_start + ((output_end - output_start) / (input_end - input_start)) * (dist - input_start));
+    return .0 < lambda_ && lambda_ < 1. && 0. < gamma && gamma < 1.;
 }
 
 
-// TODO
-/*index of is_wall according to heading*/
-int wall_index(double heading);
+int trust_based_on_distance(int dist) {
+    dist = min(max_dist_threshold, max(dist, 7));
+    return (5/(dist -6)); // ratio proportional to weight [5 ; 0]
+}
 
 
 /*Functions of Wall*/
@@ -375,21 +371,26 @@ int is_wall(struct Wall *w) {
 
 
 struct Line {
-    double a[2];
-    double b[2];
+    int a[2];
+    int b[2];
 };
 
 struct Line beaconLines[10];
 
-int count_beacon_line;
-int count_beacon_line = 0;
+int beaconLines_size;
+int beaconLines_size = 0;
 int index_beacon = 0;
-// added a new beacon line, mark a new beacon point, try and find a path there
-int* getDirectionTarget(double* curr, double dir, struct Cell actualCurr) {
+
+int beaconPoints[10][2];
+int beaconPoints_size = 0;
+int beaconPoints_index = 0;
+
+// add a new beacon line, mark a new beacon point and return avg beacon point
+bool getDirectionTarget(int* curr, int dir, int *beaconPoint) {
     int contains = 0;
     // check if we have any beacon line pointing at the beacon and starting close to current position
     int i;
-    for (i = 0; i < count_beacon_line; ++i)
+    for (i = 0; i < beaconLines_size; ++i)
     {
 
         if ( dist(beaconLines[i].a, curr) < 3) {
@@ -400,62 +401,100 @@ int* getDirectionTarget(double* curr, double dir, struct Cell actualCurr) {
 
     // compute line
     int dist = 5 * 3;
-    double newX, newY;
+    int newX, newY;
     newX = (curr[0] + cos(dir) * dist);
     newY = (curr[1] - sin(dir) * dist);
-    double endLine[2] = {newX, newY };
+    int endLine[2] = {newX, newY };
 
     // if we have no such line, add a new line and mark the point it intersects with other lines
-    if (!contains) {
+    if (!contains ) {
         struct Line newLine = {.a = {curr[0],curr[1]}, .b = {endLine[0], endLine[1]} };
         beaconLines[index_beacon%10] = newLine;
         index_beacon = (index_beacon+1) %10;
-        count_beacon_line = (count_beacon_line >= 10) ? count_beacon_line : count_beacon_line+1 ;
+        beaconLines_size = (beaconLines_size >= 10) ? 10 : beaconLines_size+1 ;
+        /*if we have more than one line in buffer try to intersect them*/
+        if (beaconLines_size > 1){
+            int x3 = newLine.a[0];
+            int y3 = newLine.a[1];
+            int x4 = newLine.b[0];
+            int y4 = newLine.b[1];
 
-        double x3 = newLine.a[0];
-        double y3 = newLine.a[1];
-        double x4 = newLine.b[0];
-        double y4 = newLine.b[1];
+            int s = max(beaconLines_size,index_beacon );
+            for (i = 0;  i < s; ++i) {
+                if (i == index_beacon-1) continue;
 
-        for (i = 0;  i < count_beacon_line - 1; ++i) {
-            double x1 = beaconLines[i].a[0];
-            double y1 = beaconLines[i].a[1];
-            double x2 = beaconLines[i].b[0];
-            double y2 = beaconLines[i].b[1];
+                int x1 = beaconLines[i].a[0];
+                int y1 = beaconLines[i].a[1];
+                int x2 = beaconLines[i].b[0];
+                int y2 = beaconLines[i].b[1];
 
-            //if parallel with other line, skip it
-            if ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4) == 0) {
-                continue;
-            }
+                //if parallel with other line, skip it
+                if ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4) == 0) {
+                    continue;
+                }
 
-            //intersect with other line
-            double Px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4))
-                       / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
-            double Py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4))
-                       / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
+                //intersect with other line
+                int Px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4))
+                           / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
+                int Py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4))
+                           / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
 
-            //if point between both lines' end points, keep it
-            if (Px > min(x3, x4) && Px < max(x3, x4) && Py > min(y3, y4) && Py < max(y3, y4 )) {
-                // if (gui != null) {
-                //     gui.paintPoint((int) Px, (int) Py, Color.RED);
-                // }
-                
-                setUniqueBeaconPoint(Px, Py);
+                //if point between both lines' end points, keep it
+                if (Px > min(x3, x4) && Px < max(x3, x4) && Py > min(y3, y4) && Py < max(y3, y4 )) {
+                    // if (gui != null) {
+                    //     gui.paintPoint((int) Px, (int) Py, Color.RED);
+                    // }
+
+                    setUniqueBeaconPoint(Px, Py);
+                }
             }
         }
     }
 
-    // if (!beaconPoints.isEmpty() ) {
-    //     return  getWayToBeacon(actualCurr);
-    // } 
-    // else {
-    //     Cell tar = new  Cell(newX, newY );
-    //     tar = findClosestFreeCell(tar, 2);
-    //     return  StarSearchExplorerZone(actualCurr, tar, 2, 3);
-    // }
-    return 0;
+
+     if (beaconPoints_size > 0 ) {
+         return getBeaconAvgPoint(beaconPoint);
+     }
+
+    return false  ;
 }
 
-void setUniqueBeaconPoint(double px, double py){
-    // TODO
+//*bp =  (int *)malloc(2*(sizeof(int)));
+
+bool getBeaconAvgPoint(int *bp){
+    if (beaconPoints_size <= 0 ) return false;
+    int y_total = 0, x_total= 0;
+    int i;
+    for (i = 0; i < beaconPoints_size ; ++i) {
+        x_total = x_total + beaconPoints[i][0];
+        y_total = y_total + beaconPoints[i][1];
+    }
+    bp[0] = x_total/beaconPoints_size;
+    bp[1] = y_total/beaconPoints_size;
+
+    return true;
+}
+
+
+
+bool setUniqueBeaconPoint(int x, int y){
+    if (x < -3600 || y < -3600 || x >= 3600 || y >= 3600) {
+        return false;
+    }
+    int i;
+    for (i = 0; i < beaconPoints_size; ++i)
+    {
+        if (beaconPoints[i][0] == x && beaconPoints[i][1] == y) {
+            return true;
+        }
+    }
+
+    //System.out.println("\tAdding unique beacon point! (" + x + "," + y + ")");
+    beaconPoints[beaconPoints_index%10][0] = x;
+    beaconPoints[beaconPoints_index%10][1] = y;
+    beaconPoints_index = (beaconPoints_index+1) %10;
+    beaconPoints_size = (beaconPoints_size >= 10) ? 10 : beaconPoints_size+1 ;
+
+
+    return true;
 }
