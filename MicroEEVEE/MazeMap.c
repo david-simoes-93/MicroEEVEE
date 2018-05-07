@@ -263,7 +263,7 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int senso
     {
         // check closest ray to any is_wall
         double ray_dists = max_dist_threshold;
-        struct Wall *closest_dot_cell_wall;
+        struct Wall *closest_dot_cell_wall = NULL;
 
         int cell_index, wall_index;
         // run through all neighbor cells
@@ -286,15 +286,17 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int senso
             }
         }
         // if that ray is actually close to a wall
-        double trust_val = trust_based_on_distance(dist_to_line_segment(
-                sensor_pos_in_eevee, closest_dot_cell_wall->line[0], closest_dot_cell_wall->line[1]));
-        //printf("\tWeightin wall %x with %f (was %f) from (%d,%d) to (%d,%d)\n", closest_dot_cell_wall, trust_val,
-        //       closest_dot_cell_wall->weight,
-        //       closest_dot_cell_wall->line[0][0], closest_dot_cell_wall->line[0][1],
-        //       closest_dot_cell_wall->line[1][0], closest_dot_cell_wall->line[1][1]);
-        weigh_wall(closest_dot_cell_wall, trust_val);
-        weighted_walls[0] = closest_dot_cell_wall;
-        currently_weighted_walls++;
+        if(closest_dot_cell_wall != NULL) {
+            double trust_val = trust_based_on_distance(dist_to_line_segment(
+                    sensor_pos_in_eevee, closest_dot_cell_wall->line[0], closest_dot_cell_wall->line[1]));
+            //printf("\tWeightin wall %x with %f (was %f) from (%d,%d) to (%d,%d)\n", closest_dot_cell_wall, trust_val,
+            //       closest_dot_cell_wall->weight,
+            //       closest_dot_cell_wall->line[0][0], closest_dot_cell_wall->line[0][1],
+            //       closest_dot_cell_wall->line[1][0], closest_dot_cell_wall->line[1][1]);
+            weigh_wall(closest_dot_cell_wall, trust_val);
+            weighted_walls[0] = closest_dot_cell_wall;
+            currently_weighted_walls++;
+        }
     }
 
     // decrease all other is_wall intersections score

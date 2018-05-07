@@ -10,14 +10,14 @@ char *sab_getName() {
 }
 
 void sab_execute() {
-    if (!followPoints) {
-        followPoints = 1;
+    if (!returning_home) {
+        returning_home = 1;
         firstTime = 1;
         visible = 1;
 
         setVel2(0, 0);
 
-        printf("Beacon found at %2.0f %2.0f\n", x, y);
+        printf("Beacon found at %2d %2d\n", x, y);
         while (!startButton());
     } else {
         if (beaconDir > 0) {
@@ -42,7 +42,7 @@ bool sab_isPossible() {
         firstTime = 0;
     }
 
-    if (followPoints)
+    if (returning_home)
         return false;
 
     return gnd;

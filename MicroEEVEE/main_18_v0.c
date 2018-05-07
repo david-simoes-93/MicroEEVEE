@@ -78,12 +78,9 @@ int main(void) {
     init_maze();
     int c = 0;
 
-    //int x, y;
-    //double t;
-
-    recalculate = true;
-    followPoints = 0; //only true when beacon is reached
-    bool execute_followPoints_ = true;
+    recalculate = false;
+    returning_home = 0; //only true when beacon is reached
+    bool follow_astar_path = true;
     /*-------------------*/
 
     while (!stopButton()) {
@@ -120,11 +117,11 @@ int main(void) {
             //add new Line and get Avg Beacon Point
             if (getDirectionTarget(tmp, dir_beacon, beaconPoint) ){ //i have a beacon point at beaconPoint
                 if (! compare_points(old_beaconPoint, beaconPoint)) recalculate = true;
-                execute_followPoints_ = true;
+                follow_astar_path = true;
             }
             else{ //no intersect was made, only have direction!
                 //go_to_dir = beaconDir;
-                execute_followPoints_ = false;
+                follow_astar_path = false;
             }
         }
 
@@ -138,7 +135,7 @@ int main(void) {
 
         if(recalculate){
             //recalculate new path
-            if(followPoints){ //beacon was found --> go Home
+            if(returning_home){ //beacon was found --> go Home
                 tmp[0] = 7; //in cells
                 tmp[1] = 7;
             }
@@ -177,7 +174,7 @@ int main(void) {
 
 
         if (sx == path_list[path_length-1][0] && sy == path_list[path_length-1][1] ){
-            if(followPoints && sx == 0 && sy == 0) {
+            if(returning_home && sx == 0 && sy == 0) {
                 //reach Home
                 printf("Found Home");
                 break;
@@ -187,7 +184,7 @@ int main(void) {
             //beaconDir = get_next_dir(sx, sy);
         }
 
-        if(execute_followPoints_){
+        if(follow_astar_path){
             followPoints_(); //update beaconDir every iteration
         }
         //else beaconPoint from servoControl is executed

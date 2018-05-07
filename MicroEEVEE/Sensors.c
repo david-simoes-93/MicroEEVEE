@@ -5,7 +5,6 @@
 // Target is start position
 double radiusConst = 200;
 int targetX = 0, targetY = 0;
-lastPointX = 0, lastPointY = 0;
 int modder = -1;
 int left = 0, right = 0;
 
@@ -134,7 +133,7 @@ int removePoint() {
 }
 
 void markPoint() {
-    if (!followPoints) {
+    if (!returning_home) {
         getLastPoint();
         if (!isOnRadius(x, y, lastPointX, lastPointY, 100)) {
             addPoint(x, y);

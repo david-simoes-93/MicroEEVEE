@@ -20,12 +20,12 @@ extern "C" {
 #define POS_RIGHT		15
 #define compass 	(t * 180 / PI)
 
-int visible, followPoints;
+int visible, returning_home;
 int x, y;
 double t, oldCompass;
 double obstValFront, obstValLeft, obstValRight;
 int groundSensor, beaconDir, currServoPos;
-int lastPointX, lastPointY;
+int lastPointX = 0, lastPointY = 0;
 
 int gndVals[5];
 int pointsList[2][100];
