@@ -156,5 +156,5 @@ double get_next_dir(int sx, int sy){
         target_path_point_index = path_length-2;
 
     return get_target_dir(sx, sy, t,
-                               path_list[target_path_point_index][0], path_list[target_path_point_index][1]);
+                          path_list[target_path_point_index][0], path_list[target_path_point_index][1]);
 }

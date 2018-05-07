@@ -335,7 +335,7 @@ void readAnalogSensors(void)
             if(AVERAGE_SIZE > 1)
                 filteredValue = average(i, filteredValue);
 
-            analogSensors.array[i] = calcDistance(filteredValue);
+            analogSensors.array[i] = calcDistance(filteredValue)*100;
             break;
          case 5:  // Battery voltage
             analogSensors.array[BATTERY] = updateBatteryVoltage( adcValue );
