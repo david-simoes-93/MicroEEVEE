@@ -103,9 +103,8 @@ int main(void) {
         getRobotPos_int(&x, &y, &t);
 
         //update map
-        printf("update map...\n");
         update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
-        printf("update map\n");
+
 
         //Find beacon
         if ( servoControl() ){ //found beacon
@@ -190,8 +189,7 @@ int main(void) {
         }
         //else beaconPoint from servoControl is executed
         reactive_decide(); //ftb executes with beaconDir value
-
-
+        print_map();
     }
 
     print_map();
