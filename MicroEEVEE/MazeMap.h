@@ -75,6 +75,8 @@ int trust_based_on_distance(double dist);
 /* prints current map to console */
 void print_map();
 
+/* returns desired dir based on target point */
+double get_target_dir(int, int, double, int, int);
 
 /*index of is_wall according to heading*/
 int wall_index(double heading);

@@ -33,7 +33,6 @@ int main(void) {
 
     setVel2(0, 0); 
     int c = 0;
-    initAvg();
 
     lastBeh=-1;
 
@@ -48,14 +47,7 @@ int main(void) {
 	
 		for(i=0; i < 5; i++)
 			gndVals[0] = 0;
-		
-        for(i=0; i<valsSize; i++){
-            waitTick40ms(); 
-            readAnalogSensors(); 
-            calculateAverage();
-        }
-
-       //led(3,1);
+        readAnalogSensors();
 
         do {
             // Wait for next 40ms tick
@@ -72,11 +64,19 @@ int main(void) {
 	    	gndVals[c] = groundSensor;	c=(c+1)%5; //buffer 
             /* Track robot position and orientation */
             getRobotPos(&x, &y, &t);
-	    
-            /* Average in order to diminish noise */
-            calculateAverage();
-	   
-            servoControl();
+
+            if(followPoints)
+                followPoints_();
+                if (checkPointsRadius()) {
+                    if (removePoint()) {
+                        // update point
+                        printf("Found home!\n");
+                        setVel2(0, 0);
+                        while (!startButton());
+                    }
+                }
+            else
+                servoControl();
 
             markPoint();
             
