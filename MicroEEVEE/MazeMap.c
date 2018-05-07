@@ -27,7 +27,6 @@ void init_maze() {
                 ptr->line[0][1] = y - m_p;
                 ptr->line[1][0] = x + m_p;
                 ptr->line[1][1] = y - m_p;
-
             }
 
             // always create bottom is_wall
@@ -70,15 +69,16 @@ void init_maze() {
             ptr_east->line[0][1] = y - m_p;
             ptr_east->line[1][0] = x + m_p;
             ptr_east->line[1][1] = y + m_p;
-
-
         }
-
-
     }
 
     for (i = 0; i < cols; i++) {
         for (j = 0; j < rows; j++) {
+            maze[i][j].walls[north]=maze[i][j].north_wall;
+            maze[i][j].walls[south]=maze[i][j].south_wall;
+            maze[i][j].walls[east]=maze[i][j].east_wall;
+            maze[i][j].walls[west]=maze[i][j].west_wall;
+
             if (j == 0) {
                 confirm_wall(maze[i][j].north_wall);
             } else if (j == rows - 1) {
@@ -242,7 +242,6 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
 
 void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[3][2],
                           int sensor_pos_in_eevee[2]) {
-
     // if obstacle found
     int possible_walls_size = 3 * 9 * 4;
     int currently_weighted_walls = 0;
@@ -313,7 +312,7 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int senso
                 if (wall_not_in_weighted_walls &&
                     intersects(wall->line[0], wall->line[1], sensor_pos_in_eevee, sensor_positions[sensor_index])) {
                     int dist = dist_to_line_segment(sensor_pos_in_eevee, wall->line[0], wall->line[1]);
-                    if (dist < 1) {
+                    if (dist < m_p) {
                         int trust_val = trust_based_on_distance(dist);
                         weigh_wall(wall, -trust_val);
                         weighted_walls[currently_weighted_walls] = wall;

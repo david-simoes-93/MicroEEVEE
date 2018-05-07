@@ -116,11 +116,11 @@ Microchip PIC32 Memory-Usage Report
 kseg0 Program-Memory Usage
 section                    address  length [bytes]      (dec)  Description
 -------                 ----------  -------------------------  -----------
-.text                   0x9d001400         0xb538       46392  Application's executable code 
-.rodata                 0x9d00c938          0x370         880  Read-only constant data 
-.data                   0x9d00cca8          0x4e4        1252  Data-initialization template 
-.sdata                  0x9d00d190           0x28          40  Small data-initialization template 
-      Total kseg0_program_mem used  :      0xbdb4       48564  9.4% of 0x7ec00
+.text                   0x9d001400         0xb5b4       46516  Application's executable code 
+.rodata                 0x9d00c9b8          0x370         880  Read-only constant data 
+.data                   0x9d00cd28          0x4e4        1252  Data-initialization template 
+.sdata                  0x9d00d210           0x28          40  Small data-initialization template 
+      Total kseg0_program_mem used  :      0xbe30       48688  9.4% of 0x7ec00
 
 kseg0 Boot-Memory Usage
 section                    address  length [bytes]      (dec)  Description
@@ -142,7 +142,7 @@ section                    address  length [bytes]      (dec)  Description
 -------                 ----------  -------------------------  -----------
          Total kseg1_boot_mem used  :           0           0  <1% of 0x490
         --------------------------------------------------------------------------
-         Total Program Memory used  :      0xc090       49296  9.4% of 0x80480
+         Total Program Memory used  :      0xc10c       49420  9.4% of 0x80480
         --------------------------------------------------------------------------
 
 
@@ -502,365 +502,365 @@ LOAD /opt/pic32mx/lib/startup.o
  *(.vector_63)
                 0x0000000000000001                ASSERT (((_vector_spacing == 0x0) || (SIZEOF (.vector_63) <= (_vector_spacing << 0x5))), function at exception vector 63 too large)
 
-.text           0x000000009d001400     0xb538
+.text           0x000000009d001400     0xb5b4
                 0x000000009d001400                _text_begin = .
  *(.text .stub .text.* .gnu.linkonce.t.*)
- .text          0x000000009d001400      0x150 main_18_v0.o
+ .text          0x000000009d001400      0x17c main_18_v0.o
                 0x000000009d001400                main
- .text          0x000000009d001550     0x154c rmi-mr32.o
-                0x000000009d002294                normalizeAngle
-                0x000000009d0021d8                pid
-                0x000000009d00168c                average
-                0x000000009d002904                isr_enc_left
-                0x000000009d001e50                getRobotPos_int
-                0x000000009d001550                setServoPos
-                0x000000009d0029bc                isr_enc_right
-                0x000000009d00189c                readAnalogSensors
-                0x000000009d001e14                getRobotPos
-                0x000000009d0016ec                updateBatteryVoltage
-                0x000000009d002a8c                __gxx_personality_v0
-                0x000000009d0026bc                isr_t2
-                0x000000009d001f00                led
-                0x000000009d001fac                setSP2
-                0x000000009d001f5c                leds
-                0x000000009d001790                sort
-                0x000000009d00267c                wait
-                0x000000009d001ed4                setRobotPos
-                0x000000009d0019cc                initPIC32
-                0x000000009d0017dc                median
-                0x000000009d0015f4                calcDistance
-                0x000000009d002034                readEncoders
-                0x000000009d002568                delay
-                0x000000009d001ffc                setVel2
-                0x000000009d001fa0                batteryVoltage
-                0x000000009d001fe8                setPWM2
-                0x000000009d00237c                updateLocalization
-                0x000000009d002060                actuateMotors
-                0x000000009d0025b4                readLineSensors
-                0x000000009d00202c                closedLoopControl
-                0x000000009d001f7c                obstacleSensor
- .text          0x000000009d002a9c     0x1e18 MazeMap.o
-                0x000000009d003788                update_map
-                0x000000009d002e90                get_cell_coords_from_gps_coords
-                0x000000009d002a9c                confirm_wall
-                0x000000009d002d24                print_map
-                0x000000009d00438c                is_no_wall
-                0x000000009d004514                getDirectionTarget
-                0x000000009d003410                update_single_sensor
-                0x000000009d002f10                dist
-                0x000000009d0031b8                intersects
-                0x000000009d00331c                is_confirmed_no_wall
-                0x000000009d004398                setUniqueBeaconPoint
-                0x000000009d003180                trust_based_on_distance
-                0x000000009d003150                dist_to_line_segment
-                0x000000009d00332c                weigh_wall
-                0x000000009d002aa8                init_maze
-                0x000000009d002d18                is_wall
-                0x000000009d002ed4                dist2
-                0x000000009d003174                confirm_no_wall
-                0x000000009d002f34                dist_to_segment_squared
-                0x000000009d00303c                get_target_dir
-                0x000000009d0044a8                getBeaconAvgPoint
- .text          0x000000009d0048b4      0x608 AStar.o
-                0x000000009d0048b4                dist_manhattan
-                0x000000009d0048f0                astar
- .text          0x000000009d004ebc      0xcec Sensors.o
-                0x000000009d004ee4                followPoints_
-                0x000000009d0056b8                markPoint
-                0x000000009d005980                dot_product
-                0x000000009d004ebc                getLastPoint
-                0x000000009d005a1c                rotateRel_naive
-                0x000000009d005334                removePoint
-                0x000000009d00517c                servoControl
-                0x000000009d0057a4                checkPointsRadius
-                0x000000009d005444                addPoint
-                0x000000009d00557c                isOnRadius
- .text          0x000000009d005ba8      0xbac FollowTheWall.o
-                0x000000009d006264                prep_ftw
-                0x000000009d005ba8                atBeacon
-                0x000000009d0063ec                ftw_isPossible
-                0x000000009d005c00                ftw_getName
-                0x000000009d005c0c                ftw_execute
-                0x000000009d005bf0                minimum
- .text          0x000000009d006754      0x120 DodgeObstacle.o
-                0x000000009d006754                do_getName
-                0x000000009d006760                do_execute
-                0x000000009d0067dc                do_isPossible
- .text          0x000000009d006874       0xec bluetooth_comm.o
-                0x000000009d006874                configBTUart
-                0x000000009d00690c                sendChar
-                0x000000009d006954                txc_bt
- .text          0x000000009d006960      0x334 FollowTheBeacon.o
-                0x000000009d006960                ftb_turningOnSelf
-                0x000000009d006968                ftb_getName
-                0x000000009d006974                ftb_execute
-                0x000000009d006bd4                ftb_isPossible
- .text          0x000000009d006c94      0x140 StopAtBeacon.o
-                0x000000009d006ca0                sab_execute
-                0x000000009d006c94                sab_getName
-                0x000000009d006d58                sab_isPossible
- .text          0x000000009d006dd4      0x130 Wander.o
-                0x000000009d006efc                wan_isPossible
-                0x000000009d006dd4                wan_getName
-                0x000000009d006de0                wan_execute
- .text          0x000000009d006f04      0x990 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
-                0x000000009d006f0c                xprintf
- .text.pow      0x000000009d007894      0x1b8 /opt/pic32mx/lib/libm.a(w_pow.o)
-                0x000000009d007894                pow
- .text.atan2    0x000000009d007a4c       0xe4 /opt/pic32mx/lib/libm.a(w_atan32.o)
-                0x000000009d007a4c                atan2
- .text          0x000000009d007b30      0x1a0 /opt/pic32mx/lib/libm.a(cos32.o)
-                0x000000009d007b30                cos
-                0x000000009d007b30                dpcos
- .text          0x000000009d007cd0      0x198 /opt/pic32mx/lib/libm.a(sin32.o)
-                0x000000009d007cd0                dpsin
-                0x000000009d007cd0                sin
- .text          0x000000009d007e68      0x1b4 /opt/pic32mx/lib/libm.a(reduct32.o)
-                0x000000009d007e68                reduct
- .text          0x000000009d00801c      0x5d4 /opt/pic32mx/lib/libm.a(func32.o)
-                0x000000009d0081f0                exadd
-                0x000000009d008124                exmul
-                0x000000009d00801c                sigmax
-                0x000000009d00838c                exdiv
-                0x000000009d0082dc                exsub
- .text          0x000000009d0085f0     0x1128 /opt/pic32mx/lib/libm.a(dp32.o)
-                0x000000009d0096a0                fabs
-                0x000000009d009564                __eqdf2
-                0x000000009d009564                __gtdf2
-                0x000000009d0085f0                dpsub
-                0x000000009d0091f8                __floatsidf
-                0x000000009d009564                __ltdf2
-                0x000000009d00926c                ultodp
-                0x000000009d008a1c                dpmul
-                0x000000009d009360                dptofp
-                0x000000009d0094e0                __fixunsdfsi
-                0x000000009d009564                dpcmp
-                0x000000009d0092bc                __extendsfdf2
-                0x000000009d0085f8                __adddf3
-                0x000000009d0094e0                dptoul
-                0x000000009d008d44                dpdiv
-                0x000000009d0091f8                litodp
-                0x000000009d009458                __fixdfsi
-                0x000000009d009564                __ledf2
-                0x000000009d0092bc                fptodp
-                0x000000009d009688                __negdf2
-                0x000000009d0085f8                dpadd
-                0x000000009d008d44                __divdf3
-                0x000000009d008a1c                __muldf3
-                0x000000009d009360                __truncdfsf2
-                0x000000009d009564                __nedf2
-                0x000000009d009458                dptoli
-                0x000000009d0096bc                nan
-                0x000000009d0096a0                dpfabs
-                0x000000009d009564                __gedf2
-                0x000000009d0096bc                dpnan
-                0x000000009d0085f0                __subdf3
- .text.sqrt     0x000000009d009718       0x80 /opt/pic32mx/lib/libm.a(w_sqrt.o)
-                0x000000009d009718                sqrt
- .text          0x000000009d009798      0x8ec /opt/pic32mx/lib/libm.a(fp32.o)
-                0x000000009d009bc4                __divsf3
-                0x000000009d009df0                sitofp
-                0x000000009d009e98                __fixsfsi
-                0x000000009d009bc4                fpdiv
-                0x000000009d009798                __subsf3
-                0x000000009d009e98                fptoli
-                0x000000009d009f84                __lesf2
-                0x000000009d00a018                fabsf
-                0x000000009d009f84                __nesf2
-                0x000000009d009e4c                uitofp
-                0x000000009d009f84                __gtsf2
-                0x000000009d009f10                fptoui
-                0x000000009d00a018                fpfabs
-                0x000000009d009df0                __floatsisf
-                0x000000009d009e98                fptosi
-                0x000000009d00a038                fpnan
-                0x000000009d009f84                __eqsf2
-                0x000000009d0097a0                fpadd
-                0x000000009d00a028                __negsf2
-                0x000000009d009f84                __ltsf2
-                0x000000009d009798                fpsub
-                0x000000009d009f84                fpcmp
-                0x000000009d009a0c                __mulsf3
-                0x000000009d009f84                __gesf2
-                0x000000009d00a038                nanf
-                0x000000009d009df0                litofp
-                0x000000009d009a0c                fpmul
-                0x000000009d009f10                __fixunssfsi
-                0x000000009d0097a0                __addsf3
-                0x000000009d009f10                fptoul
-                0x000000009d009e4c                ultofp
- .text          0x000000009d00a084      0x5c8 /opt/pic32mx/lib/libm.a(mod32.o)
-                0x000000009d00a3c8                __mchp_ldexp
-                0x000000009d00a084                dpfmod
-                0x000000009d00a530                modf
-                0x000000009d00a084                fmod
-                0x000000009d00a3c8                dpldexp
-                0x000000009d00a530                dpmodf
-                0x000000009d00a324                dpfrexp
-                0x000000009d00a324                frexp
- .text          0x000000009d00a64c      0x520 /opt/pic32mx/lib/libm.a(pow32.o)
-                0x000000009d00a64c                __mchp_pow
-                0x000000009d00a64c                dppow
- .text          0x000000009d00ab6c      0x5d8 /opt/pic32mx/lib/libm.a(log32.o)
-                0x000000009d00ae54                dplog
-                0x000000009d00afb0                dplog10
-                0x000000009d00afb0                __mchp_log10
-                0x000000009d00ae54                __mchp_log
-                0x000000009d00ab6c                exlog
- .text          0x000000009d00b144      0x2e0 /opt/pic32mx/lib/libm.a(atan32.o)
-                0x000000009d00b144                dpatan2
-                0x000000009d00b144                __mchp_atan2
- .text          0x000000009d00b424      0x5bc /opt/pic32mx/lib/libm.a(sqrt32.o)
-                0x000000009d00b6bc                __mchp_sqrt
-                0x000000009d00b424                exsqrt
-                0x000000009d00b6bc                dpsqrt
- .text          0x000000009d00b9e0      0x340 /opt/pic32mx/lib/libm.a(exp32.o)
-                0x000000009d00b9e0                exexp
-                0x000000009d00bbc4                dpexp
-                0x000000009d00bbc4                __mchp_exp
- .text          0x000000009d00bd20      0x384 /opt/pic32mx/lib/libm.a(arc32.o)
-                0x000000009d00bfe0                dpatan
-                0x000000009d00bd20                exatan
-                0x000000009d00bfe0                atan
- .text.exit     0x000000009d00c0a4       0x1c /opt/pic32mx/lib/libc.a(exit.o)
-                0x000000009d00c0a4                exit
- .text.isnan    0x000000009d00c0c0       0x30 /opt/pic32mx/lib/libc.a(isinf.o)
-                0x000000009d00c0c0                isnan
- .text.isinf    0x000000009d00c0f0       0x30 /opt/pic32mx/lib/libc.a(isinf.o)
-                0x000000009d00c0f0                isinf
+ .text          0x000000009d00157c     0x154c rmi-mr32.o
+                0x000000009d0022c0                normalizeAngle
+                0x000000009d002204                pid
+                0x000000009d0016b8                average
+                0x000000009d002930                isr_enc_left
+                0x000000009d001e7c                getRobotPos_int
+                0x000000009d00157c                setServoPos
+                0x000000009d0029e8                isr_enc_right
+                0x000000009d0018c8                readAnalogSensors
+                0x000000009d001e40                getRobotPos
+                0x000000009d001718                updateBatteryVoltage
+                0x000000009d002ab8                __gxx_personality_v0
+                0x000000009d0026e8                isr_t2
+                0x000000009d001f2c                led
+                0x000000009d001fd8                setSP2
+                0x000000009d001f88                leds
+                0x000000009d0017bc                sort
+                0x000000009d0026a8                wait
+                0x000000009d001f00                setRobotPos
+                0x000000009d0019f8                initPIC32
+                0x000000009d001808                median
+                0x000000009d001620                calcDistance
+                0x000000009d002060                readEncoders
+                0x000000009d002594                delay
+                0x000000009d002028                setVel2
+                0x000000009d001fcc                batteryVoltage
+                0x000000009d002014                setPWM2
+                0x000000009d0023a8                updateLocalization
+                0x000000009d00208c                actuateMotors
+                0x000000009d0025e0                readLineSensors
+                0x000000009d002058                closedLoopControl
+                0x000000009d001fa8                obstacleSensor
+ .text          0x000000009d002ac8     0x1e68 MazeMap.o
+                0x000000009d003804                update_map
+                0x000000009d002f0c                get_cell_coords_from_gps_coords
+                0x000000009d002ac8                confirm_wall
+                0x000000009d002da0                print_map
+                0x000000009d004408                is_no_wall
+                0x000000009d004590                getDirectionTarget
+                0x000000009d00348c                update_single_sensor
+                0x000000009d002f8c                dist
+                0x000000009d003234                intersects
+                0x000000009d003398                is_confirmed_no_wall
+                0x000000009d004414                setUniqueBeaconPoint
+                0x000000009d0031fc                trust_based_on_distance
+                0x000000009d0031cc                dist_to_line_segment
+                0x000000009d0033a8                weigh_wall
+                0x000000009d002ad4                init_maze
+                0x000000009d002d94                is_wall
+                0x000000009d002f50                dist2
+                0x000000009d0031f0                confirm_no_wall
+                0x000000009d002fb0                dist_to_segment_squared
+                0x000000009d0030b8                get_target_dir
+                0x000000009d004524                getBeaconAvgPoint
+ .text          0x000000009d004930      0x608 AStar.o
+                0x000000009d004930                dist_manhattan
+                0x000000009d00496c                astar
+ .text          0x000000009d004f38      0xcec Sensors.o
+                0x000000009d004f60                followPoints_
+                0x000000009d005734                markPoint
+                0x000000009d0059fc                dot_product
+                0x000000009d004f38                getLastPoint
+                0x000000009d005a98                rotateRel_naive
+                0x000000009d0053b0                removePoint
+                0x000000009d0051f8                servoControl
+                0x000000009d005820                checkPointsRadius
+                0x000000009d0054c0                addPoint
+                0x000000009d0055f8                isOnRadius
+ .text          0x000000009d005c24      0xbac FollowTheWall.o
+                0x000000009d0062e0                prep_ftw
+                0x000000009d005c24                atBeacon
+                0x000000009d006468                ftw_isPossible
+                0x000000009d005c7c                ftw_getName
+                0x000000009d005c88                ftw_execute
+                0x000000009d005c6c                minimum
+ .text          0x000000009d0067d0      0x120 DodgeObstacle.o
+                0x000000009d0067d0                do_getName
+                0x000000009d0067dc                do_execute
+                0x000000009d006858                do_isPossible
+ .text          0x000000009d0068f0       0xec bluetooth_comm.o
+                0x000000009d0068f0                configBTUart
+                0x000000009d006988                sendChar
+                0x000000009d0069d0                txc_bt
+ .text          0x000000009d0069dc      0x334 FollowTheBeacon.o
+                0x000000009d0069dc                ftb_turningOnSelf
+                0x000000009d0069e4                ftb_getName
+                0x000000009d0069f0                ftb_execute
+                0x000000009d006c50                ftb_isPossible
+ .text          0x000000009d006d10      0x140 StopAtBeacon.o
+                0x000000009d006d1c                sab_execute
+                0x000000009d006d10                sab_getName
+                0x000000009d006dd4                sab_isPossible
+ .text          0x000000009d006e50      0x130 Wander.o
+                0x000000009d006f78                wan_isPossible
+                0x000000009d006e50                wan_getName
+                0x000000009d006e5c                wan_execute
+ .text          0x000000009d006f80      0x990 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
+                0x000000009d006f88                xprintf
+ .text.pow      0x000000009d007910      0x1b8 /opt/pic32mx/lib/libm.a(w_pow.o)
+                0x000000009d007910                pow
+ .text.atan2    0x000000009d007ac8       0xe4 /opt/pic32mx/lib/libm.a(w_atan32.o)
+                0x000000009d007ac8                atan2
+ .text          0x000000009d007bac      0x1a0 /opt/pic32mx/lib/libm.a(cos32.o)
+                0x000000009d007bac                cos
+                0x000000009d007bac                dpcos
+ .text          0x000000009d007d4c      0x198 /opt/pic32mx/lib/libm.a(sin32.o)
+                0x000000009d007d4c                dpsin
+                0x000000009d007d4c                sin
+ .text          0x000000009d007ee4      0x1b4 /opt/pic32mx/lib/libm.a(reduct32.o)
+                0x000000009d007ee4                reduct
+ .text          0x000000009d008098      0x5d4 /opt/pic32mx/lib/libm.a(func32.o)
+                0x000000009d00826c                exadd
+                0x000000009d0081a0                exmul
+                0x000000009d008098                sigmax
+                0x000000009d008408                exdiv
+                0x000000009d008358                exsub
+ .text          0x000000009d00866c     0x1128 /opt/pic32mx/lib/libm.a(dp32.o)
+                0x000000009d00971c                fabs
+                0x000000009d0095e0                __eqdf2
+                0x000000009d0095e0                __gtdf2
+                0x000000009d00866c                dpsub
+                0x000000009d009274                __floatsidf
+                0x000000009d0095e0                __ltdf2
+                0x000000009d0092e8                ultodp
+                0x000000009d008a98                dpmul
+                0x000000009d0093dc                dptofp
+                0x000000009d00955c                __fixunsdfsi
+                0x000000009d0095e0                dpcmp
+                0x000000009d009338                __extendsfdf2
+                0x000000009d008674                __adddf3
+                0x000000009d00955c                dptoul
+                0x000000009d008dc0                dpdiv
+                0x000000009d009274                litodp
+                0x000000009d0094d4                __fixdfsi
+                0x000000009d0095e0                __ledf2
+                0x000000009d009338                fptodp
+                0x000000009d009704                __negdf2
+                0x000000009d008674                dpadd
+                0x000000009d008dc0                __divdf3
+                0x000000009d008a98                __muldf3
+                0x000000009d0093dc                __truncdfsf2
+                0x000000009d0095e0                __nedf2
+                0x000000009d0094d4                dptoli
+                0x000000009d009738                nan
+                0x000000009d00971c                dpfabs
+                0x000000009d0095e0                __gedf2
+                0x000000009d009738                dpnan
+                0x000000009d00866c                __subdf3
+ .text.sqrt     0x000000009d009794       0x80 /opt/pic32mx/lib/libm.a(w_sqrt.o)
+                0x000000009d009794                sqrt
+ .text          0x000000009d009814      0x8ec /opt/pic32mx/lib/libm.a(fp32.o)
+                0x000000009d009c40                __divsf3
+                0x000000009d009e6c                sitofp
+                0x000000009d009f14                __fixsfsi
+                0x000000009d009c40                fpdiv
+                0x000000009d009814                __subsf3
+                0x000000009d009f14                fptoli
+                0x000000009d00a000                __lesf2
+                0x000000009d00a094                fabsf
+                0x000000009d00a000                __nesf2
+                0x000000009d009ec8                uitofp
+                0x000000009d00a000                __gtsf2
+                0x000000009d009f8c                fptoui
+                0x000000009d00a094                fpfabs
+                0x000000009d009e6c                __floatsisf
+                0x000000009d009f14                fptosi
+                0x000000009d00a0b4                fpnan
+                0x000000009d00a000                __eqsf2
+                0x000000009d00981c                fpadd
+                0x000000009d00a0a4                __negsf2
+                0x000000009d00a000                __ltsf2
+                0x000000009d009814                fpsub
+                0x000000009d00a000                fpcmp
+                0x000000009d009a88                __mulsf3
+                0x000000009d00a000                __gesf2
+                0x000000009d00a0b4                nanf
+                0x000000009d009e6c                litofp
+                0x000000009d009a88                fpmul
+                0x000000009d009f8c                __fixunssfsi
+                0x000000009d00981c                __addsf3
+                0x000000009d009f8c                fptoul
+                0x000000009d009ec8                ultofp
+ .text          0x000000009d00a100      0x5c8 /opt/pic32mx/lib/libm.a(mod32.o)
+                0x000000009d00a444                __mchp_ldexp
+                0x000000009d00a100                dpfmod
+                0x000000009d00a5ac                modf
+                0x000000009d00a100                fmod
+                0x000000009d00a444                dpldexp
+                0x000000009d00a5ac                dpmodf
+                0x000000009d00a3a0                dpfrexp
+                0x000000009d00a3a0                frexp
+ .text          0x000000009d00a6c8      0x520 /opt/pic32mx/lib/libm.a(pow32.o)
+                0x000000009d00a6c8                __mchp_pow
+                0x000000009d00a6c8                dppow
+ .text          0x000000009d00abe8      0x5d8 /opt/pic32mx/lib/libm.a(log32.o)
+                0x000000009d00aed0                dplog
+                0x000000009d00b02c                dplog10
+                0x000000009d00b02c                __mchp_log10
+                0x000000009d00aed0                __mchp_log
+                0x000000009d00abe8                exlog
+ .text          0x000000009d00b1c0      0x2e0 /opt/pic32mx/lib/libm.a(atan32.o)
+                0x000000009d00b1c0                dpatan2
+                0x000000009d00b1c0                __mchp_atan2
+ .text          0x000000009d00b4a0      0x5bc /opt/pic32mx/lib/libm.a(sqrt32.o)
+                0x000000009d00b738                __mchp_sqrt
+                0x000000009d00b4a0                exsqrt
+                0x000000009d00b738                dpsqrt
+ .text          0x000000009d00ba5c      0x340 /opt/pic32mx/lib/libm.a(exp32.o)
+                0x000000009d00ba5c                exexp
+                0x000000009d00bc40                dpexp
+                0x000000009d00bc40                __mchp_exp
+ .text          0x000000009d00bd9c      0x384 /opt/pic32mx/lib/libm.a(arc32.o)
+                0x000000009d00c05c                dpatan
+                0x000000009d00bd9c                exatan
+                0x000000009d00c05c                atan
+ .text.exit     0x000000009d00c120       0x1c /opt/pic32mx/lib/libc.a(exit.o)
+                0x000000009d00c120                exit
+ .text.isnan    0x000000009d00c13c       0x30 /opt/pic32mx/lib/libc.a(isinf.o)
+                0x000000009d00c13c                isnan
+ .text.isinf    0x000000009d00c16c       0x30 /opt/pic32mx/lib/libc.a(isinf.o)
+                0x000000009d00c16c                isinf
  .text._cleanup
-                0x000000009d00c120       0x60 /opt/pic32mx/lib/libc.a(stdclean.o)
-                0x000000009d00c120                _cleanup
- .text._exit    0x000000009d00c180        0x8 /opt/pic32mx/lib/libc.a(_exit.o)
-                0x000000009d00c180                _exit
- .text.fclose   0x000000009d00c188      0x114 /opt/pic32mx/lib/libc.a(fclose.o)
-                0x000000009d00c188                fclose
- .text.fflush   0x000000009d00c29c       0xc4 /opt/pic32mx/lib/libc.a(fflush.o)
-                0x000000009d00c29c                fflush
+                0x000000009d00c19c       0x60 /opt/pic32mx/lib/libc.a(stdclean.o)
+                0x000000009d00c19c                _cleanup
+ .text._exit    0x000000009d00c1fc        0x8 /opt/pic32mx/lib/libc.a(_exit.o)
+                0x000000009d00c1fc                _exit
+ .text.fclose   0x000000009d00c204      0x114 /opt/pic32mx/lib/libc.a(fclose.o)
+                0x000000009d00c204                fclose
+ .text.fflush   0x000000009d00c318       0xc4 /opt/pic32mx/lib/libc.a(fflush.o)
+                0x000000009d00c318                fflush
  .text._bufallo
-                0x000000009d00c360       0x58 /opt/pic32mx/lib/libc.a(buf.o)
-                0x000000009d00c360                _bufallo
+                0x000000009d00c3dc       0x58 /opt/pic32mx/lib/libc.a(buf.o)
+                0x000000009d00c3dc                _bufallo
  .text._buffree
-                0x000000009d00c3b8       0x10 /opt/pic32mx/lib/libc.a(buf.o)
-                0x000000009d00c3b8                _buffree
+                0x000000009d00c434       0x10 /opt/pic32mx/lib/libc.a(buf.o)
+                0x000000009d00c434                _buffree
  .text.getpagesize
-                0x000000009d00c3c8        0x8 /opt/pic32mx/lib/libc.a(sbrk.o)
-                0x000000009d00c3c8                getpagesize
+                0x000000009d00c444        0x8 /opt/pic32mx/lib/libc.a(sbrk.o)
+                0x000000009d00c444                getpagesize
  .text._stub_sbd_memlayout
-                0x000000009d00c3d0       0x2c /opt/pic32mx/lib/libc.a(sbrk.o)
-                0x000000009d00c3d0                _stub_sbd_memlayout
-                0x000000009d00c3d0                _sbd_memlayout
+                0x000000009d00c44c       0x2c /opt/pic32mx/lib/libc.a(sbrk.o)
+                0x000000009d00c44c                _stub_sbd_memlayout
+                0x000000009d00c44c                _sbd_memlayout
  .text._sbrk_init
-                0x000000009d00c3fc      0x158 /opt/pic32mx/lib/libc.a(sbrk.o)
-                0x000000009d00c3fc                _sbrk_init
- .text._sbrk    0x000000009d00c554       0xbc /opt/pic32mx/lib/libc.a(sbrk.o)
-                0x000000009d00c554                _sbrk
- .text.sbrk     0x000000009d00c610       0x74 /opt/pic32mx/lib/libc.a(sbrk.o)
-                0x000000009d00c610                sbrk
- .text.write    0x000000009d00c684       0xa8 /opt/pic32mx/lib/libc.a(write.o)
-                0x000000009d00c684                write
- .text.remove   0x000000009d00c72c        0x8 /opt/pic32mx/lib/libc.a(remove.o)
-                0x000000009d00c72c                remove
- .text.close    0x000000009d00c734        0x8 /opt/pic32mx/lib/libc.a(close.o)
-                0x000000009d00c734                close
- .text          0x000000009d00c73c       0xa8 /opt/pic32mx/lib/libc.a(memset.o)
-                0x000000009d00c73c                memset
+                0x000000009d00c478      0x158 /opt/pic32mx/lib/libc.a(sbrk.o)
+                0x000000009d00c478                _sbrk_init
+ .text._sbrk    0x000000009d00c5d0       0xbc /opt/pic32mx/lib/libc.a(sbrk.o)
+                0x000000009d00c5d0                _sbrk
+ .text.sbrk     0x000000009d00c68c       0x74 /opt/pic32mx/lib/libc.a(sbrk.o)
+                0x000000009d00c68c                sbrk
+ .text.write    0x000000009d00c700       0xa8 /opt/pic32mx/lib/libc.a(write.o)
+                0x000000009d00c700                write
+ .text.remove   0x000000009d00c7a8        0x8 /opt/pic32mx/lib/libc.a(remove.o)
+                0x000000009d00c7a8                remove
+ .text.close    0x000000009d00c7b0        0x8 /opt/pic32mx/lib/libc.a(close.o)
+                0x000000009d00c7b0                close
+ .text          0x000000009d00c7b8       0xa8 /opt/pic32mx/lib/libc.a(memset.o)
+                0x000000009d00c7b8                memset
  .text._mon_putc
-                0x000000009d00c7e4       0xa4 /opt/pic32mx/lib/libc.a(_mon_putc.o)
-                0x000000009d00c7e4                _mon_putc
- .text          0x000000009d00c888       0xb0 /opt/pic32mx/lib/startup.o
-                0x000000009d00c8f8                printStr
-                0x000000009d00c8d8                printInt
-                0x000000009d00c8b8                readInt
-                0x000000009d00c930                resetCoreTimer
-                0x000000009d00c8a8                putChar
-                0x000000009d00c908                readStr
-                0x000000009d00c918                exxt
-                0x000000009d00c8e8                printInt10
-                0x000000009d00c888                inkey
-                0x000000009d00c898                getChar
-                0x000000009d00c8c8                readInt10
-                0x000000009d00c928                readCoreTimer
+                0x000000009d00c860       0xa4 /opt/pic32mx/lib/libc.a(_mon_putc.o)
+                0x000000009d00c860                _mon_putc
+ .text          0x000000009d00c904       0xb0 /opt/pic32mx/lib/startup.o
+                0x000000009d00c974                printStr
+                0x000000009d00c954                printInt
+                0x000000009d00c934                readInt
+                0x000000009d00c9ac                resetCoreTimer
+                0x000000009d00c924                putChar
+                0x000000009d00c984                readStr
+                0x000000009d00c994                exxt
+                0x000000009d00c964                printInt10
+                0x000000009d00c904                inkey
+                0x000000009d00c914                getChar
+                0x000000009d00c944                readInt10
+                0x000000009d00c9a4                readCoreTimer
  *(.text.*personality*)
  *(.gnu.warning)
  *(.mips16.fn.*)
  *(.mips16.call.*)
-                0x000000009d00c938                _text_end = .
+                0x000000009d00c9b4                _text_end = .
 
-.rodata         0x000000009d00c938      0x370
+.rodata         0x000000009d00c9b8      0x370
  *(.rodata .rodata.* .gnu.linkonce.r.*)
  .rodata.str1.4
-                0x000000009d00c938       0x19 main_18_v0.o
+                0x000000009d00c9b8       0x19 main_18_v0.o
                                          0x1c (size before relaxing)
- *fill*         0x000000009d00c951        0x3 00
- .rodata        0x000000009d00c954       0x10 rmi-mr32.o
-                0x000000009d00c958                KI_num
-                0x000000009d00c960                KP_num
-                0x000000009d00c954                KI_den
-                0x000000009d00c95c                KP_den
- *fill*         0x000000009d00c964        0x4 00
- .rodata.cst8   0x000000009d00c968       0x38 rmi-mr32.o
+ *fill*         0x000000009d00c9d1        0x3 00
+ .rodata        0x000000009d00c9d4       0x10 rmi-mr32.o
+                0x000000009d00c9d8                KI_num
+                0x000000009d00c9e0                KP_num
+                0x000000009d00c9d4                KI_den
+                0x000000009d00c9dc                KP_den
+ *fill*         0x000000009d00c9e4        0x4 00
+ .rodata.cst8   0x000000009d00c9e8       0x38 rmi-mr32.o
  .rodata.str1.4
-                0x000000009d00c9a0       0x12 MazeMap.o
+                0x000000009d00ca20       0x12 MazeMap.o
                                          0x18 (size before relaxing)
- *fill*         0x000000009d00c9b2        0x2 00
- .rodata.cst4   0x000000009d00c9b4        0x8 MazeMap.o
- .rodata        0x000000009d00c9bc        0xc MazeMap.o
- .rodata.cst8   0x000000009d00c9c8       0x20 MazeMap.o
- .rodata.cst4   0x000000009d00c9e8        0x8 AStar.o
+ *fill*         0x000000009d00ca32        0x2 00
+ .rodata.cst4   0x000000009d00ca34        0x8 MazeMap.o
+ .rodata        0x000000009d00ca3c        0xc MazeMap.o
+ .rodata.cst8   0x000000009d00ca48       0x20 MazeMap.o
+ .rodata.cst4   0x000000009d00ca68        0x8 AStar.o
  .rodata.str1.4
-                0x000000009d00c9f0       0xcb Sensors.o
+                0x000000009d00ca70       0xcb Sensors.o
                                          0xcc (size before relaxing)
- *fill*         0x000000009d00cabb        0x5 00
- .rodata.cst8   0x000000009d00cac0       0x30 Sensors.o
+ *fill*         0x000000009d00cb3b        0x5 00
+ .rodata.cst8   0x000000009d00cb40       0x30 Sensors.o
                                          0x48 (size before relaxing)
  .rodata.str1.4
-                0x000000009d00caf0       0x2a FollowTheWall.o
+                0x000000009d00cb70       0x2a FollowTheWall.o
                                          0x2c (size before relaxing)
- *fill*         0x000000009d00cb1a        0x6 00
- .rodata.cst8   0x000000009d00cb20       0x60 FollowTheWall.o
+ *fill*         0x000000009d00cb9a        0x6 00
+ .rodata.cst8   0x000000009d00cba0       0x60 FollowTheWall.o
                                          0x88 (size before relaxing)
  .rodata.str1.4
-                0x000000009d00cb80        0xe DodgeObstacle.o
+                0x000000009d00cc00        0xe DodgeObstacle.o
                                          0x10 (size before relaxing)
- .rodata.cst8   0x000000009d00cb8e        0x0 DodgeObstacle.o
+ .rodata.cst8   0x000000009d00cc0e        0x0 DodgeObstacle.o
                                          0x18 (size before relaxing)
- *fill*         0x000000009d00cb8e        0x2 00
+ *fill*         0x000000009d00cc0e        0x2 00
  .rodata.str1.4
-                0x000000009d00cb90       0x10 FollowTheBeacon.o
- .rodata.cst8   0x000000009d00cba0        0x0 FollowTheBeacon.o
+                0x000000009d00cc10       0x10 FollowTheBeacon.o
+ .rodata.cst8   0x000000009d00cc20        0x0 FollowTheBeacon.o
                                          0x20 (size before relaxing)
  .rodata.str1.4
-                0x000000009d00cba0       0x2d StopAtBeacon.o
+                0x000000009d00cc20       0x2d StopAtBeacon.o
                                          0x30 (size before relaxing)
- *fill*         0x000000009d00cbcd        0x3 00
+ *fill*         0x000000009d00cc4d        0x3 00
  .rodata.str1.4
-                0x000000009d00cbd0        0x7 Wander.o
+                0x000000009d00cc50        0x7 Wander.o
                                           0x8 (size before relaxing)
- .rodata.cst8   0x000000009d00cbd7        0x0 Wander.o
+ .rodata.cst8   0x000000009d00cc57        0x0 Wander.o
                                          0x20 (size before relaxing)
- *fill*         0x000000009d00cbd7        0x1 00
+ *fill*         0x000000009d00cc57        0x1 00
  .rodata.str1.4
-                0x000000009d00cbd8       0x11 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
+                0x000000009d00cc58       0x11 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
                                          0x14 (size before relaxing)
- *fill*         0x000000009d00cbe9        0x7 00
- .rodata.cst8   0x000000009d00cbf0       0x10 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
+ *fill*         0x000000009d00cc69        0x7 00
+ .rodata.cst8   0x000000009d00cc70       0x10 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
                                          0x20 (size before relaxing)
- .rodata        0x000000009d00cc00       0x84 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
- *fill*         0x000000009d00cc84        0x4 00
- .rodata.cst8   0x000000009d00cc88        0x8 /opt/pic32mx/lib/libm.a(w_pow.o)
- .rodata        0x000000009d00cc90       0x15 /opt/pic32mx/lib/startup.o
+ .rodata        0x000000009d00cc80       0x84 /opt/pic32mx/lib/libdetpic32.a(xprintf.o)
+ *fill*         0x000000009d00cd04        0x4 00
+ .rodata.cst8   0x000000009d00cd08        0x8 /opt/pic32mx/lib/libm.a(w_pow.o)
+ .rodata        0x000000009d00cd10       0x15 /opt/pic32mx/lib/startup.o
  *(.rodata1)
-                0x000000009d00cca8                . = ALIGN (0x4)
- *fill*         0x000000009d00cca5        0x3 00
+                0x000000009d00cd28                . = ALIGN (0x4)
+ *fill*         0x000000009d00cd25        0x3 00
 
-.sdata2         0x000000009d00cca8        0x0
+.sdata2         0x000000009d00cd28        0x0
  *(.sdata2 .sdata2.* .gnu.linkonce.s2.*)
-                0x000000009d00cca8                . = ALIGN (0x4)
+                0x000000009d00cd28                . = ALIGN (0x4)
 
-.sbss2          0x000000009d00cca8        0x0
+.sbss2          0x000000009d00cd28        0x0
  *(.sbss2 .sbss2.* .gnu.linkonce.sb2.*)
-                0x000000009d00cca8                . = ALIGN (0x4)
+                0x000000009d00cd28                . = ALIGN (0x4)
 
 .eh_frame_hdr
  *(.eh_frame_hdr)
@@ -871,7 +871,7 @@ LOAD /opt/pic32mx/lib/startup.o
 .dbg_data       0x00000000a0000000        0x0
                 0x00000000a0000000                . = (. + DEFINED (_DEBUGGER)?0x200:0x0)
 
-.data           0x00000000a0000000      0x4e4 load address 0x000000009d00cca8
+.data           0x00000000a0000000      0x4e4 load address 0x000000009d00cd28
                 0x00000000a0000000                _data_begin = .
  *(.data .data.* .gnu.linkonce.d.*)
  .data          0x00000000a0000000       0x88 rmi-mr32.o
@@ -890,7 +890,7 @@ LOAD /opt/pic32mx/lib/startup.o
                 0x00000000a0000444                _iob
  *(.gnu.linkonce.d.*personality*)
  *(.data1)
-                0x000000009d00cca8                _data_image_begin = LOADADDR (.data)
+                0x000000009d00cd28                _data_image_begin = LOADADDR (.data)
 
 .eh_frame
  *(.eh_frame)
@@ -900,7 +900,7 @@ LOAD /opt/pic32mx/lib/startup.o
  *(.got.plt)
  *(.got)
 
-.sdata          0x00000000a00004e8       0x28 load address 0x000000009d00d190
+.sdata          0x00000000a00004e8       0x28 load address 0x000000009d00d210
                 0x00000000a00004e8                _sdata_begin = .
  *(.sdata .sdata.* .gnu.linkonce.s.*)
  .sdata         0x00000000a00004e8        0x8 rmi-mr32.o
@@ -1046,12 +1046,12 @@ LOAD /opt/pic32mx/lib/startup.o
                 0x00000000a0008188                . = (. + _min_stack_size)
  *fill*         0x00000000a0006188     0x2000 00
 
-.ramfunc        0x00000000a0008800        0x0 load address 0x000000009d00d1b8
+.ramfunc        0x00000000a0008800        0x0 load address 0x000000009d00d238
                 0x00000000a0008800                _ramfunc_begin = .
  *(.ramfunc .ramfunc.*)
                 0x00000000a0008800                . = ALIGN (0x4)
                 0x00000000a0008800                _ramfunc_end = .
-                0x000000009d00d1b8                _ramfunc_image_begin = LOADADDR (.ramfunc)
+                0x000000009d00d238                _ramfunc_image_begin = LOADADDR (.ramfunc)
                 0x0000000000000000                _ramfunc_length = SIZEOF (.ramfunc)
                 0x0000000000008800                _bmxdkpba_address = (_ramfunc_begin - 0xa0000000)
                 0x0000000000020000                _bmxdudba_address = 0x20000
@@ -1414,9 +1414,9 @@ LOAD /opt/pic32mx/lib/startup.o
  *(.note.GNU-stack)
 OUTPUT(main_18_v0.elf elf32-tradlittlemips)
 
-.mdebug.abi32   0x000000009d00d1b8        0x0
+.mdebug.abi32   0x000000009d00d238        0x0
 
-.rel.dyn        0x000000009d00d1b8        0x0
+.rel.dyn        0x000000009d00d238        0x0
 
-.debug_ranges   0x000000009d00d1b8       0x18
- .debug_ranges  0x000000009d00d1b8       0x18 /opt/pic32mx/lib/libc.a(fclose.o)
+.debug_ranges   0x000000009d00d238       0x18
+ .debug_ranges  0x000000009d00d238       0x18 /opt/pic32mx/lib/libc.a(fclose.o)
