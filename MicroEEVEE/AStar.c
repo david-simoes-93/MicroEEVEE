@@ -9,7 +9,7 @@ float dist_manhattan(int i0, int j0, int i1, int j1) {
 }
 
 int main(int argc, char **argv) {
-    int h = 20, w = 30;
+    int h = rows, w = cols;
     int sx = 1, sy = 1;
     int gx = 10, gy = 10;
 
@@ -25,6 +25,12 @@ int main(int argc, char **argv) {
     }
 
     init_maze();
+    for(int x=0; x<5; ++x){
+        weigh_wall(maze[x][5].south_wall, 1000);
+    }
+
+    print_map();
+
     int worked = astar(h, w, sx, sy, gx, gy, paths);
     printf("%d\n", worked);
 

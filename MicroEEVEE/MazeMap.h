@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 #ifndef MAZE_MAP_H
 #define MAZE_MAP_H
@@ -45,7 +47,7 @@ struct Wall {
     double line[2][2];
 
 };
-struct Cell maze[rows][cols];
+struct Cell maze[cols][rows];
 
 /*Functions of Maze*/
 
@@ -56,10 +58,10 @@ void init_maze();
 void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int right_sensor, double compass);
 
 /*adiciona o valor*/
-void update_single_sensor(double sensor_val, struct Cell *, double **, double *);
+void update_single_sensor(double sensor_val, struct Cell[9], double[3][2], double[2]);
 
 /*mapeia o peso de confiança para dar a parede*/
-int map_weight(double dist);
+int trust_based_on_distance(double dist);
 
 /* prints current map to console */
 void print_map();
@@ -70,14 +72,20 @@ int wall_index(double heading);
 
 
 /*Functions of Wall*/
-void weight(struct Wall *w, int val);
+void weigh_wall(struct Wall *w, double val);
 
 void confirm_no_wall(struct Wall *w);
+void confirm_wall(struct Wall *w);
 
-bool confirmed_no_wall(struct Wall *w);
+int confirmed_no_wall(struct Wall *w);
 
-bool no_wall(struct Wall *w);
+int no_wall(struct Wall *w);
 
-bool wall(struct Wall *w);
+int wall(struct Wall *w);
+
+int intersects(double *l0_a, double* l0_b, double *l1_a, double* l1_b);
+
+void setUniqueBeaconPoint(double px, double py);
 
 /* a* to find path*/
+#endif
