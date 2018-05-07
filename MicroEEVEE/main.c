@@ -43,7 +43,7 @@ int main(void) {
         enableObstSens();
 
         int i;
-		returning_home = 0;
+		followPoints = 0;
 	
 		for(i=0; i < 5; i++)
 			gndVals[0] = 0;
@@ -65,7 +65,7 @@ int main(void) {
             /* Track robot position and orientation */
             getRobotPos(&x, &y, &t);
 
-            if(returning_home)
+            if(followPoints)
                 followPoints_();
                 if (checkPointsRadius()) {
                     if (removePoint()) {

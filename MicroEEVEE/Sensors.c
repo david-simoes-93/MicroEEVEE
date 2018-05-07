@@ -2,6 +2,16 @@
 #include "mr32.h"
 #include "FollowTheWall.h"
 
+// Target is start position
+double radiusConst = 200;
+int targetX = 0, targetY = 0;
+lastPointX = 0, lastPointY = 0;
+int modder = -1;
+int left = 0, right = 0;
+
+bool bVis = false, oldBVis = false, oldBVis2 = false;
+bool rotate_right = false;
+
 void followPoints_() {
     //getLastPoint();
     targetX = lastPointX;
@@ -21,6 +31,17 @@ void followPoints_() {
             atan2(meToTargetVector[1], meToTargetVector[0]) - atan2(myDirectionVector[1], myDirectionVector[0]);
 
     beaconDir = -normalizeAngle(radianBeaconDir) * (180 / PI);
+    //int servoPos = beaconDir / 6;
+
+    printf("My position %2.1f,%2.1f;      Target Position %d,%d;         MyAngle %2.0f     AngleToNextPoint %d\n",
+           myX, myY, targetX, targetY, (myDir * 180 / PI), beaconDir);   //NEGATIVO PRA ESQUERDA
+
+    /*if (servoPos > POS_RIGHT)
+        setServoPos(POS_RIGHT);
+    else if (servoPos < POS_LEFT)
+        setServoPos(POS_LEFT);
+    else
+        setServoPos(servoPos);*/
 }
 
 bool servoControl() {
@@ -113,7 +134,7 @@ int removePoint() {
 }
 
 void markPoint() {
-    if (!returning_home) {
+    if (!followPoints) {
         getLastPoint();
         if (!isOnRadius(x, y, lastPointX, lastPointY, 100)) {
             addPoint(x, y);
