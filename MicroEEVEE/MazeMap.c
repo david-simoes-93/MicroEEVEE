@@ -133,6 +133,16 @@ void get_cell_index_from_gps_coords(int x, int y, int *t) {
 
 }
 
+void get_middle_coords_from_index(int x, int y, int *px, int *py) {
+    //t[0] = min(cols-1,max((int) (x / 4500 + (n_cells-1)+0.5),0));
+    //t[1] = min(rows-1,max((int) (y / 4500 + (n_cells-1)+0.5),0));
+
+    *px = (x - 0.5 - (n_cells-1)) * 4500 ;
+    *py = (y - 0.5 - (n_cells-1)) * 4500 ;
+
+}
+
+
 // returns dot product of "v" and "w"
 double dist2(int *v, int *w) {
     return (v[0] - w[0]) * (v[0] - w[0]) + (v[1] - w[1]) * (v[1] - w[1]);

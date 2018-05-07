@@ -1,10 +1,11 @@
 #include "Sensors.h"
-#include "rmi-mr32.h"
+#include "mr32.h"
 #include "FollowTheWall.h"
 
 // Target is start position
 double radiusConst = 200;
-int lastPointX = 0, lastPointY = 0, targetX = 0, targetY = 0;
+int targetX = 0, targetY = 0;
+lastPointX = 0, lastPointY = 0;
 int modder = -1;
 int left = 0, right = 0;
 
@@ -12,14 +13,14 @@ bool bVis = false, oldBVis = false, oldBVis2 = false;
 bool rotate_right = false;
 
 void followPoints_() {
-    getLastPoint();
+    //getLastPoint();
     targetX = lastPointX;
     targetY = lastPointY;
 
     //double myNorm, targetNorm;
     double meToTargetVector[2];
     double myDirectionVector[2];
-    double myX = x, myY = y, myDir = t;    // 0.35 radians
+    double myX = (double)x, myY = (double)y, myDir = t;    // 0.35 radians
 
     meToTargetVector[0] = (targetX - myX);
     meToTargetVector[1] = (targetY - myY);

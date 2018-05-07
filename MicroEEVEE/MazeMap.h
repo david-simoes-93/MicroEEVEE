@@ -1,7 +1,7 @@
 #define  pcompile
 
 #ifdef pcompile
-#include "rmi-mr32.h"
+#include "mr32.h"
 #else
 #include <stdio.h>
 #define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
@@ -102,7 +102,7 @@ double get_target_dir(int, int, double, int, int);
 
 double trust_based_on_distance(int dist);
 
-
+void get_middle_coords_from_index(int x, int y, int *px, int *py);
 /*Functions of Wall*/
 void weigh_wall(struct Wall *w, double val) ;
 

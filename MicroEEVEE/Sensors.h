@@ -7,6 +7,7 @@
 
 #include <math.h>
 #include "bluetooth_comm.h"
+#include "mr32.h"
 
 #ifndef SENSORS_H
 #define	SENSORS_H
@@ -35,6 +36,7 @@ int removePoint();
 void markPoint();
 void getLastPoint();
 void addPoint(double x2, double y2);
+int lastPointX, lastPointY ;
 
 int isOnRadius( double x, double y, double nextX, double nextY, int radius);
 double dot_product(double v[], double u[], int n);

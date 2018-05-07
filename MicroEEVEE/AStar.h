@@ -5,7 +5,7 @@
 #include "MazeMap.h"
 
 #ifdef pcompile
-#include "rmi-mr32.h"
+#include "mr32.h"
 #else
 #include <stdio.h>
 #endif
