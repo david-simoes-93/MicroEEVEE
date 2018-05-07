@@ -12,9 +12,8 @@ bool recalculate_path(int *);
 
 int count_beacon;
 
-struct path {
-
-};
+int beaconPoint[2];
+double dir_beacon;
 
 int main(void) {
     /*init*/
@@ -80,6 +79,17 @@ int main(void) {
 
 
     }
+
+    /*calculate beacon*/
+    if (getDirectionTarget({x,y}, dir_beacon, &beaconPoint) ){
+
+    }
+
+    //decide what to do
+    decide();
+
+    disableObstSens();
+    setVel2(0,0);
 
 
 }
