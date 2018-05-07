@@ -465,6 +465,10 @@ bool getDirectionTarget(int* curr, double dir, int *beaconPoint) {
             }
         }
     }
+    else{
+        //nothing was added
+        return false;
+    }
 
 
     if (beaconPoints_size > 0) {

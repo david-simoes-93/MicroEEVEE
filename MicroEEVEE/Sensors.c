@@ -43,10 +43,12 @@ void followPoints_() {
         setServoPos(servoPos);*/
 }
 
-void servoControl() {
+bool servoControl() {
+    bool vis_tmp= false;
     bVis = readBeaconSens();
 
     if (bVis && !oldBVis) {                            // Started seeing beacon!
+        vis_tmp = true;
         if (rotate_right) {
             left = currServoPos;
         } else {
@@ -86,6 +88,7 @@ void servoControl() {
     else if (currServoPos < POS_LEFT) { currServoPos = POS_LEFT; }
 
     setServoPos(currServoPos);
+    return vis_tmp;
 
 
 }

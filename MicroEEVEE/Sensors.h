@@ -38,7 +38,7 @@ void addPoint(double x2, double y2);
 
 int isOnRadius( double x, double y, double nextX, double nextY, int radius);
 double dot_product(double v[], double u[], int n);
-void servoControl();
+bool servoControl();
 void followPoints_();
 void rotateRel_naive(double deltaAngle);
 

@@ -7,13 +7,26 @@
 
 #include "MazeMap.h" //maze[][]
 
-bool recalculate_path(int *);
 
+double get_next_dir(int sx, int sy);
 
 int count_beacon;
 
-int beaconPoint[2];
+int beaconPoint[2]; //in cm
+int old_beaconPoint[2];
 double dir_beacon;
+bool recalculate;
+
+bool compare_points(int * p, int*q){
+    if(p[0] == q[0] && p[1]== q[1]) return true;
+    return false;
+}
+
+
+int paths[w][h][2]; //in cells
+
+int path_list[100][2]; //in cells
+int path_length = 0;
 
 int main(void) {
     /*init*/
@@ -43,46 +56,84 @@ int main(void) {
 
     int x, y;
     double t;
+
+    recalculate = true;
+
     /*-------------------*/
 
     while (!stopButton()) {
-        /**count_ticks++;
-        waitTick20ms();
-        switch (count_ticks) {
-            case 1 :*/
-                // tick 40ms
-                // Fill in "analogSensors" structure
-                readAnalogSensors();
 
-                // Read ground sensor
-                int groundSensor = readLineSensors(70);
+        // Fill in "analogSensors" structure
+        readAnalogSensors();
 
-                //gndVals[c] = groundSensor;	c=(c+1)%5; //buffer
+        // Read ground sensor
+        int groundSensor = readLineSensors(70);
 
-                /* Track robot position and orientation */
+        gndVals[c] = groundSensor;	c=(c+1)%5; //buffer
 
-                getRobotPos_int(&x, &y, &t);
+        /* Track robot position and orientation */
 
-                //update map
-                update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
+        getRobotPos_int(&x, &y, &t);
 
-/*
-                break;
-
-            case 2:
-                //recalculate_path();
-
-                count_ticks = 0;
-                break;
-        }*/
-
-        servoControl(); //rotate servo
+        //update map
+        update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
 
 
-        /*calculate beacon*/
-        if (getDirectionTarget({x,y}, dir_beacon, &beaconPoint) ){ //i have a beacon point at beaconPoint
 
+        if ( servoControl() ){
+            dir_beacon = beaconDir;
+            /*calculate beacon*/
+            old_beaconPoint[0] = beaconPoint[0];
+            old_beaconPoint[1] = beaconPoint[1];
+            if (getDirectionTarget({x,y}, dir_beacon, &beaconPoint) ){ //i have a beacon point at beaconPoint
+                if (! compare_points(&old_beaconPoint, &beaconPoint)) recalculate = true;
+            }
+            else{
+                go_to_dir = dir_beacon;
+            }
         }
+
+        int sx = get_cell_coords_from_gps_coords(x);
+        int sy = get_cell_coords_from_gps_coords(y);
+
+        if(recalculate){
+            //recalculate new path
+            int gx = get_cell_coords_from_gps_coords(beaconPoint[0]);
+            int gy = get_cell_coords_from_gps_coords(beaconPoint[1]);
+
+            if( astar(rows, cols, sx,sy,gx, gy, &paths)){
+                printf("Astar search %d\n", true);
+                while (true) { //get Path_list
+                    path_list[path_length][0] = paths[gx][gy][0];
+                    path_list[path_length][1] = paths[gx][gy][1];
+                    ++path_length;
+
+                    printf("%d %d; ", paths[gx][gy][0], paths[gx][gy][1]);
+                    int prev_x = paths[gx][gy][0], prev_y = paths[gx][gy][1];
+                    gx = prev_x;
+                    gy = prev_y;
+                    if (gx == sx && gy == sy)
+                        break;
+                }
+                go_to_dir = get_next_dir(sx, sy); //in cells
+
+            }
+            else{
+                printf("Cannot find path to goal (%d, %d) cm\n", beaconPoint[0]/100, beaconPoint[1]/100);
+                break;
+            }
+
+            recalculate = false;
+        }
+
+        if (sx == path_list[path_length-1][0] && sy == path_list[path_length-1][1] ){
+            path_length = path_length-1;
+            go_to_dir = get_next_dir(sx, sy);
+        }
+
+
+
+
 
         //decide what to do
         //decide();
@@ -98,3 +149,12 @@ int main(void) {
 }
 
 
+double get_next_dir(int sx, int sy){
+    // define beaconDir
+    int target_path_point_index = path_length-1;
+    if (path_length > 1)
+        target_path_point_index = path_length-2;
+
+    return get_target_dir(sx, sy, t,
+                               path_list[target_path_point_index][0], path_list[target_path_point_index][1]);
+}
