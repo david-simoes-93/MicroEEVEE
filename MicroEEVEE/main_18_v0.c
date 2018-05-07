@@ -64,7 +64,7 @@ int main(void) {
                 getRobotPos_int(&x, &y, &t);
 
                 //update map
-                //update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
+                update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
 
 /*
                 break;

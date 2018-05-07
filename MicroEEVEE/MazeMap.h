@@ -29,6 +29,7 @@
 #define east 3
 
 #define pi_over_6 0.52359877559
+#define pi_over_4 0.78539816339
 #define pi_over_2 1.57079632679
 
 /*is_wall value*/
