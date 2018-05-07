@@ -63,19 +63,12 @@ int main(void) {
         getRobotPos_int(&x, &y, &t);
 
         //update map
-        printf("update map...\n");
         update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
-        printf("update map\n");
 
         //reactive_decide();
         setVel2(0,0);
-        printf("decide\n");
 
         print_map();
-        printf("print\n");
-        int i;
-        for(i=0; i<100; i++)
-            waitTick20ms();
     }
 
     /*calculate beacon*/

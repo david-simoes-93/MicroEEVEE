@@ -51,10 +51,10 @@ struct Cell {
 
 #define wall_mask         0b00000001
 #define no_wall_mask      0b00000010
-#define wall_conf_mask    0b00000101
-#define no_wall_conf_mask 0b00001010
+#define wall_conf_mask    0b00000100
+#define no_wall_conf_mask 0b00001000
 
-#define sensor_cutoff_point 4500
+#define sensor_cutoff_point 4000
 #define max_dist_threshold  6000
 
 struct Wall {
