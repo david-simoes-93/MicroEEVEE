@@ -27,7 +27,7 @@ double obstValFront, obstValLeft, obstValRight;
 int groundSensor, beaconDir, currServoPos;
 int lastPointX = 0, lastPointY = 0;
 
-int gndVals[5];
+int ground_sensor_buffer[5];
 int pointsList[2][100];
 int pointsListPointer;
 

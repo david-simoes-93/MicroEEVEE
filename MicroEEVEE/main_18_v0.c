@@ -64,7 +64,7 @@ int main(void) {
     /*variables*/
     int count_ticks = 0;
     init_maze();
-    int c = 0;
+    int ground_sensor_buffer_index = 0;
     should_recalculate_astar = false;
     returning_home = 0; //only true when beacon is reached
     bool follow_astar_path = false;
@@ -78,14 +78,12 @@ int main(void) {
         obstValLeft = analogSensors.obstSensLeft;
         obstValFront = analogSensors.obstSensFront;
         obstValRight = analogSensors.obstSensRight;
-
-        // Read ground sensor
         int groundSensor = readLineSensors(70);
         printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
                analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
 
-        gndVals[c] = groundSensor;
-        c = (c + 1) % 5; //buffer
+        ground_sensor_buffer[ground_sensor_buffer_index] = groundSensor;
+        ground_sensor_buffer_index = (ground_sensor_buffer_index + 1) % 5; //buffer
 
         /* Track robot position and orientation */
 

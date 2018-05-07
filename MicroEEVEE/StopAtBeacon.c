@@ -31,7 +31,7 @@ void sab_execute() {
 bool sab_isPossible() {
     int gnd = 1, i;
     for (i = 0; i < 5; i++)
-        if (gndVals[i] == 0)
+        if (ground_sensor_buffer[i] == 0)
             gnd = 0;
 
     if (firstTime && (beaconDir < -20 || beaconDir > 20))
