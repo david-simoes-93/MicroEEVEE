@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "rmi-mr32.h"
 #include <stdlib.h>
 
 #include "AStar.h"
@@ -7,7 +7,7 @@
 float dist_manhattan(int i0, int j0, int i1, int j1) {
     return abs(i0 - i1) + abs(j0 - j1);
 }
-
+/*
 int main(int argc, char **argv) {
     int h = rows, w = cols;
     int sx = 1, sy = 1;
@@ -25,7 +25,8 @@ int main(int argc, char **argv) {
     }
 
     init_maze();
-    for(int x=0; x<5; ++x){
+    int x;
+    for(x=0; x<5; ++x){
         weigh_wall(maze[x][5].south_wall, 1000);
     }
 
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
+*/
 // weights:        flattened h x w grid of costs
 // h, w:           height and width of grid
 // start, goal:    index of start/goal in flattened grid
@@ -64,8 +65,9 @@ int astar(
     struct Node goal_node = {.x = goal_x, .y=goal_y, .cost = 0.};
 
     float costs[w][h];
-    for (int i = 0; i < h; ++i)
-        for (int j = 0; j < w; ++j)
+    int i, j;
+    for(i = 0; i < h; ++i)
+        for(j = 0; j < w; ++j)
             costs[j][i] = INF;
     costs[start_x][start_y] = 0.;
 
@@ -85,7 +87,7 @@ int astar(
         }
 
         // pop
-        for (int i = 1; i < length_nodes_to_visit+1; ++i) {
+        for(i = 1; i < length_nodes_to_visit+1; ++i) {
             nodes_to_visit[i - 1].x = nodes_to_visit[i].x;
             nodes_to_visit[i - 1].y = nodes_to_visit[i].y;
             nodes_to_visit[i - 1].cost = nodes_to_visit[i].cost;
@@ -103,7 +105,7 @@ int astar(
         nbrs[3][1] = cur.y;
 
         float heuristic_cost;
-        for (int i = 0; i < N_neigh; ++i) {
+        for (i = 0; i < N_neigh; ++i) {
             if (nbrs[i][0] >= 0 && nbrs[i][1] >= 0) {
                 // the sum of the cost so far and the cost of this move
                 float new_cost = costs[cur.x][cur.y] + 1;
@@ -118,7 +120,7 @@ int astar(
                         if (nodes_to_visit[insert_index].cost > priority)
                             break;
                     }
-                    for (int j = length_nodes_to_visit; j > insert_index; --j) {
+                    for (j = length_nodes_to_visit; j > insert_index; --j) {
                         nodes_to_visit[j] = nodes_to_visit[j-1];
                     }
                     nodes_to_visit[insert_index].x = nbrs[i][0];

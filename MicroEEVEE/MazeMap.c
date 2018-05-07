@@ -1,9 +1,9 @@
 #include "MazeMap.h"
-#include <math.h>
+//#include <math.h>
 
 /*Functions of Maze*/
-#define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
-#define max(X,Y) (((X) >= (Y)) ? (X) : (Y))
+//#define min(X, Y) (((X) <= (Y)) ? (X) : (Y))
+//#define max(X,Y) (((X) >= (Y)) ? (X) : (Y))
 
 /*init map*/
 void init_maze() {
@@ -90,15 +90,16 @@ void init_maze() {
 }
 
 void print_map(){
-    for(int x=0; x<cols; x++) {
+    int x, y;
+    for(x=0; x<cols; x++) {
         if(wall(maze[x][0].north_wall))
             printf(" _");
         else
             printf("  ");
     }
     printf("\n");
-    for(int y=0; y<rows; y++){
-        for(int x=0; x<cols; x++){
+    for(y=0; y<rows; y++){
+        for(x=0; x<cols; x++){
 
             //printf("%d %d\n", x, y);
             if(wall(maze[x][y].west_wall))
@@ -120,11 +121,10 @@ void print_map(){
     }
 }
 
-void get_cell_coords_from_gps_coords(double x, double y, int* tmp){
-    int t[2];
+
+void get_cell_coords_from_gps_coords(double x, double y, int t[2]){
     t[0] = (int)x/45 + 8;
     t[1] = (int)y/45 + 8;
-    tmp = t;
 }
 
 // returns dot product of "v" and "w"
@@ -164,8 +164,8 @@ void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int
     double sensor_cutoff_point = 0; //TODO
     double my_pos[2] = {my_x, my_y};
 
-    int *my_cell_index;
-    get_cell_coords_from_gps_coords(my_x, my_y,my_cell_index );
+    int my_cell_index[2];
+    get_cell_coords_from_gps_coords(my_x, my_y, my_cell_index );
     struct Cell my_cell = maze[my_cell_index[0]][my_cell_index[1]];
     my_cell.explored = 1;
 
@@ -213,9 +213,10 @@ void update_map(double my_x, double my_y, int left_sensor, int front_sensor, int
 
     // confirm no walls where we are moving through
     // run through all neighbor cells
-    for (int cell_index = 0; cell_index < 9; cell_index++) {
+    int cell_index, wall_index;
+    for (cell_index = 0; cell_index < 9; cell_index++) {
         // and 4 walls on each cell
-        for (int wall_index = 0; wall_index < 4; wall_index++) {
+        for (wall_index = 0; wall_index < 4; wall_index++) {
             struct Wall wall = *nearby_cells[cell_index].walls[wall_index];
             if (dist_to_line_segment(my_pos, wall.line[0], wall.line[1]) < 9)
                 confirm_no_wall(&wall);
@@ -241,11 +242,12 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
         struct Wall *ray_walls[3];
 
         // check 30º to the left, 0º, and 30º to the right; 3 possible sensor points
-        for (int sensor_index = 0; sensor_index < 3; sensor_index++) {
+        int sensor_index, cell_index, wall_index;
+        for (sensor_index = 0; sensor_index < 3; sensor_index++) {
             // run through all neighbor cells
-            for (int cell_index = 0; cell_index < 9; cell_index++) {
+            for (cell_index = 0; cell_index < 9; cell_index++) {
                 // and 4 walls on each cell
-                for (int wall_index = 0; wall_index < 4; wall_index++) {
+                for (wall_index = 0; wall_index < 4; wall_index++) {
                     struct Wall wall = *nearby_cells[cell_index].walls[wall_index];
 
                     // calculate distance of sensor point to the wall and save closest wall
@@ -280,15 +282,17 @@ void update_single_sensor(double sensor_val, struct Cell nearby_cells[9], double
 
     // decrease all other wall intersections score
     // check 30º to the left, 0º, and 30º to the right; 3 possible sensor points
-    for (int sensor_index = 0; sensor_index < 3; sensor_index++) {
+    int sensor_index, cell_index, wall_index;
+    for (sensor_index = 0; sensor_index < 3; sensor_index++) {
         // run through all neighbor cells
-        for (int cell_index = 0; cell_index < 9; cell_index++) {
+        for (cell_index = 0; cell_index < 9; cell_index++) {
             // and 4 walls on each cell
-            for (int wall_index = 0; wall_index < 4; wall_index++) {
+            for (wall_index = 0; wall_index < 4; wall_index++) {
                 struct Wall *wall = nearby_cells[cell_index].walls[wall_index];
 
                 int wall_not_in_weighted_walls = 1;
-                for (int i = 0; i < currently_weighted_walls; i++) {
+                int i;
+                for (i = 0; i < currently_weighted_walls; i++) {
                     if (wall == weighted_walls[i]) {
                         wall_not_in_weighted_walls = 0;
                         break;
@@ -389,7 +393,8 @@ int index_beacon = 0;
 int* getDirectionTarget(double* curr, double dir, struct Cell actualCurr) {
     int contains = 0;
     // check if we have any beacon line pointing at the beacon and starting close to current position
-    for (int i = 0; i < count_beacon_line; ++i)
+    int i;
+    for (i = 0; i < count_beacon_line; ++i)
     {
 
         if ( dist(beaconLines[i].a, curr) < 3) {
@@ -417,7 +422,7 @@ int* getDirectionTarget(double* curr, double dir, struct Cell actualCurr) {
         double x4 = newLine.b[0];
         double y4 = newLine.b[1];
 
-        for (   int i = 0;  i < count_beacon_line - 1; i++) {
+        for (i = 0;  i < count_beacon_line - 1; ++i) {
             double x1 = beaconLines[i].a[0];
             double y1 = beaconLines[i].a[1];
             double x2 = beaconLines[i].b[0];
@@ -453,6 +458,7 @@ int* getDirectionTarget(double* curr, double dir, struct Cell actualCurr) {
     //     tar = findClosestFreeCell(tar, 2);
     //     return  StarSearchExplorerZone(actualCurr, tar, 2, 3);
     // }
+    return 0;
 }
 
 void setUniqueBeaconPoint(double px, double py){

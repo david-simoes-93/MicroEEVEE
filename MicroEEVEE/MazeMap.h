@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "rmi-mr32.h"
 #include <stdlib.h>
 #include <math.h>
 
