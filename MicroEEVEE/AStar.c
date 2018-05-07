@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 int astar(
         const int h, const int w,
         const int start_x, const int start_y, const int goal_x, const int goal_y,
-        int ***paths) {
+        int paths[w][h][2]) {
 
     int N_neigh = 4;
     const float INF = 10000;

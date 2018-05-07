@@ -9,8 +9,8 @@ void init_maze() {
     int i, j, walls_array_index = 0;
     for (i = 0; i < cols; i++) {
         for (j = 0; j < rows; j++) {
-            int x = i;
-            int y = j;
+            int x = (i-n_cells+1)*45*100;
+            int y = (j-n_cells+1)*45*100;
 
             // copy north neighbor's south is_wall
             if (i > 0) {
@@ -127,9 +127,10 @@ void print_map() {
 }
 
 
-void get_cell_coords_from_gps_coords(int x, int y, int t[2]) {
-    t[0] = (int) x / 4500 + 8;
-    t[1] = (int) y / 4500 + 8;
+void get_cell_index_from_gps_coords(int x, int y, int *t) {
+    t[0] = min(cols-1,max((int) (x / 4500 + (n_cells-1)+0.5),0));
+    t[1] = min(rows-1,max((int) (y / 4500 + (n_cells-1)+0.5),0));
+
 }
 
 // returns dot product of "v" and "w"
@@ -179,7 +180,8 @@ double dist_to_line_segment(int *p, int *v, int *w) {
 void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right_sensor, double compass) {
     int my_pos[2] = {my_x, my_y};
     int my_cell_index[2];
-    get_cell_coords_from_gps_coords(my_x, my_y, my_cell_index);
+    get_cell_index_from_gps_coords(my_x, my_y, my_cell_index);
+
     struct Cell my_cell = maze[my_cell_index[0]][my_cell_index[1]];
     my_cell.explored = 1;
 
@@ -198,31 +200,19 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
     if (right_sensor < sensor_cutoff_point) min_right_sensor = right_sensor;
 
     // save points for front of sensor and 30º to left and right of each sensor (they're cone sensors)
-    int front_sensor_dots[3][2];
-    front_sensor_dots[0][0] = (int) (my_x + min_front_sensor / cos(compass));
-    front_sensor_dots[0][1] = (int) (my_y + min_front_sensor / sin(compass));
-    front_sensor_dots[1][0] = (int) (my_x + min_front_sensor / cos(compass + pi_over_6));
-    front_sensor_dots[1][1] = (int) (my_y + min_front_sensor / sin(compass + pi_over_6));
-    front_sensor_dots[2][0] = (int) (my_x + min_front_sensor / cos(compass - pi_over_6));
-    front_sensor_dots[2][1] = (int) (my_y + min_front_sensor / sin(compass - pi_over_6));
+    int front_sensor_dots[2];
+    front_sensor_dots[0] = (int) (my_x + min_front_sensor / cos(compass));
+    front_sensor_dots[1] = (int) (my_y + min_front_sensor / sin(compass));
     update_single_sensor(front_sensor, nearby_cells, front_sensor_dots, my_pos);
 
-    int left_sensor_dots[3][2];
-    left_sensor_dots[0][0] = (int) (my_x + min_left_sensor / cos(compass - pi_over_4));
-    left_sensor_dots[0][1] = (int) (my_y + min_left_sensor / sin(compass - pi_over_4));
-    left_sensor_dots[1][0] = (int) (my_x + min_left_sensor / cos(compass - pi_over_4 + pi_over_6));
-    left_sensor_dots[1][1] = (int) (my_y + min_left_sensor / sin(compass - pi_over_4 + pi_over_6));
-    left_sensor_dots[2][0] = (int) (my_x + min_left_sensor / cos(compass - pi_over_4 - pi_over_6));
-    left_sensor_dots[2][1] = (int) (my_y + min_left_sensor / sin(compass - pi_over_4 - pi_over_6));
+    int left_sensor_dots[2];
+    left_sensor_dots[0] = (int) (my_x + min_left_sensor / cos(compass - pi_over_4));
+    left_sensor_dots[1] = (int) (my_y + min_left_sensor / sin(compass - pi_over_4));
     update_single_sensor(left_sensor, nearby_cells, left_sensor_dots, my_pos);
 
-    int right_sensor_dots[3][2];
-    right_sensor_dots[0][0] = (int) (my_x + min_right_sensor / cos(compass + pi_over_4));
-    right_sensor_dots[0][1] = (int) (my_y + min_right_sensor / sin(compass + pi_over_4));
-    right_sensor_dots[1][0] = (int) (my_x + min_right_sensor / cos(compass + pi_over_4 + pi_over_6));
-    right_sensor_dots[1][1] = (int) (my_y + min_right_sensor / sin(compass + pi_over_4 + pi_over_6));
-    right_sensor_dots[2][0] = (int) (my_x + min_right_sensor / cos(compass + pi_over_4 - pi_over_6));
-    right_sensor_dots[2][1] = (int) (my_y + min_right_sensor / sin(compass + pi_over_4 - pi_over_6));
+    int right_sensor_dots[2];
+    right_sensor_dots[0] = (int) (my_x + min_right_sensor / cos(compass + pi_over_4));
+    right_sensor_dots[1] = (int) (my_y + min_right_sensor / sin(compass + pi_over_4));
     update_single_sensor(right_sensor, nearby_cells, right_sensor_dots, my_pos);
 
     // confirm no walls where we are moving through
@@ -240,7 +230,7 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
 
 /*adiciona o valor*/
 
-void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[3][2],
+void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[2],
                           int sensor_pos_in_eevee[2]) {
     // if obstacle found
     int possible_walls_size = 3 * 9 * 4;
@@ -249,79 +239,64 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int senso
     if (sensor_val < sensor_cutoff_point)  // self.max_dist_threshold:
     {
         // check closest ray to any is_wall
-        int ray_dists[3] = {max_dist_threshold, max_dist_threshold, max_dist_threshold};
-        struct Wall *ray_walls[3];
+        int ray_dists = max_dist_threshold;
+        struct Wall *closest_dot_cell_wall;
 
         // check 30º to the left, 0º, and 30º to the right; 3 possible sensor points
-        int sensor_index, cell_index, wall_index;
-        for (sensor_index = 0; sensor_index < 3; sensor_index++) {
-            // run through all neighbor cells
-            for (cell_index = 0; cell_index < 9; cell_index++) {
-                // and 4 walls on each cell
-                for (wall_index = 0; wall_index < 4; wall_index++) {
-                    struct Wall wall = *nearby_cells[cell_index].walls[wall_index];
-
-                    // calculate distance of sensor point to the wall and save closest is_wall
-                    int d = dist_to_line_segment(sensor_positions[sensor_index], wall.line[0], wall.line[1]);
-                    if (d < ray_dists[sensor_index]) {
-                        ray_dists[sensor_index] = d;
-                        ray_walls[sensor_index] = &wall;
-                    }
-                }
-            }
-        }
-
-        // store closest possible is_wall
-        int min_index = 0;
-        if (ray_dists[1] < ray_dists[0] && ray_dists[1] < ray_dists[2])
-            min_index = 1;
-        else if (ray_dists[2] < ray_dists[0] && ray_dists[2] < ray_dists[1])
-            min_index = 2;
-
-
-        // if that ray is actually close to a is_wall
-        // closest_dot_to_wall_distance = ray_dists[min_index]
-        //int *closest_dot_to_wall = sensor_positions[min_index];
-        struct Wall closest_dot_cell_wall = *ray_walls[min_index];
-
-        int trust_val = trust_based_on_distance(dist_to_line_segment(
-                sensor_pos_in_eevee, closest_dot_cell_wall.line[0], closest_dot_cell_wall.line[1]));
-        weigh_wall(&closest_dot_cell_wall, trust_val);
-        weighted_walls[0] = &closest_dot_cell_wall;
-        currently_weighted_walls++;
-    }
-
-    // decrease all other is_wall intersections score
-    // check 30º to the left, 0º, and 30º to the right; 3 possible sensor points
-    int sensor_index, cell_index, wall_index;
-    for (sensor_index = 0; sensor_index < 3; sensor_index++) {
+        int cell_index, wall_index;
         // run through all neighbor cells
         for (cell_index = 0; cell_index < 9; cell_index++) {
             // and 4 walls on each cell
             for (wall_index = 0; wall_index < 4; wall_index++) {
                 struct Wall *wall = nearby_cells[cell_index].walls[wall_index];
-
-                int wall_not_in_weighted_walls = 1;
-                int i;
-                for (i = 0; i < currently_weighted_walls; i++) {
-                    if (wall == weighted_walls[i]) {
-                        wall_not_in_weighted_walls = 0;
-                        break;
-                    }
-                }
-                if (wall_not_in_weighted_walls &&
-                    intersects(wall->line[0], wall->line[1], sensor_pos_in_eevee, sensor_positions[sensor_index])) {
-                    int dist = dist_to_line_segment(sensor_pos_in_eevee, wall->line[0], wall->line[1]);
-                    if (dist < m_p) {
-                        int trust_val = trust_based_on_distance(dist);
-                        weigh_wall(wall, -trust_val);
-                        weighted_walls[currently_weighted_walls] = wall;
-                        currently_weighted_walls++;
-                    }
+                // calculate distance of sensor point to the wall and save closest is_wall
+                int d = dist_to_line_segment(sensor_positions, wall->line[0], wall->line[1]);
+                if (d < ray_dists) {
+                    ray_dists = d;
+                    closest_dot_cell_wall = wall;
                 }
             }
         }
+        // if that ray is actually close to a is_wall
+        double trust_val = trust_based_on_distance(dist_to_line_segment(
+                sensor_pos_in_eevee, closest_dot_cell_wall->line[0], closest_dot_cell_wall->line[1]));
+        weigh_wall(closest_dot_cell_wall, trust_val);
+        weighted_walls[0] = closest_dot_cell_wall;
+        currently_weighted_walls++;
     }
+
+    // decrease all other is_wall intersections score
+    int cell_index, wall_index;
+
+    // run through all neighbor cells
+    for (cell_index = 0; cell_index < 9; cell_index++) {
+        // and 4 walls on each cell
+        for (wall_index = 0; wall_index < 4; wall_index++) {
+            struct Wall *wall = nearby_cells[cell_index].walls[wall_index];
+
+            int wall_not_in_weighted_walls = 1;
+            int i;
+            for (i = 0; i < currently_weighted_walls; i++) {
+                if (wall == weighted_walls[i]) {
+                    wall_not_in_weighted_walls = 0;
+                    break;
+                }
+            }
+            if (wall_not_in_weighted_walls &&
+                intersects(wall->line[0], wall->line[1], sensor_pos_in_eevee, sensor_positions)) {
+                int dist = dist_to_line_segment(sensor_pos_in_eevee, wall->line[0], wall->line[1]);
+                printf("Checking line %d %d and %d %d\n",wall->line[0][0], wall->line[0][1], wall->line[1][0], wall->line[1][1]);
+                //if (dist < m_p) {
+                double trust_val = trust_based_on_distance(dist);
+                printf("Clearin cell %d and wall %d: %x with %f\n",cell_index, wall_index, wall, trust_val);
+                weigh_wall(wall, -trust_val);
+                weighted_walls[currently_weighted_walls] = wall;
+                currently_weighted_walls++;
+                //}
+            }
+        }
+    }
+
 }
 
 int intersects(int *AB, int *CD, int *PQ, int *RS) {
@@ -335,9 +310,9 @@ int intersects(int *AB, int *CD, int *PQ, int *RS) {
 }
 
 
-int trust_based_on_distance(int dist) {
-    dist = min(max_dist_threshold, max(dist, 7));
-    return (5 / (dist - 6)); // ratio proportional to weight [5 ; 0]
+double trust_based_on_distance(int dist) {
+    dist = min(max_dist_threshold, max(dist/100, 0));
+    return (5.0*(max_dist_threshold-dist))/max_dist_threshold; // ratio proportional to weight [5 ; 0]
 }
 
 
@@ -345,6 +320,7 @@ int trust_based_on_distance(int dist) {
 void weigh_wall(struct Wall *w, double val) {
     if (!is_confirmed_no_wall(w)) {
         w->weight = w->weight + val;
+
         if (w->weight < min_val) w->weight = min_val;
         if (w->weight > max_val) w->weight = max_val;
         //is_wall

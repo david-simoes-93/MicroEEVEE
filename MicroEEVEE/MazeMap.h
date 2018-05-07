@@ -54,11 +54,11 @@ struct Cell {
 #define wall_conf_mask    0b00000101
 #define no_wall_conf_mask 0b00001010
 
-#define sensor_cutoff_point 45
-#define max_dist_threshold  60
+#define sensor_cutoff_point 4500
+#define max_dist_threshold  6000
 
 struct Wall {
-    int weight;
+    double weight;
     int wall; //is_wall true, is_no_wall, wall_confirmed --> mask
     int line[2][2];
 
@@ -71,7 +71,7 @@ struct Cell maze[cols][rows];
 void init_maze();
 
 
-void get_cell_coords_from_gps_coords(int x, int y, int t[2]);
+void get_cell_index_from_gps_coords(int x, int y, int *t);
 // returns dot product of "v" and "w"
 double dist2(int* v, int* w);
 
@@ -92,7 +92,7 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
 void print_map();
 
 /*adiciona o valor*/
-void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[3][2],
+void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[2],
                           int sensor_pos_in_eevee[2]);
 
 int intersects(int *AB, int* CD, int *PQ, int* RS) ;
@@ -100,7 +100,7 @@ int intersects(int *AB, int* CD, int *PQ, int* RS) ;
 /* returns desired dir based on target point */
 double get_target_dir(int, int, double, int, int);
 
-int trust_based_on_distance(int dist);
+double trust_based_on_distance(int dist);
 
 
 /*Functions of Wall*/

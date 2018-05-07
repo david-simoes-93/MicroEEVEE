@@ -3,15 +3,18 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "DodgeObstacle.h"
+#include "FollowTheBeacon.h"
+#include "FollowTheWall.h"
+#include "StopAtBeacon.h"
+#include "Wander.h"
 //#include "Sensors.h"
+#include "MazeMap.h"
 
-#include "MazeMap.h" //maze[][]
-
-bool recalculate_path(int *);
-
+void reactive_decide();
+int lastBeh;
 
 int count_beacon;
-
 int beaconPoint[2];
 double dir_beacon;
 
@@ -46,37 +49,33 @@ int main(void) {
     /*-------------------*/
 
     while (!stopButton()) {
-        count_ticks++;
         waitTick20ms();
-        switch (count_ticks) {
-            case 1 :
-                // tick 40ms
-                // Fill in "analogSensors" structure
-                readAnalogSensors();
 
-                // Read ground sensor
-                int groundSensor = readLineSensors(70);
+        // Fill in "analogSensors" structure
+        readAnalogSensors();
+        int groundSensor = readLineSensors(70);
+        printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
+               analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
 
-                //gndVals[c] = groundSensor;	c=(c+1)%5; //buffer
+        //gndVals[c] = groundSensor;	c=(c+1)%5; //buffer
 
-                /* Track robot position and orientation */
+        /* Track robot position and orientation */
+        getRobotPos_int(&x, &y, &t);
 
-                getRobotPos_int(&x, &y, &t);
+        //update map
+        printf("update map...\n");
+        update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
+        printf("update map\n");
 
-                //update map
-                update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
+        //reactive_decide();
+        setVel2(0,0);
+        printf("decide\n");
 
-
-                break;
-
-            case 2:
-                //recalculate_path();
-
-                count_ticks = 0;
-                break;
-        }
-
-
+        print_map();
+        printf("print\n");
+        int i;
+        for(i=0; i<100; i++)
+            waitTick20ms();
     }
 
     /*calculate beacon*/
@@ -84,13 +83,51 @@ int main(void) {
 
     }*/
 
-    //decide what to do
-    //decide();
-
     disableObstSens();
     setVel2(0,0);
+}
 
 
+void reactive_decide() {
+    //printf("\tLeft %2.2f; Front %2.2f; Right %2.2f\n", obstValLeft, obstValFront, obstValRight);
+    //printf("X= %f Y= %f Compass= %f\n", x, y, compass);
+    prep_ftw();
+
+    if(sab_isPossible()){
+        sab_execute();
+        if(lastBeh!=0){
+            printf("\tExecuting behaviour %s\n", sab_getName());
+            lastBeh=0;
+        }
+    }
+    else if(ftw_isPossible()){
+        ftw_execute();
+        if(lastBeh!=1){
+            printf("\tExecuting behaviour %s\n", ftw_getName());
+            lastBeh=1;
+        }
+    }
+    else if(ftb_isPossible()){
+        ftb_execute();
+        if(lastBeh!=2){
+            printf("\tExecuting behaviour %s\n", ftb_getName());
+            lastBeh=2;
+        }
+    }
+    else if(do_isPossible()){
+        do_execute();
+        if(lastBeh!=3){
+            printf("\tExecuting behaviour %s\n", do_getName());
+            lastBeh=3;
+        }
+    }
+    else if(wan_isPossible()){
+        wan_execute();
+        if(lastBeh!=4){
+            printf("\tExecuting behaviour %s\n", wan_getName());
+            lastBeh=4;
+        }
+    }
 }
 
 
