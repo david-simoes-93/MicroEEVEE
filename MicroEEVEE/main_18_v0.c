@@ -46,10 +46,10 @@ int main(void) {
     /*-------------------*/
 
     while (!stopButton()) {
-        count_ticks++;
+        /**count_ticks++;
         waitTick20ms();
         switch (count_ticks) {
-            case 1 :
+            case 1 :*/
                 // tick 40ms
                 // Fill in "analogSensors" structure
                 readAnalogSensors();
@@ -66,7 +66,7 @@ int main(void) {
                 //update map
                 //update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight,t);
 
-
+/*
                 break;
 
             case 2:
@@ -74,18 +74,22 @@ int main(void) {
 
                 count_ticks = 0;
                 break;
+        }*/
+
+        servoControl(); //rotate servo
+
+
+        /*calculate beacon*/
+        if (getDirectionTarget({x,y}, dir_beacon, &beaconPoint) ){ //i have a beacon point at beaconPoint
+
         }
 
+        //decide what to do
+        //decide();
 
     }
 
-    /*calculate beacon*/
-    /*if (getDirectionTarget({x,y}, dir_beacon, &beaconPoint) ){
 
-    }*/
-
-    //decide what to do
-    //decide();
 
     disableObstSens();
     setVel2(0,0);
