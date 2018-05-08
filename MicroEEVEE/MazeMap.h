@@ -56,7 +56,7 @@ struct Cell {
 #define no_wall_conf_mask 0b00001000
 
 #define sensor_cutoff_point 5000
-#define max_dist_threshold  7000
+#define max_dist_threshold  8000
 
 struct Wall {
     double weight;

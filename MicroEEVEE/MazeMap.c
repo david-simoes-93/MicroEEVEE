@@ -107,9 +107,11 @@ void print_map() {
     int x, y;
     for (x = 0; x < cols; x++) {
         if (is_wall(maze[x][0].north_wall))
-            printf(" _");
+            printf("__");
+        else if (is_no_wall(maze[x][0].north_wall))
+            printf("_ ");
         else
-            printf("  ");
+            printf("_*");
     }
     printf("\n");
     for (y = 0; y < rows; y++) {
@@ -118,19 +120,25 @@ void print_map() {
             //printf("%d %d\n", x, y);
             if (is_wall(maze[x][y].west_wall))
                 printf("|");
-            else
+            else if (is_no_wall(maze[x][y].west_wall))
                 printf(" ");
+            else
+                printf("?");
 
             if (is_wall(maze[x][y].south_wall))
                 printf("_");
+            else if (is_no_wall(maze[x][y].south_wall))
+                printf(" ");
             else
                 printf("*");
         }
 
         if (is_wall(maze[cols - 1][y].east_wall))
             printf("|");
-        else
+        else if (is_no_wall(maze[cols - 1][y].east_wall))
             printf(" ");
+        else
+            printf("?");
         printf("\n");
     }
 }
@@ -261,9 +269,33 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[5], int senso
     printf("sensor at (%d,%d) hitting pos %d %d\n", sensor_pos_in_eevee[0], sensor_pos_in_eevee[1],
            sensor_positions[0], sensor_positions[1]);
     // if obstacle found
-    int possible_walls_size = 5 * 4;
+    int possible_walls_size = 2 * 4;
     int currently_weighted_walls = 0;
     struct Wall *weighted_walls[possible_walls_size];
+    int margin = 500;
+
+    int cell_index, wall_index;
+    for (cell_index = 0; cell_index < 1; cell_index++) {
+        for (wall_index = 0; wall_index < 4; wall_index++) {
+            struct Wall *wall = nearby_cells[cell_index].walls[wall_index];
+            // sensor hitting wall within margin
+            if(sensor_positions[0]>wall->line[0][0]-margin && sensor_positions[0]<wall->line[1][0]+margin
+                    && sensor_positions[1]>wall->line[0][1]-margin && sensor_positions[1]<wall->line[1][1]+margin){
+                printf("\tMARKING cell (%d,%d), wall %d\n",
+                       nearby_cells[cell_index].index[0], nearby_cells[cell_index].index[1], wall_index);
+
+                weigh_wall(wall, 5);
+            } // else if sensor beyond wall
+            else if (intersects(wall->line[0], wall->line[1], sensor_pos_in_eevee, sensor_positions))
+            {
+                printf("\tCLEARING cell (%d,%d), wall %d\n",
+                       nearby_cells[cell_index].index[0], nearby_cells[cell_index].index[1], wall_index);
+                weigh_wall(wall, -5);
+            }
+        }
+    }
+
+    /*
     if (sensor_val < sensor_cutoff_point)  // self.max_dist_threshold:
     {
         // check closest ray to any is_wall
@@ -273,7 +305,8 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[5], int senso
 
         int cell_index, wall_index;
         // run through all neighbor cells
-        for (cell_index = 0; cell_index < 5; cell_index++) {
+        for (cell_index = 0; cell_index < 1; cell_index++) {    //5
+
             if ((cell_index == 1 && is_wall(nearby_cells[0].east_wall)) ||
                 (cell_index == 2 && is_wall(nearby_cells[0].west_wall)) ||
                 (cell_index == 3 && is_wall(nearby_cells[0].south_wall)) ||
@@ -298,11 +331,11 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[5], int senso
                 }/*else{
                     printf("\t\tIgnoring wall from cell %d, wall %d, ptr %x, with dist %f\n", cell_index, wall_index, wall, d);
                     printf("\t\t(%d,%d) to (%d,%d)\n",wall->line[0][0], wall->line[0][1], wall->line[1][0], wall->line[1][1]);
-                }*/
+                }* /
             }
         }
         // if that ray is actually close to a wall
-        if (closest_dot_cell_wall != NULL) {
+        if (ray_dists<1000) {
             double trust_val = trust_based_on_distance(dist_to_line_segment(
                     sensor_pos_in_eevee, closest_dot_cell_wall->line[0], closest_dot_cell_wall->line[1]));
             printf("\tWeightin cell (%d,%d), wall %d with %f (was %f)\n",
@@ -320,7 +353,7 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[5], int senso
     int cell_index, wall_index;
 
     // run through all neighbor cells
-    for (cell_index = 0; cell_index < 5; cell_index++) {
+    for (cell_index = 0; cell_index < 1; cell_index++) { //5
         // and 4 walls on each cell
         for (wall_index = 0; wall_index < 4; wall_index++) {
             //printf("\t@@(%d,%d) %d\n",nearby_cells[cell_index].coords[0], nearby_cells[cell_index].coords[1],wall_index);
@@ -349,7 +382,7 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[5], int senso
                 }
             }
         }
-    }
+    }*/
 
 }
 
