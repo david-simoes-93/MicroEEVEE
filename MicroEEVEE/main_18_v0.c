@@ -60,9 +60,8 @@ int main(void) {
         readAnalogSensors();
         //groundSensor = readLineSensors(0);
     }
-
+    
     /*variables*/
-    int count_ticks = 0;
     init_maze();
     int ground_sensor_buffer_index = 0;
     should_recalculate_astar = false;
@@ -78,115 +77,126 @@ int main(void) {
         obstValLeft = analogSensors.obstSensLeft;
         obstValFront = analogSensors.obstSensFront;
         obstValRight = analogSensors.obstSensRight;
+
+        // ground
         int groundSensor = readLineSensors(70);
+        ground_sensor_buffer[ground_sensor_buffer_index] = groundSensor;
+        ground_sensor_buffer_index = (ground_sensor_buffer_index + 1) % 5;
+
         printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
                analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
 
-        ground_sensor_buffer[ground_sensor_buffer_index] = groundSensor;
-        ground_sensor_buffer_index = (ground_sensor_buffer_index + 1) % 5; //buffer
-
         /* Track robot position and orientation */
+        getRobotPos_int(&x, &y, &t); //mm*10
 
-        getRobotPos_int(&x, &y, &t);
 
         //update map
+        printf("update map\n");
         update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight, t);
 
-
+        printf("servo\n");
         //Find beacon
         if (servoControl()) { //found beacon
-            //dir_beacon = beaconDir;
-            /*calculate beacon*/
             old_beaconPoint[0] = beaconPoint[0];
             old_beaconPoint[1] = beaconPoint[1];
             int tmp[2] = {x, y};
 
             //add new Line and get Avg Beacon Point
             if (getDirectionTarget(tmp, dir_beacon, beaconPoint)) { //i have a beacon point at beaconPoint
-                if (!compare_points(old_beaconPoint, beaconPoint)) should_recalculate_astar = true;
+                if (!compare_points(old_beaconPoint, beaconPoint))
+                    should_recalculate_astar = true;
                 follow_astar_path = true;
             } else { //no intersect was made, only have direction!
-                //go_to_dir = beaconDir;
                 follow_astar_path = false;
             }
         }
 
-
-
+        printf("mycell\n");
         //get my cell coords
-        int tmp[2];
-        get_cell_index_from_gps_coords(x, y, tmp);
-        int sx = tmp[0];
-        int sy = tmp[1];
+        int my_cell_index[2];
+        get_cell_index_from_gps_coords(x, y, my_cell_index);
 
+        printf("astar\n");
         if (should_recalculate_astar) {
-            //should_recalculate_astar new path
-            if (returning_home) { //beacon was found --> go Home
-                tmp[0] = 7; //in cells
-                tmp[1] = 7;
-            } else {
-                get_cell_index_from_gps_coords(beaconPoint[0], beaconPoint[1], tmp);
-            }
-            int gx = tmp[0];
-            int gy = tmp[1];
+            printf("astar1\n");
+            int target_cell_coords[2];
 
-            if (astar(rows, cols, sx, sy, gx, gy, paths)) {
-                printf("Astar search %d\n", true);
+            //beacon was found --> go Home
+            if (returning_home) {
+                target_cell_coords[0] = 7;
+                target_cell_coords[1] = 7;
+            } else {
+                get_cell_index_from_gps_coords(beaconPoint[0], beaconPoint[1], target_cell_coords);
+            }
+            int target_x = target_cell_coords[0];
+            int target_y = target_cell_coords[1];
+
+            printf("astar2\n");
+            if (astar(rows, cols, my_cell_index[0], my_cell_index[1], target_x, target_y, paths)) {
+                follow_astar_path = true;
+
+                path_list[0][0] = target_x;
+                path_list[0][1] = target_y;
+                path_length=1;
+
                 while (true) { //get Path_list
-                    path_list[path_length][0] = paths[gx][gy][0];
-                    path_list[path_length][1] = paths[gx][gy][1];
+                    path_list[path_length][0] = paths[target_x][target_y][0];
+                    path_list[path_length][1] = paths[target_x][target_y][1];
                     ++path_length;
 
-                    printf("%d %d; ", paths[gx][gy][0], paths[gx][gy][1]);
-                    int prev_x = paths[gx][gy][0], prev_y = paths[gx][gy][1];
-                    gx = prev_x;
-                    gy = prev_y;
-                    if (gx == sx && gy == sy)
+                    printf("%d %d; ", paths[target_x][target_y][0], paths[target_x][target_y][1]);
+                    int prev_x = paths[target_x][target_y][0], prev_y = paths[target_x][target_y][1];
+                    target_x = prev_x;
+                    target_y = prev_y;
+                    if (target_x == my_cell_index[0] && target_y == my_cell_index[1])
                         break;
                 }
+
                 //update lastPointx,y
                 get_point_from_list();
-                //beaconDir = get_next_dir(sx, sy); //in cells
-
             } else {
-                printf("Cannot find path to goal (%d, %d) \n", gx, gy);
-                break;
+                printf("Cannot find path to goal (%d, %d) \n", target_x, target_y);
+                follow_astar_path = false;
             }
 
             should_recalculate_astar = false;
         }
 
-
-        if (sx == path_list[path_length - 1][0] && sy == path_list[path_length - 1][1]) {
-            if (returning_home && sx == 0 && sy == 0) {
-                //reach Home
-                printf("Found Home");
-                break;
-            }
-            path_length = path_length - 1;
-            get_point_from_list();
-            //beaconDir = get_next_dir(sx, sy);
-        }
-
         if (follow_astar_path) {
-            followPoints_(); //update beaconDir every iteration
+            printf("ent of path, @%d %d\n",my_cell_index[0],my_cell_index[1]);
+            if (my_cell_index[0] == path_list[path_length - 1][0] &&
+                    my_cell_index[1] == path_list[path_length - 1][1]) {
+
+                //reach Home
+                if (returning_home && my_cell_index[0] == 7 && my_cell_index[1] == 7) {
+                    printf("Found Home");
+                    break;
+                }
+
+                path_length = path_length - 1;
+                get_point_from_list();
+            }
+
+            printf("follow astar\n");
+            follow_target_point(); //update beaconDir every iteration
         }
+
+        printf("reactive\n");
         //else beaconPoint from servoControl is executed
         reactive_decide(); //ftb executes with beaconDir value
+        //setVel2(0,0);
         print_map();
     }
 
     print_map();
 
-
     disableObstSens();
     setVel2(0, 0);
-    int frequency = 4; //Hz
     while (true) {
         leds(0x00);
-        wait(1 / frequency / 10);
+        wait(5);
         leds(0xFF);
-        wait(1 / frequency / 10);
+        wait(5);
     }
     return 0;
 
@@ -199,7 +209,7 @@ void get_point_from_list() {
         target_path_point_index = path_length - 2;
 
     get_middle_coords_from_index(path_list[target_path_point_index][0], path_list[target_path_point_index][1],
-                                 &lastPointX, &lastPointY);
+                                 &target_point_x, &target_point_y);
 
 }
 
@@ -222,7 +232,7 @@ void reactive_decide() {
     if (sab_isPossible()) {
         //all light on
         leds(0xFF);
-        should_recalculate_astar = true; //now go home
+        should_recalculate_astar = true; // now go home
         sab_execute();
         if (lastBeh != 0) {
             printf("\tExecuting behaviour %s\n", sab_getName());

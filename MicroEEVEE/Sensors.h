@@ -15,34 +15,21 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
- 
+
 #define POS_LEFT		-15
 #define POS_RIGHT		15
 #define compass 	(t * 180 / PI)
 
 int visible, returning_home;
 int x, y;
-double t, oldCompass;
+double t;
 double obstValFront, obstValLeft, obstValRight;
-int groundSensor, beaconDir, currServoPos;
-int lastPointX = 0, lastPointY = 0;
-
+int beaconDir, currServoPos;
+int target_point_x, target_point_y;
 int ground_sensor_buffer[5];
-int pointsList[2][100];
-int pointsListPointer;
 
-int checkPointsRadius();
-int removePoint();
-void markPoint();
-void getLastPoint();
-void addPoint(double x2, double y2);
-int lastPointX, lastPointY ;
-
-int isOnRadius( double x, double y, double nextX, double nextY, int radius);
-double dot_product(double v[], double u[], int n);
 bool servoControl();
-void followPoints_();
-void rotateRel_naive(double deltaAngle);
+void follow_target_point();
 
 #ifdef	__cplusplus
 }

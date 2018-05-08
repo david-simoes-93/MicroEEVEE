@@ -462,8 +462,8 @@ void getRobotPos(double *xp, double *yp, double *hp)
 
 void getRobotPos_int(int *xx, int *yy, double *tt){
    DisableInterrupts();
-   *xx = (int) xpos * 100;
-   *yy = (int)ypos * 100;
+   *xx = (int) xpos * 10;
+   *yy = (int)ypos * 10;
    *tt = theta;
 
    EnableInterrupts();

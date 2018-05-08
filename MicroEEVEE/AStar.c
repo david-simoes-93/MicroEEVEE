@@ -72,6 +72,7 @@ int astar(
         const int h, const int w,
         const int start_x, const int start_y, const int goal_x, const int goal_y,
         int paths[w][h][2]) {
+    //printf("astar %d %d ; %d %d ; %d %d\n",h,w,start_x, start_y,goal_x, goal_y);
 
     int N_neigh = 4;
     const float INF = 10000;
@@ -95,6 +96,7 @@ int astar(
     int solution_found = 0;
     while (length_nodes_to_visit > 0) {
         struct Node cur = nodes_to_visit[0];
+        //printf("visiting %d %d\n",cur.x,cur.y);
 
         if (cur.x == goal_node.x && cur.y == goal_node.y) {
             solution_found = 1;
@@ -132,16 +134,18 @@ int astar(
             nbrs[2][1] = -1;
         }
         if (cur.x + 1 < w && is_wall(maze[cur.x][cur.y].east_wall) == 0) {
-            nbrs[2][0] = cur.x + 1;
-            nbrs[2][1] = cur.y;
+            nbrs[3][0] = cur.x + 1;
+            nbrs[3][1] = cur.y;
         } else {
-            nbrs[2][0] = -1;
-            nbrs[2][1] = -1;
+            nbrs[3][0] = -1;
+            nbrs[3][1] = -1;
         }
 
         float heuristic_cost;
         for (i = 0; i < N_neigh; ++i) {
             if (nbrs[i][0] >= 0 && nbrs[i][1] >= 0) {
+                //printf("\tneighbor %d %d\n",nbrs[i][0], nbrs[i][1]);
+
                 // the sum of the cost so far and the cost of this move
                 float new_cost = costs[cur.x][cur.y] + 1;
                 if (new_cost < costs[nbrs[i][0]][nbrs[i][1]]) {

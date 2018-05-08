@@ -18,8 +18,8 @@
 #define MAZE_MAP_H
 
 #define n_cells 8
-#define rows (n_cells*2-1)
-#define cols (n_cells*2-1)
+#define rows (n_cells*2+1)
+#define cols (n_cells*2+1)
 #define m_point 22.5 // 45/2
 
 /*index*/

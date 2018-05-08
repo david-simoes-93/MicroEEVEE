@@ -10,8 +10,11 @@ void init_maze() {
     int i, j, walls_array_index = 0;
     for (i = 0; i < cols; i++) {
         for (j = 0; j < rows; j++) {
-            int x = (i - n_cells + 1) * cell_width;
-            int y = (j - n_cells + 1) * cell_width;
+            int x = (i - n_cells) * cell_width;
+            int y = (j - n_cells) * cell_width;
+
+            maze[i][j].coords[0]=x;
+            maze[i][j].coords[1]=y;
 
             // copy west neighbor's east is_wall
             if (i > 0) {
@@ -131,17 +134,18 @@ void print_map() {
 
 
 void get_cell_index_from_gps_coords(int x, int y, int *t) {
-    t[0] = min(cols - 1, max((int) ((x * 1.0 + half_cell_width) / cell_width + (n_cells - 1)), 0));
-    t[1] = min(rows - 1, max((int) ((x * 1.0 + half_cell_width) / cell_width + (n_cells - 1)), 0));
-
+    // min cell is 1 and max cell is cols-2; this avoids agent being on border of maze
+    // and having inexistnt neighbors on map functions
+    t[0] = min(cols - 2, max((int) ((x * 1.0 + half_cell_width) / cell_width + n_cells), 1));
+    t[1] = min(rows - 2, max((int) ((y * 1.0 + half_cell_width) / cell_width + n_cells), 1));
 }
 
 void get_middle_coords_from_index(int x, int y, int *px, int *py) {
     //t[0] = min(cols-1,max((int) (x / 4500 + (n_cells-1)+0.5),0));
     //t[1] = min(rows-1,max((int) (y / 4500 + (n_cells-1)+0.5),0));
 
-    *px = (x - 0.5 - (n_cells-1)) * 4500 ;
-    *py = (y - 0.5 - (n_cells-1)) * 4500 ;
+    *px = (x - 0.5 - n_cells) * 4500 ;
+    *py = (y - 0.5 - n_cells) * 4500 ;
 
 }
 
@@ -198,15 +202,11 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
     struct Cell my_cell = maze[my_cell_index[0]][my_cell_index[1]];
     my_cell.explored = 1;
 
-    struct Cell nearby_cells[9] = {my_cell,
+    struct Cell nearby_cells[5] = {my_cell,
                                    maze[my_cell_index[0] + 1][my_cell_index[1]],
                                    maze[my_cell_index[0] - 1][my_cell_index[1]],
                                    maze[my_cell_index[0]][my_cell_index[1] + 1],
-                                   maze[my_cell_index[0]][my_cell_index[1] - 1],
-                                   maze[my_cell_index[0] + 1][my_cell_index[1] + 1],
-                                   maze[my_cell_index[0] - 1][my_cell_index[1] - 1],
-                                   maze[my_cell_index[0] - 1][my_cell_index[1] + 1],
-                                   maze[my_cell_index[0] + 1][my_cell_index[1] - 1]};
+                                   maze[my_cell_index[0]][my_cell_index[1] - 1]};
     int min_left_sensor = sensor_cutoff_point, min_front_sensor = sensor_cutoff_point, min_right_sensor = sensor_cutoff_point;
     if (left_sensor < sensor_cutoff_point) min_left_sensor = left_sensor;
     if (front_sensor < sensor_cutoff_point) min_front_sensor = front_sensor;
@@ -239,7 +239,7 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
     // confirm no walls where we are moving through
     // run through all neighbor cells
     int cell_index, wall_index;
-    for (cell_index = 0; cell_index < 9; cell_index++) {
+    for (cell_index = 0; cell_index < 5; cell_index++) {
         // and 4 walls on each cell
         for (wall_index = 0; wall_index < 4; wall_index++) {
             struct Wall wall = *nearby_cells[cell_index].walls[wall_index];
@@ -251,12 +251,12 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
 
 /*adiciona o valor*/
 
-void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int sensor_positions[2],
+void update_single_sensor(int sensor_val, struct Cell nearby_cells[5], int sensor_positions[2],
                           int sensor_pos_in_eevee[2]) {
     //printf("sensor at (%d,%d) hitting pos %d %d\n", sensor_pos_in_eevee[0], sensor_pos_in_eevee[1],
     //       sensor_positions[0], sensor_positions[1]);
     // if obstacle found
-    int possible_walls_size = 3 * 9 * 4;
+    int possible_walls_size = 5 * 4;
     int currently_weighted_walls = 0;
     struct Wall *weighted_walls[possible_walls_size];
     if (sensor_val < sensor_cutoff_point)  // self.max_dist_threshold:
@@ -267,9 +267,10 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int senso
 
         int cell_index, wall_index;
         // run through all neighbor cells
-        for (cell_index = 0; cell_index < 9; cell_index++) {
+        for (cell_index = 0; cell_index < 5; cell_index++) {
             // and 4 walls on each cell
             for (wall_index = 0; wall_index < 4; wall_index++) {
+                //printf("\t@@(%d,%d) %d\n",nearby_cells[cell_index].coords[0], nearby_cells[cell_index].coords[1],wall_index);
                 struct Wall *wall = nearby_cells[cell_index].walls[wall_index];
                 // calculate distance of sensor point to the wall and save closest is_wall
                 double d = dist_to_line_segment(sensor_positions, wall->line[0], wall->line[1]);
@@ -303,9 +304,11 @@ void update_single_sensor(int sensor_val, struct Cell nearby_cells[9], int senso
     int cell_index, wall_index;
 
     // run through all neighbor cells
-    for (cell_index = 0; cell_index < 9; cell_index++) {
+    for (cell_index = 0; cell_index < 5; cell_index++) {
         // and 4 walls on each cell
         for (wall_index = 0; wall_index < 4; wall_index++) {
+            //printf("\t@@(%d,%d) %d\n",nearby_cells[cell_index].coords[0], nearby_cells[cell_index].coords[1],wall_index);
+
             struct Wall *wall = nearby_cells[cell_index].walls[wall_index];
 
             int wall_not_in_weighted_walls = 1;
@@ -507,7 +510,7 @@ bool getBeaconAvgPoint(int *bp) {
 
 
 bool setUniqueBeaconPoint(int x, int y) {
-    if (x < -3600 || y < -3600 || x >= 3600 || y >= 3600) {
+    if (x < -36000 || y < -36000 || x >= 36000 || y >= 36000) {
         return false;
     }
     int i;
