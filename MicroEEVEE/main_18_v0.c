@@ -60,7 +60,7 @@ int main(void) {
         readAnalogSensors();
         //groundSensor = readLineSensors(0);
     }
-    
+
     /*variables*/
     init_maze();
     int ground_sensor_buffer_index = 0;
@@ -71,12 +71,11 @@ int main(void) {
     /*-------------------*/
 
     while (!stopButton()) {
-
         // Fill in "analogSensors" structure
         readAnalogSensors();
-        obstValLeft = analogSensors.obstSensLeft;
-        obstValFront = analogSensors.obstSensFront;
-        obstValRight = analogSensors.obstSensRight;
+        obstValLeft = analogSensors.obstSensLeft / 100;
+        obstValFront = analogSensors.obstSensFront / 100;
+        obstValRight = analogSensors.obstSensRight / 100;
 
         // ground
         int groundSensor = readLineSensors(70);
@@ -137,7 +136,7 @@ int main(void) {
 
                 path_list[0][0] = target_x;
                 path_list[0][1] = target_y;
-                path_length=1;
+                path_length = 1;
 
                 while (true) { //get Path_list
                     path_list[path_length][0] = paths[target_x][target_y][0];
@@ -163,9 +162,9 @@ int main(void) {
         }
 
         if (follow_astar_path) {
-            printf("ent of path, @%d %d\n",my_cell_index[0],my_cell_index[1]);
+            printf("ent of path, @%d %d\n", my_cell_index[0], my_cell_index[1]);
             if (my_cell_index[0] == path_list[path_length - 1][0] &&
-                    my_cell_index[1] == path_list[path_length - 1][1]) {
+                my_cell_index[1] == path_list[path_length - 1][1]) {
 
                 //reach Home
                 if (returning_home && my_cell_index[0] == 7 && my_cell_index[1] == 7) {
