@@ -9,12 +9,13 @@ bool facedBeacon = false;
 double lastKnownBeaconAngle = 0, lastKnownBeaconCompass = 0;
 
 
+#define KP_WALL 5
+
 int my_state = 0, obstacleState=0, obst_history=0;
 bool dist_blind=false, found_wall_after_dead=false;
 double xx = 100;
 #define OBSTACLE 0
 #define NO_WALL 1
-
 
 void atBeacon(){
   printf("Stopped following wall!\n");
@@ -26,18 +27,18 @@ char* ftw_getName() {
     return "FollowTheWall";
 }
 
-/*
+
 void followWalls(int speed){
 
     int sensor;
 
-    if(laps < 2){
+    if(wallOnTheRight){
         sensor = analogSensors.obstSensRight;
     }
     else{
         sensor = analogSensors.obstSensLeft;
     }
-    sensor_dist_history = sensor;
+    //sensor_dist_history = sensor; //TODO ver se é preciso
     double error = 0;
     int cmdVel;
 
@@ -45,10 +46,10 @@ void followWalls(int speed){
 
     if (analogSensors.obstSensFront < 23 ){
         error -= 13.0; //acertar este valor
-        if( !first_time ){
+        /*if( !first_time ){
             count_turns++;
             first_time = true;
-        }
+        }*/
 
     }else{
 
@@ -58,12 +59,12 @@ void followWalls(int speed){
         else if (sensor < 25) error -= 1.0;
         else if (sensor < 15 ) error -= 2.0; //CHANGE if NEEDED
 
-        first_time = false;
+        //first_time = false;
     }
 
-    if(laps >= 2){ //Left wall
+    /*if(laps >= 2){ //Left wall
         error = -error;
-    }
+    }*/
 
     cmdVel = (int)((KP_WALL * error) ) ;
     setVel2(speed + cmdVel, speed - cmdVel);
@@ -79,23 +80,23 @@ void perform_blind(int speed){
 
     if(analogSensors.obstSensFront < 17 ){ //TODO see value
         dist_blind = true;
-        printHeader("DEBUG", CLR_YELLOW);
-        printf("X : %f\n", x);
+        //printHeader("DEBUG", CLR_YELLOW);
+        //printf("X : %f\n", x);
         setVel2(0, 0);
         return;
     }
 
     if(  sqrt(pow((dead_angle_Xpos-x),2)+ pow((dead_angle_Ypos-y),2) ) >= xx) {
         dist_blind = true;
-        printHeader("DEBUG", CLR_YELLOW);
-        printf("X : %f\n", x);
+        //printHeader("DEBUG", CLR_YELLOW);
+        //printf("X : %f\n", x);
     }
 
 
     setVel2(speed, speed);
 
 }
-*/
+
 
 
 int check_Obstacle(){
