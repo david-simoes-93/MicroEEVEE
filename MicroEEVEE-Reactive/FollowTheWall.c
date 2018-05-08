@@ -8,7 +8,14 @@ bool wallOnTheRight = false, wallOnTheLeft = false;
 bool facedBeacon = false;
 double lastKnownBeaconAngle = 0, lastKnownBeaconCompass = 0;
 
+
 #define KP_WALL 5
+
+int my_state = 0, obstacleState=0, obst_history=0;
+bool dist_blind=false, found_wall_after_dead=false;
+double xx = 100;
+#define OBSTACLE 0
+#define NO_WALL 1
 
 void atBeacon(){
   printf("Stopped following wall!\n");
@@ -91,8 +98,50 @@ void perform_blind(int speed){
 }
 
 
+
+int check_Obstacle(){
+    int sensor;
+
+    if(sensor < 40 || analogSensors.obstSensFront < 23 || !found_wall_after_dead ){
+        if (sensor < 30){
+            found_wall_after_dead = true;
+        }
+        return OBSTACLE;
+    }
+
+    // NO_WALL (first time)
+    if(obst_history == OBSTACLE ){
+        xx = ((1/sqrt(2) ) * sensor_dist_history - 5.5 )*10 + 100;//mm
+        if (xx > 200)
+            xx = 200;
+        dist_blind = false;
+        
+        double t;
+        getRobotPos(&dead_angle_Xpos, &dead_angle_Ypos, &t);
+
+    }
+
+    return NO_WALL;
+}
+
+
 void ftw_execute() {
-    //TODO
+    switch(my_state) {
+        case 0 :
+            followWalls(35);
+
+            if (obstacleState == NO_WALL && !dist_blind) {
+                my_state = 1;
+            }
+            break;
+        case 1 :
+            perform_blind(35);
+
+            if (dist_blind) {
+                my_state = 0;
+            }
+            break;
+    }
 }
 
 void prep_ftw(){
@@ -137,6 +186,6 @@ bool ftw_isPossible() {
         facedBeacon = visible;
     }
 
-    return wallOnTheRight || wallOnTheLeft;
+    return wallOnTheRight || wallOnTheLeft || my_state==1;
 }
 
