@@ -114,7 +114,7 @@ int check_Obstacle(){
         if (xx > 200)
             xx = 200;
         dist_blind = false;
-        
+
         double t;
         getRobotPos(&dead_angle_Xpos, &dead_angle_Ypos, &t);
 
