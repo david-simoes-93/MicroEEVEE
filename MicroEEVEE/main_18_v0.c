@@ -64,6 +64,7 @@ int main(void) {
     /*variables*/
     init_maze();
     int ground_sensor_buffer_index = 0;
+    int home[2]={0,0};
     should_recalculate_astar = false;
     returning_home = 0; //only true when beacon is reached
     bool follow_astar_path = false;
@@ -82,26 +83,26 @@ int main(void) {
         ground_sensor_buffer[ground_sensor_buffer_index] = groundSensor;
         ground_sensor_buffer_index = (ground_sensor_buffer_index + 1) % 5;
 
-        printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
-               analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
+        //printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
+        //       analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
 
         /* Track robot position and orientation */
         getRobotPos_int(&x, &y, &t); //mm*10
-
+        int my_pos[2] = {x, y};
 
         //update map
-        printf("update map\n");
+        //printf("update map\n");
         update_map(x, y, analogSensors.obstSensLeft, analogSensors.obstSensFront, analogSensors.obstSensRight, t);
 
-        printf("servo\n");
+        //printf("servo\n");
         //Find beacon
         if (servoControl()) { //found beacon
             old_beaconPoint[0] = beaconPoint[0];
             old_beaconPoint[1] = beaconPoint[1];
-            int tmp[2] = {x, y};
+
 
             //add new Line and get Avg Beacon Point
-            if (getDirectionTarget(tmp, dir_beacon, beaconPoint)) { //i have a beacon point at beaconPoint
+            if (getDirectionTarget(my_pos, dir_beacon, beaconPoint)) { //i have a beacon point at beaconPoint
                 if (!compare_points(old_beaconPoint, beaconPoint))
                     should_recalculate_astar = true;
                 follow_astar_path = true;
@@ -110,14 +111,14 @@ int main(void) {
             }
         }
 
-        printf("mycell\n");
+        //printf("mycell\n");
         //get my cell coords
         int my_cell_index[2];
         get_cell_index_from_gps_coords(x, y, my_cell_index);
 
-        printf("astar\n");
+        //printf("astar\n");
         if (should_recalculate_astar) {
-            printf("astar1\n");
+            //printf("astar1\n");
             int target_cell_coords[2];
 
             //beacon was found --> go Home
@@ -130,7 +131,7 @@ int main(void) {
             int target_x = target_cell_coords[0];
             int target_y = target_cell_coords[1];
 
-            printf("astar2\n");
+            //printf("astar2\n");
             if (astar(rows, cols, my_cell_index[0], my_cell_index[1], target_x, target_y, paths)) {
                 follow_astar_path = true;
 
@@ -143,7 +144,7 @@ int main(void) {
                     path_list[path_length][1] = paths[target_x][target_y][1];
                     ++path_length;
 
-                    printf("%d %d; ", paths[target_x][target_y][0], paths[target_x][target_y][1]);
+                    //printf("%d %d; ", paths[target_x][target_y][0], paths[target_x][target_y][1]);
                     int prev_x = paths[target_x][target_y][0], prev_y = paths[target_x][target_y][1];
                     target_x = prev_x;
                     target_y = prev_y;
@@ -154,7 +155,7 @@ int main(void) {
                 //update lastPointx,y
                 get_point_from_list();
             } else {
-                printf("Cannot find path to goal (%d, %d) \n", target_x, target_y);
+                //printf("Cannot find path to goal (%d, %d) \n", target_x, target_y);
                 follow_astar_path = false;
             }
 
@@ -162,13 +163,12 @@ int main(void) {
         }
 
         if (follow_astar_path) {
-            printf("ent of path, @%d %d\n", my_cell_index[0], my_cell_index[1]);
-            if (my_cell_index[0] == path_list[path_length - 1][0] &&
-                my_cell_index[1] == path_list[path_length - 1][1]) {
+            //printf("ent of path, @%d %d\n", my_cell_index[0], my_cell_index[1]);
+            if (dist(my_pos,home)<1000) {
 
                 //reach Home
                 if (returning_home && my_cell_index[0] == 7 && my_cell_index[1] == 7) {
-                    printf("Found Home");
+                    //printf("Found Home");
                     break;
                 }
 
@@ -176,15 +176,15 @@ int main(void) {
                 get_point_from_list();
             }
 
-            printf("follow astar\n");
+            //printf("follow astar\n");
             follow_target_point(); //update beaconDir every iteration
         }
 
-        printf("reactive\n");
+        //printf("reactive\n");
         //else beaconPoint from servoControl is executed
         reactive_decide(); //ftb executes with beaconDir value
         //setVel2(0,0);
-        print_map();
+        //print_map();
     }
 
     print_map();

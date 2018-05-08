@@ -23,8 +23,8 @@ void follow_target_point() {
             atan2(meToTargetVector[1], meToTargetVector[0]) - atan2(myDirectionVector[1], myDirectionVector[0]);
     beaconDir = -normalizeAngle(radianBeaconDir) * (180 / PI);
 
-    printf("My position %d,%d;      Target Position %d,%d;         MyAngle %2.0fº     AngleToNextPoint %dº\n",
-           x, y, targetX, targetY, (t * 180 / PI), beaconDir);   //NEGATIVO PRA ESQUERDA
+    //printf("My position %d,%d;      Target Position %d,%d;         MyAngle %2.0fº     AngleToNextPoint %dº\n",
+    //       x, y, targetX, targetY, (t * 180 / PI), beaconDir);   //NEGATIVO PRA ESQUERDA
 }
 
 bool servoControl() {
