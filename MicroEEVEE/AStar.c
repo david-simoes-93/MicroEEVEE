@@ -72,6 +72,9 @@ int astar(
         const int h, const int w,
         const int start_x, const int start_y, const int goal_x, const int goal_y,
         int paths[w][h][2]) {
+    if(goal_x<1 || goal_y<1){
+        return false;
+    }
     //printf("astar %d %d ; %d %d ; %d %d\n",h,w,start_x, start_y,goal_x, goal_y);
 
     int N_neigh = 4;
@@ -79,6 +82,8 @@ int astar(
 
     struct Node start_node = {.x = start_x, .y = start_y, .cost = 0.};
     struct Node goal_node = {.x = goal_x, .y=goal_y, .cost = 0.};
+    paths[start_x][start_y][0] = start_x;
+    paths[start_x][start_y][1] = start_y;
 
     float costs[w][h];
     int i, j;
@@ -112,28 +117,28 @@ int astar(
         --length_nodes_to_visit;
 
         // check bounds and find neighbors
-        if (cur.y - 1 >= 0 && is_wall(maze[cur.x][cur.y].north_wall) == 0) {
+        if (cur.y - 1 >= 1 && is_wall(maze[cur.x][cur.y].north_wall) == 0) {
             nbrs[0][0] = cur.x;
             nbrs[0][1] = cur.y - 1;
         } else {
             nbrs[0][0] = -1;
             nbrs[0][1] = -1;
         }
-        if (cur.y + 1 < h && is_wall(maze[cur.x][cur.y].south_wall) == 0) {
+        if (cur.y + 1 < h-1 && is_wall(maze[cur.x][cur.y].south_wall) == 0) {
             nbrs[1][0] = cur.x;
             nbrs[1][1] = cur.y + 1;
         } else {
             nbrs[1][0] = -1;
             nbrs[1][1] = -1;
         }
-        if (cur.x - 1 >= 0 && is_wall(maze[cur.x][cur.y].west_wall) == 0) {
+        if (cur.x - 1 >= 1 && is_wall(maze[cur.x][cur.y].west_wall) == 0) {
             nbrs[2][0] = cur.x - 1;
             nbrs[2][1] = cur.y;
         } else {
             nbrs[2][0] = -1;
             nbrs[2][1] = -1;
         }
-        if (cur.x + 1 < w && is_wall(maze[cur.x][cur.y].east_wall) == 0) {
+        if (cur.x + 1 < w-1 && is_wall(maze[cur.x][cur.y].east_wall) == 0) {
             nbrs[3][0] = cur.x + 1;
             nbrs[3][1] = cur.y;
         } else {
