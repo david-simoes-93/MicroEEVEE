@@ -456,19 +456,11 @@ void getRobotPos(double *xp, double *yp, double *hp) {
     EnableInterrupts();
 }
 
-<<<<<<< HEAD
-void getRobotPos_int(int *xx, int *yy, double *tt) {
-    DisableInterrupts();
-    *xx = (int) xpos * 10;
-    *yy = (int) ypos * 10;
-    *tt = theta;
-=======
 void getRobotPos_int(int *xx, int *yy, double *tt){
    DisableInterrupts();
    *xx = (int) xpos * 10;
    *yy = (int)ypos * -10; //same ref from map
    *tt = theta;
->>>>>>> 4818273644c2fcce9a548b49702bdd8393a85465
 
     EnableInterrupts();
 }
