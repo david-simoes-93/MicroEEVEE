@@ -94,9 +94,9 @@ int main(void) {
         }
         // Fill in "analogSensors" structure
         readAnalogSensors();
-        obstValLeft = analogSensors.obstSensLeft / 100 - 7;
+        obstValLeft = analogSensors.obstSensLeft / 100 - 11;
         obstValFront = analogSensors.obstSensFront / 100 - 7;
-        obstValRight = analogSensors.obstSensRight / 100 - 7;
+        obstValRight = analogSensors.obstSensRight / 100 - 11;
 
         // ground
         int groundSensor = readLineSensors(70);
@@ -185,7 +185,10 @@ int main(void) {
 
         if (follow_astar_path) {
             //printf("ent of path, @%d %d\n", my_cell_index[0], my_cell_index[1]);
-            if (sx == path_list[path_length - 1][0] && sy == path_list[path_length - 1][1]) { //10 cm
+            int tmp_x, tmp_y;
+            get_middle_coords_from_index(path_list[path_length - 1][0], path_list[path_length - 1][1], &tmp_x, &tmp_y);
+            int tmp_2[2] = {tmp_x, tmp_y};
+            if (sx == path_list[path_length - 1][0] && sy == path_list[path_length - 1][1] && dist(my_pos, tmp_2) < 500 ) { //5 cm
 
                 //reach Home
                 if (returning_home && dist(my_pos, home) < 1000) {
