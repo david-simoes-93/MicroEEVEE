@@ -75,9 +75,9 @@ int main(void) {
     while (!stopButton()) {
         // Fill in "analogSensors" structure
         readAnalogSensors();
-        obstValLeft = analogSensors.obstSensLeft / 100 -10;
-        obstValFront = analogSensors.obstSensFront / 100 - 10 ;
-        obstValRight = analogSensors.obstSensRight / 100 -10;
+        obstValLeft = analogSensors.obstSensLeft / 100 -7;
+        obstValFront = analogSensors.obstSensFront / 100 -7 ;
+        obstValRight = analogSensors.obstSensRight / 100 -7;
 
         // ground
         int groundSensor = readLineSensors(70);
@@ -116,7 +116,8 @@ int main(void) {
         //get my cell coords
         int my_cell_index[2];
         get_cell_index_from_gps_coords(x, y, my_cell_index);
-
+        int sx = my_cell_index[0];
+        int sy = my_cell_index[1];
         //printf("astar\n");
         if (should_recalculate_astar) {
             //printf("astar1\n");
@@ -165,10 +166,10 @@ int main(void) {
 
         if (follow_astar_path) {
             //printf("ent of path, @%d %d\n", my_cell_index[0], my_cell_index[1]);
-            if (dist(my_pos,home)<1000) {
+            if (sx == path_list[path_length-1][0] && sy == path_list[path_length-1][1]) { //10 cm
 
                 //reach Home
-                if (returning_home && my_cell_index[0] == 7 && my_cell_index[1] == 7) {
+                if (returning_home && dist(my_pos,home)<1000) {
                     printf("Found Home");
                     break;
                 }

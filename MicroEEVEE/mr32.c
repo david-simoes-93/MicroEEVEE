@@ -463,7 +463,7 @@ void getRobotPos(double *xp, double *yp, double *hp)
 void getRobotPos_int(int *xx, int *yy, double *tt){
    DisableInterrupts();
    *xx = (int) xpos * 10;
-   *yy = (int)ypos * 10;
+   *yy = (int)ypos * -10; //same ref from map
    *tt = theta;
 
    EnableInterrupts();
