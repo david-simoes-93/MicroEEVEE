@@ -36,7 +36,8 @@ int paths[cols][rows][2]; //in cells
 int path_list[100][2]; //in cells
 int path_length = 0;
 
-
+//int path_list[9][2] = {{12,10},{12,9}, {12,8},{12,7},{11,7}, {10,7},{9,7},{8,7}, {8,8}};
+//path_length = 9;
 /* --------- Main -------------*/
 
 int main(void) {
@@ -74,9 +75,9 @@ int main(void) {
     while (!stopButton()) {
         // Fill in "analogSensors" structure
         readAnalogSensors();
-        obstValLeft = analogSensors.obstSensLeft / 100 -11;
-        obstValFront = analogSensors.obstSensFront / 100 - 7 ;
-        obstValRight = analogSensors.obstSensRight / 100 -11;
+        obstValLeft = analogSensors.obstSensLeft / 100 -10;
+        obstValFront = analogSensors.obstSensFront / 100 - 10 ;
+        obstValRight = analogSensors.obstSensRight / 100 -10;
 
         // ground
         int groundSensor = readLineSensors(70);
@@ -102,7 +103,7 @@ int main(void) {
 
 
             //add new Line and get Avg Beacon Point
-            if (getDirectionTarget(my_pos, dir_beacon, beaconPoint)) { //i have a beacon point at beaconPoint
+            if (getDirectionTarget(my_pos, beaconDir, beaconPoint)) { //i have a beacon point at beaconPoint
                 if (!compare_points(old_beaconPoint, beaconPoint))
                     should_recalculate_astar = true;
                 follow_astar_path = true;
