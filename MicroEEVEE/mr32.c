@@ -582,8 +582,7 @@ void setPWM2(int pwmL, int pwmR) {
 }
 
 void setVel2(int velL, int velR) {
-    velL /= 5;
-    velR /= 5;
+    velL /= 2;    velR /= 2;
     if (_closedLoopControl == true)
         setSP2(velL / 2, velR / 2);
     else

@@ -66,7 +66,7 @@ int main(void) {
     init_maze();
     int ground_sensor_buffer_index = 0;
     int home[2] = {0, 0};
-    should_recalculate_astar = false;
+    should_recalculate_astar = true;
     returning_home = 0; //only true when beacon is reached
     bool follow_astar_path = false;
 
@@ -80,13 +80,8 @@ int main(void) {
             waitTick80ms();
             setVel2(0, 0);
             waitTick80ms();
-            waitTick80ms();
-            waitTick80ms();
-            waitTick80ms();
-            waitTick80ms();
-            waitTick80ms();
-            waitTick80ms();
             print_map();
+            printf("beacon @ %d %d\n",beaconPoint[0],beaconPoint[1]);
             while (!stopButton());
             waitTick80ms();
             waitTick80ms();
@@ -103,8 +98,8 @@ int main(void) {
         ground_sensor_buffer[ground_sensor_buffer_index] = groundSensor;
         ground_sensor_buffer_index = (ground_sensor_buffer_index + 1) % 5;
 
-        printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
-               analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
+        //printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
+        //       analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
 
         /* Track robot position and orientation */
         getRobotPos_int(&x, &y, &t); //mm*10
@@ -135,8 +130,7 @@ int main(void) {
         //get my cell coords
         int my_cell_index[2];
         get_cell_index_from_gps_coords(x, y, my_cell_index);
-        int sx = my_cell_index[0];
-        int sy = my_cell_index[1];
+
         //printf("astar\n");
         if (should_recalculate_astar) {
             //printf("astar1\n");
@@ -144,8 +138,8 @@ int main(void) {
 
             //beacon was found --> go Home
             if (returning_home) {
-                target_cell_coords[0] = 7;
-                target_cell_coords[1] = 7;
+                target_cell_coords[0] = 8;
+                target_cell_coords[1] = 8;
             } else {
                 get_cell_index_from_gps_coords(beaconPoint[0], beaconPoint[1], target_cell_coords);
             }
@@ -185,10 +179,12 @@ int main(void) {
 
         if (follow_astar_path) {
             //printf("ent of path, @%d %d\n", my_cell_index[0], my_cell_index[1]);
-            int tmp_x, tmp_y;
-            get_middle_coords_from_index(path_list[path_length - 1][0], path_list[path_length - 1][1], &tmp_x, &tmp_y);
-            int tmp_2[2] = {tmp_x, tmp_y};
-            if (sx == path_list[path_length - 1][0] && sy == path_list[path_length - 1][1] && dist(my_pos, tmp_2) < 500 ) { //5 cm
+            int coords_of_target_point[2];
+            get_middle_coords_from_index(path_list[path_length - 1][0], path_list[path_length - 1][1],
+                                         &(coords_of_target_point[0]), &(coords_of_target_point[1]));
+            if (my_cell_index[0] == path_list[path_length - 1][0] &&
+                    my_cell_index[1] == path_list[path_length - 1][1] &&
+                    dist(my_pos, coords_of_target_point) < 500 ) { //5 cm
 
                 //reach Home
                 if (returning_home && dist(my_pos, home) < 1000) {
@@ -208,7 +204,7 @@ int main(void) {
         //else beaconPoint from servoControl is executed
         reactive_decide(); //ftb executes with beaconDir value
         //setVel2(0,0);
-        printf("@%d %d\n", x, y);
+        //printf("@%d %d\n", x, y);
         //print_map();
     }
 
