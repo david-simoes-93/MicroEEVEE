@@ -33,15 +33,15 @@ void followWalls(int speed) {
     int sensor;
 
     if (wallOnTheRight) {
-        sensor = obstValRight;
+        sensor = obstValRight+7;
     } else {
-        sensor = obstValLeft;
+        sensor = obstValLeft+7;
     }
     //sensor_dist_history = sensor; //TODO ver se é preciso
     double error = 0;
     int cmdVel;
 
-    if (obstValFront < 23) {
+    if (obstValFront+7 < 23) {
         error -= 13.0; //acertar este valor
     } else {
 
@@ -62,7 +62,7 @@ void perform_blind(int speed) {
     double x, y, t;
     getRobotPos(&x, &y, &t);
 
-    if (obstValFront < 17) { //TODO see value
+    if (obstValFront+7 < 17) { //TODO see value
         dist_blind = true;
         setVel2(0, 0);
         return;
@@ -78,8 +78,12 @@ void perform_blind(int speed) {
 
 int check_Obstacle() {
     int sensor;
+    if(wallOnTheLeft)
+        sensor=obstValLeft+7;
+    else
+        sensor=obstValRight+7;
 
-    if (sensor < 40 || obstValFront < 23 || !found_wall_after_dead) {
+    if (sensor < 40 || obstValFront+7 < 23 || !found_wall_after_dead) {
         if (sensor < 30) {
             found_wall_after_dead = true;
         }
@@ -155,6 +159,6 @@ bool ftw_isPossible() {
         facedBeacon = visible;
     }
 
-    return wallOnTheRight || wallOnTheLeft || !dist_blind;
+    return true; //wallOnTheRight || wallOnTheLeft || !dist_blind;
 }
 
