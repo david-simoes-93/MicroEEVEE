@@ -131,7 +131,7 @@ static bool _closedLoopControl = false;
 // ***************************************************************************
 // Robot dimensions
 #define  WHEEL2WHEEL_DIST  165       // mm
-#define  WHEEL_DIAM        80.6       // mm
+#define  WHEEL_DIAM        80.5       // mm [changed from 80.6]
 #define  WHEEL_PER         (PI * WHEEL_DIAM)
 
 // ***************************************************************************

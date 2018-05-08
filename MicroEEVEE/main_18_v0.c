@@ -74,17 +74,17 @@ int main(void) {
     while (!stopButton()) {
         // Fill in "analogSensors" structure
         readAnalogSensors();
-        obstValLeft = analogSensors.obstSensLeft / 100;
-        obstValFront = analogSensors.obstSensFront / 100;
-        obstValRight = analogSensors.obstSensRight / 100;
+        obstValLeft = analogSensors.obstSensLeft / 100 -11;
+        obstValFront = analogSensors.obstSensFront / 100 - 7 ;
+        obstValRight = analogSensors.obstSensRight / 100 -11;
 
         // ground
         int groundSensor = readLineSensors(70);
         ground_sensor_buffer[ground_sensor_buffer_index] = groundSensor;
         ground_sensor_buffer_index = (ground_sensor_buffer_index + 1) % 5;
 
-        //printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
-        //       analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
+        printf("Obst_left=%03d, Obst_center=%03d, Obst_right=%03d, Bat_voltage=%03d\n", analogSensors.obstSensLeft,
+               analogSensors.obstSensFront, analogSensors.obstSensRight, analogSensors.batteryVoltage);
 
         /* Track robot position and orientation */
         getRobotPos_int(&x, &y, &t); //mm*10
@@ -144,7 +144,7 @@ int main(void) {
                     path_list[path_length][1] = paths[target_x][target_y][1];
                     ++path_length;
 
-                    //printf("%d %d; ", paths[target_x][target_y][0], paths[target_x][target_y][1]);
+                    printf("%d %d; ", paths[target_x][target_y][0], paths[target_x][target_y][1]);
                     int prev_x = paths[target_x][target_y][0], prev_y = paths[target_x][target_y][1];
                     target_x = prev_x;
                     target_y = prev_y;
@@ -155,7 +155,7 @@ int main(void) {
                 //update lastPointx,y
                 get_point_from_list();
             } else {
-                //printf("Cannot find path to goal (%d, %d) \n", target_x, target_y);
+                printf("Cannot find path to goal (%d, %d) \n", target_x, target_y);
                 follow_astar_path = false;
             }
 
@@ -168,7 +168,7 @@ int main(void) {
 
                 //reach Home
                 if (returning_home && my_cell_index[0] == 7 && my_cell_index[1] == 7) {
-                    //printf("Found Home");
+                    printf("Found Home");
                     break;
                 }
 
