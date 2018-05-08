@@ -74,9 +74,9 @@ int main(void) {
     while (!stopButton()) {
         // Fill in "analogSensors" structure
         readAnalogSensors();
-        obstValLeft = analogSensors.obstSensLeft / 100;
-        obstValFront = analogSensors.obstSensFront / 100;
-        obstValRight = analogSensors.obstSensRight / 100;
+        obstValLeft = analogSensors.obstSensLeft / 100 - 11;
+        obstValFront = analogSensors.obstSensFront / 100 - 7;
+        obstValRight = analogSensors.obstSensRight / 100 - 11;
 
         // ground
         int groundSensor = readLineSensors(70);
