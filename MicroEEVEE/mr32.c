@@ -703,6 +703,30 @@ void actuateMotors(int pwmL, int pwmR) {
     OC2RS = ((PR3 + 1) * pwmR) / 100;
 }
 
+
+void rotateRel_basic(int speed, double deltaAngle)
+{
+   double xx, yy, tt;
+   double targetAngle;
+   double error;
+   int cmdVel, errorSignOri;
+
+   getRobotPos(&xx, &yy, &tt);
+   targetAngle = normalizeAngle(tt + deltaAngle);
+   error = normalizeAngle(targetAngle - tt);
+   errorSignOri = error < 0 ? -1 : 1;
+
+   cmdVel = error < 0 ? -speed : speed;
+   setVel2(-cmdVel, cmdVel);
+
+   do
+   {
+      getRobotPos(&xx, &yy, &tt);
+      error = normalizeAngle(targetAngle - tt);
+   } while (fabs(error) > 0.01 && errorSignOri * error > 0);
+   setVel2(0, 0);
+}
+
 // ****************************************************************************
 void updateLocalization(int encLeft, int encRight) {
     static double dLeft, dRight, dCenter;

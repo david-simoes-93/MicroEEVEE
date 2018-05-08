@@ -127,7 +127,7 @@ extern volatile bool tick160ms;
  * \ingroup general
  */
 void initPIC32(void);
-
+void; rotateRel_basic(int speed, double deltaAngle)
 
 /** \brief Read all analog sensors.
  *  \details The sensors read are the obstacle sensors and the battery status.

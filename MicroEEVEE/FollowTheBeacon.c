@@ -1,5 +1,5 @@
 #include "Sensors.h"
-#include "rmi-mr32.h"
+#include "mr32.h"
 #include <stdlib.h>
 
 #include "FollowTheBeacon.h"
@@ -14,7 +14,7 @@ char *ftb_getName() {
     return "FollowTheBeacon";
 }
 
-void ftb_execute() {
+/*void ftb_execute() {
     int constSpeed = 70;
     double vel1 = constSpeed + abs(beaconDir * 1 / 5);
     double vel2 = constSpeed - abs(beaconDir * 4 / 5);
@@ -53,7 +53,7 @@ void ftb_execute() {
         setVel2(50 * turnedOnMyself, -turnedOnMyself * 50);
     }
 
-}
+}*/
 
 bool ftb_isPossible() {
     return (obstValFront > 25 && obstValLeft > 20 && obstValRight > 20 && visible) ||
@@ -61,3 +61,9 @@ bool ftb_isPossible() {
            turnedOnMyself;
 }
 
+void ftb_execute() {
+    int constSpeed = 70;
+
+    rotateRel_basic(50, beaconDir);
+
+}

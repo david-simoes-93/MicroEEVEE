@@ -252,7 +252,9 @@ void reactive_decide() {
     //printf("\tLeft %2.2f; Front %2.2f; Right %2.2f\n", obstValLeft, obstValFront, obstValRight);
     //printf("X= %f Y= %f Compass= %f\n", x, y, compass);
     prep_ftw();
-
+    get_middle_coords_from_index(path_list[path_length - 1][0], path_list[path_length - 1][1], &tmp_x, &tmp_y);
+    int tmp_2[2] = {tmp_x, tmp_y};
+    bool tmp_d = dist(my_pos, tmp_2) < 500 ;
     if (sab_isPossible()) {
         //all light on
         leds(0xFF);
@@ -262,7 +264,7 @@ void reactive_decide() {
             printf("\tExecuting behaviour %s\n", sab_getName());
             lastBeh = 0;
         }
-    } else if (ftw_isPossible()) {
+    } /*else if (ftw_isPossible()) {
         ftw_execute();
         if (lastBeh != 1) {
             printf("\tExecuting behaviour %s\n", ftw_getName());
@@ -274,7 +276,11 @@ void reactive_decide() {
             printf("\tExecuting behaviour %s\n", ftb_getName());
             lastBeh = 2;
         }
-    } else if (do_isPossible()) {
+    }
+    */
+    else if(){
+
+    }else if (do_isPossible()) {
         do_execute();
         if (lastBeh != 3) {
             printf("\tExecuting behaviour %s\n", do_getName());

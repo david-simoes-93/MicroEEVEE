@@ -225,20 +225,21 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
     front_sensor_dots[1] = (int) (front_sensor_pos_in_eevee[1] + min_front_sensor * sin_compass);
     update_single_sensor(front_sensor, nearby_cells, front_sensor_dots, front_sensor_pos_in_eevee);
 
-    int left_sensor_pos_in_eevee[2] = {my_pos[0] + (int) (500 * cos_compass - +600 * sin_compass),
-                                       my_pos[1] + (int) (500 * sin_compass + +600 * cos_compass)};
-    int left_sensor_dots[2];
-    left_sensor_dots[0] = (int) (left_sensor_pos_in_eevee[0] + min_left_sensor * cos(compass - pi_over_4));
-    left_sensor_dots[1] = (int) (left_sensor_pos_in_eevee[1] + min_left_sensor * sin(compass - pi_over_4));
-    update_single_sensor(left_sensor, nearby_cells, left_sensor_dots, left_sensor_pos_in_eevee);
+    if(na primeira parte da célula){
+        int left_sensor_pos_in_eevee[2] = {my_pos[0] + (int) (500 * cos_compass - +600 * sin_compass),
+                                           my_pos[1] + (int) (500 * sin_compass + +600 * cos_compass)};
+        int left_sensor_dots[2];
+        left_sensor_dots[0] = (int) (left_sensor_pos_in_eevee[0] + min_left_sensor * cos(compass - pi_over_4));
+        left_sensor_dots[1] = (int) (left_sensor_pos_in_eevee[1] + min_left_sensor * sin(compass - pi_over_4));
+        update_single_sensor(left_sensor, nearby_cells, left_sensor_dots, left_sensor_pos_in_eevee);
 
-    int right_sensor_pos_in_eevee[2] = {my_pos[0] + (int) (500 * cos_compass - -600 * sin_compass),
-                                        my_pos[1] + (int) (500 * sin_compass + -600 * cos_compass)};
-    int right_sensor_dots[2];
-    right_sensor_dots[0] = (int) (right_sensor_pos_in_eevee[0] + min_right_sensor * cos(compass + pi_over_4));
-    right_sensor_dots[1] = (int) (right_sensor_pos_in_eevee[1] + min_right_sensor * sin(compass + pi_over_4));
-    update_single_sensor(right_sensor, nearby_cells, right_sensor_dots, right_sensor_pos_in_eevee);
-
+        int right_sensor_pos_in_eevee[2] = {my_pos[0] + (int) (500 * cos_compass - -600 * sin_compass),
+                                            my_pos[1] + (int) (500 * sin_compass + -600 * cos_compass)};
+        int right_sensor_dots[2];
+        right_sensor_dots[0] = (int) (right_sensor_pos_in_eevee[0] + min_right_sensor * cos(compass + pi_over_4));
+        right_sensor_dots[1] = (int) (right_sensor_pos_in_eevee[1] + min_right_sensor * sin(compass + pi_over_4));
+        update_single_sensor(right_sensor, nearby_cells, right_sensor_dots, right_sensor_pos_in_eevee);
+    }
     // confirm no walls where we are moving through
     // run through all neighbor cells
     int cell_index, wall_index;
@@ -258,6 +259,7 @@ void update_map(int my_x, int my_y, int left_sensor, int front_sensor, int right
 
 void update_single_sensor(int sensor_val, struct Cell nearby_cells[5], int sensor_positions[2],
                           int sensor_pos_in_eevee[2]) {
+
     printf("sensor at (%d,%d) hitting pos %d %d\n", sensor_pos_in_eevee[0], sensor_pos_in_eevee[1],
            sensor_positions[0], sensor_positions[1]);
     // if obstacle found
