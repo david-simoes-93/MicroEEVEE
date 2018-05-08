@@ -33,8 +33,8 @@
 #define pi_over_2 1.57079632679
 
 /*is_wall value*/
-#define max_val 255
-#define min_val -255
+#define max_val 355
+#define min_val -355
 
 struct Cell {
     /* data */
@@ -44,6 +44,7 @@ struct Cell {
     struct Wall* west_wall;
     struct Wall* walls[4]; // = {north_wall, south, west, east};
     int coords[2];
+    int index[2];
     int explored;
     //uint_8 visited = 0;
 };
@@ -54,8 +55,8 @@ struct Cell {
 #define wall_conf_mask    0b00000100
 #define no_wall_conf_mask 0b00001000
 
-#define sensor_cutoff_point 4000
-#define max_dist_threshold  6000
+#define sensor_cutoff_point 5000
+#define max_dist_threshold  7000
 
 struct Wall {
     double weight;
