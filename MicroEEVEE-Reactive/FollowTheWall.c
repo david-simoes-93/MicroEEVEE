@@ -33,15 +33,15 @@ void followWalls(int speed) {
     int sensor;
 
     if (wallOnTheRight) {
-        sensor = analogSensors.obstSensRight;
+        sensor = obstValRight;
     } else {
-        sensor = analogSensors.obstSensLeft;
+        sensor = obstValLeft;
     }
     //sensor_dist_history = sensor; //TODO ver se é preciso
     double error = 0;
     int cmdVel;
 
-    if (analogSensors.obstSensFront < 23) {
+    if (obstValFront < 23) {
         error -= 13.0; //acertar este valor
     } else {
 
@@ -62,7 +62,7 @@ void perform_blind(int speed) {
     double x, y, t;
     getRobotPos(&x, &y, &t);
 
-    if (analogSensors.obstSensFront < 17) { //TODO see value
+    if (obstValFront < 17) { //TODO see value
         dist_blind = true;
         setVel2(0, 0);
         return;
@@ -79,7 +79,7 @@ void perform_blind(int speed) {
 int check_Obstacle() {
     int sensor;
 
-    if (sensor < 40 || analogSensors.obstSensFront < 23 || !found_wall_after_dead) {
+    if (sensor < 40 || obstValFront < 23 || !found_wall_after_dead) {
         if (sensor < 30) {
             found_wall_after_dead = true;
         }
@@ -135,25 +135,15 @@ void prep_ftw() {
 }
 
 bool ftw_isPossible() {
-
     // Beacon visible, on the right side, with a wall on the right
     bool rightWallOnBeaconSide =
             visible && obstValRight < 20 && lastKnownBeaconAngle >= 0 && lastKnownBeaconAngle <= 60;
     bool leftWallOnBeaconSide = visible && obstValLeft < 20 && lastKnownBeaconAngle <= 0 && lastKnownBeaconAngle >= -60;
     bool beaconNotVisWithWall = !visible && (obstValLeft < 20 || obstValRight < 20);
 
-    //if(!wallOnTheRight && !wallOnTheLeft && (rightWallOnBeaconSide || leftWallOnBeaconSide || beaconNotVisWithWall))
-    //printf("Gonna start following wall: rightW:%d leftW:%d notVisWall:%d\n",rightWallOnBeaconSide, leftWallOnBeaconSide,beaconNotVisWithWall);
-
-    double distanceNeededToAbandonWall = 0;
-    if (abs(lastKnownBeaconAngle) < 10)
-        distanceNeededToAbandonWall = 15;
-    else
-        distanceNeededToAbandonWall = (abs(lastKnownBeaconAngle) - 10) * 0.4 + 15;
-
      if (facedBeacon && visible && (wallOnTheRight || wallOnTheLeft) &&
              (lastKnownBeaconAngle < 60 && lastKnownBeaconAngle > -60)
-             && obstValFront > 15) { //&& grausRodados < 180 && grausRodados > -180) {
+             && obstValFront > 15) {
         wallOnTheRight = false;
         wallOnTheLeft = false;
     }
@@ -165,6 +155,6 @@ bool ftw_isPossible() {
         facedBeacon = visible;
     }
 
-    return true; //wallOnTheRight || wallOnTheLeft || !dist_blind;
+    return wallOnTheRight || wallOnTheLeft || !dist_blind;
 }
 
