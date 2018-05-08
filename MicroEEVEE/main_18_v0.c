@@ -36,7 +36,8 @@ int paths[cols][rows][2]; //in cells
 int path_list[100][2]; //in cells
 int path_length = 0;
 
-
+//int path_list[9][2] = {{12,10},{12,9}, {12,8},{12,7},{11,7}, {10,7},{9,7},{8,7}, {8,8}};
+//path_length = 9;
 /* --------- Main -------------*/
 
 int main(void) {
@@ -64,7 +65,7 @@ int main(void) {
     /*variables*/
     init_maze();
     int ground_sensor_buffer_index = 0;
-    int home[2]={0,0};
+    int home[2] = {0, 0};
     should_recalculate_astar = false;
     returning_home = 0; //only true when beacon is reached
     bool follow_astar_path = false;
@@ -72,12 +73,12 @@ int main(void) {
     /*-------------------*/
 
     while (true) {  // !stopButton()
-        if(stopButton()){
-            setVel2(0,0);
+        if (stopButton()) {
+            setVel2(0, 0);
             waitTick80ms();
-            setVel2(0,0);
+            setVel2(0, 0);
             waitTick80ms();
-            setVel2(0,0);
+            setVel2(0, 0);
             waitTick80ms();
             waitTick80ms();
             waitTick80ms();
@@ -93,9 +94,9 @@ int main(void) {
         }
         // Fill in "analogSensors" structure
         readAnalogSensors();
-        obstValLeft = analogSensors.obstSensLeft / 100 - 11;
+        obstValLeft = analogSensors.obstSensLeft / 100 - 7;
         obstValFront = analogSensors.obstSensFront / 100 - 7;
-        obstValRight = analogSensors.obstSensRight / 100 - 11;
+        obstValRight = analogSensors.obstSensRight / 100 - 7;
 
         // ground
         int groundSensor = readLineSensors(70);
@@ -121,7 +122,7 @@ int main(void) {
 
 
             //add new Line and get Avg Beacon Point
-            if (getDirectionTarget(my_pos, dir_beacon, beaconPoint)) { //i have a beacon point at beaconPoint
+            if (getDirectionTarget(my_pos, beaconDir, beaconPoint)) { //i have a beacon point at beaconPoint
                 if (!compare_points(old_beaconPoint, beaconPoint))
                     should_recalculate_astar = true;
                 follow_astar_path = true;
@@ -134,7 +135,8 @@ int main(void) {
         //get my cell coords
         int my_cell_index[2];
         get_cell_index_from_gps_coords(x, y, my_cell_index);
-
+        int sx = my_cell_index[0];
+        int sy = my_cell_index[1];
         //printf("astar\n");
         if (should_recalculate_astar) {
             //printf("astar1\n");
@@ -183,10 +185,10 @@ int main(void) {
 
         if (follow_astar_path) {
             //printf("ent of path, @%d %d\n", my_cell_index[0], my_cell_index[1]);
-            if (dist(my_pos,home)<1000) {
+            if (sx == path_list[path_length - 1][0] && sy == path_list[path_length - 1][1]) { //10 cm
 
                 //reach Home
-                if (returning_home && my_cell_index[0] == 7 && my_cell_index[1] == 7) {
+                if (returning_home && dist(my_pos, home) < 1000) {
                     printf("Found Home");
                     break;
                 }
@@ -203,7 +205,7 @@ int main(void) {
         //else beaconPoint from servoControl is executed
         reactive_decide(); //ftb executes with beaconDir value
         //setVel2(0,0);
-        printf("@%d %d\n",x,y);
+        printf("@%d %d\n", x, y);
         //print_map();
     }
 
