@@ -33,9 +33,9 @@ void followWalls(int speed) {
     int sensor;
 
     if (wallOnTheRight) {
-        sensor = obstValRight+7;
+        sensor = obstValRight+11;
     } else {
-        sensor = obstValLeft+7;
+        sensor = obstValLeft+11;
     }
     //sensor_dist_history = sensor; //TODO ver se é preciso
     double error = 0;
@@ -79,9 +79,9 @@ void perform_blind(int speed) {
 int check_Obstacle() {
     int sensor;
     if(wallOnTheLeft)
-        sensor=obstValLeft+7;
+        sensor=obstValLeft+11;
     else
-        sensor=obstValRight+7;
+        sensor=obstValRight+11;
 
     if (sensor < 40 || obstValFront+7 < 23 || !found_wall_after_dead) {
         if (sensor < 30) {

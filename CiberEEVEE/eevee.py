@@ -13,7 +13,7 @@ if cif.status != 0:
     print("Connection refused or error")
     quit()
 
-pos_cheese = None
+visitingLed = False
 my_x, my_y, prev_left, prev_right = 0, 0, 0, 0
 pos_start = [my_x, my_y]
 my_map = Maze()
@@ -79,10 +79,10 @@ while True:
                          my_x, my_y, compass, cif.measures.collision)
 
     # update odometry from 4 cycles ago: creates jitter, not sure why
-    #my_xs = my_xs[1:] + [my_x]
-    #my_ys = my_ys[1:] + [my_y]
-    #collisions = collisions[1:] + [cif.measures.collision]
-    #my_x, my_y, my_dir, prev_left, prev_right = \
+    # my_xs = my_xs[1:] + [my_x]
+    # my_ys = my_ys[1:] + [my_y]
+    # collisions = collisions[1:] + [cif.measures.collision]
+    # my_x, my_y, my_dir, prev_left, prev_right = \
     #    update_robot_pos_time_delay(prev_lefts[0], prev_rights[0], motor_command_lefts, motor_command_rights,
     #                            my_xs[0], my_ys[0], delayed_compass, collisions)
 
@@ -104,7 +104,7 @@ while True:
         my_x, my_y = my_map.reset_side_odometry(my_x, my_y, left_sensor, right_sensor, my_dir)
 
     # explore
-    if True: # my_map.cheese is None:
+    if my_map.cheese is None:
         target_path = list(path_planner.astar(my_map.my_cell, my_map.pick_exploration_target(AStar(), my_dir)))
         my_map.reset_debug_dots()
         for cell in target_path:
@@ -117,7 +117,8 @@ while True:
             second_cell_coords = my_map.get_gps_coords_from_cell_coords(target_path[1].coords)
             # follow second cell if we have explored the first cell OR we go near enough the first cell that it will be
             if dist_manhattan([my_x, my_y], second_cell_coords) < 2.4:
-                if target_path[0].explored or dist_to_line_segment(next_cell_coords, [my_x, my_y], second_cell_coords)<0.5:
+                if target_path[0].explored or dist_to_line_segment(next_cell_coords, [my_x, my_y],
+                                                                   second_cell_coords) < 0.5:
                     next_cell_coords = second_cell_coords
 
         # actual turning direction
@@ -125,9 +126,7 @@ while True:
 
         max_speed = 0.10  # max is 0.15
         target_dir = normalize_angle(target_dir - my_dir)
-    else:   # TODO: if enough time, explore shortest path first
-        # TODO: enable led only when facing proper direction
-        cif.setVisitingLed(1)
+    else:  # TODO: if enough time, explore shortest path first
         target_path = list(path_planner.astar(my_map.my_cell, my_map.home))
         my_map.reset_debug_dots()
         for cell in target_path:
@@ -146,18 +145,22 @@ while True:
 
         # actual turning direction
         target_dir = get_angle_between_points([my_x, my_y], next_cell_coords)  # from my_pos to center of target cell
-        max_speed = 0.15
+        max_speed = 0.12
         target_dir = normalize_angle(target_dir - my_dir)
 
-        if dist(my_map.home.coords, my_map.eevee)<0.1:
+        if abs(target_dir) < 10 and prev_left < 0.01 and prev_right < 0.01 and my_map.my_cell == my_map.cheese:
+            visitingLed = True
+            cif.setVisitingLed(1)
+
+        if dist(my_map.home.coords, my_map.eevee) < 0.1:
             cif.setReturningLed(1)
             cif.finish()
             exit()
 
     # rotate in place
-    if target_dir < -45 and resetting_odo_turn_counter == 0:
+    if target_dir < -35 or (not visitingLed and target_dir < -10):
         motor_command_left, motor_command_right = -max_speed, max_speed
-    elif target_dir > 45 and resetting_odo_turn_counter == 0:
+    elif target_dir > 35 or (not visitingLed and target_dir > 10):
         motor_command_left, motor_command_right = max_speed, -max_speed
     # or move forward or turning slightly
     else:
@@ -168,20 +171,9 @@ while True:
         speed = np.abs(motor_command_left) + np.abs(motor_command_right)
         min_sensor = np.min([front_sensor, left_sensor, right_sensor])
 
-        # if wall in front, lets wait a few cycles until we've filled the front buffer with the same reading
-        # and reset odometry
+        # if wall in front, lets stop
         if front_sensor < 0.3:
-            if resetting_odo_turn_cell != my_map.my_cell:
-                resetting_odo_turn_counter += 1
-
             motor_command_left, motor_command_right = stop_speed(prev_left, prev_right)
-
-            if resetting_odo_turn_counter > len(front_buffer) + 1:
-                my_x, my_y = my_map.reset_odometry(my_x, my_y, front_sensor, my_dir)
-                resetting_odo_turn_counter = 0
-                resetting_odo_turn_cell = my_map.my_cell
-        else:
-            resetting_odo_turn_counter = 0
 
         # close to left wall, ensure we are moving lil bit to the right
         if left_sensor < 0.3:
@@ -189,6 +181,10 @@ while True:
         # close to right wall, ensure we are moving lil bit to the left
         if right_sensor < 0.3:
             motor_command_left = min(motor_command_right * 0.9, motor_command_left)
+
+        if not visitingLed and my_map.my_cell == my_map.cheese:
+            motor_command_right = 0
+            motor_command_left = 0
 
     # print(motor_command_left, motor_command_right)
     cif.driveMotors(motor_command_left, motor_command_right)
