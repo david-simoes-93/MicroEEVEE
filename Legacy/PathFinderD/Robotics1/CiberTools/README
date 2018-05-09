@@ -1,0 +1,115 @@
+
+***************************************************************************
+*  CiberRato Robot Simulation Environment                                 *
+*  Ciber-Rato 2011 - Universidade de Aveiro                               *
+***************************************************************************
+
+### Information
+
+  CiberRato Robot Simulation Environment simulates the movement
+  of robots inside a labyrinth.  Robots objective is to go from their
+  starting position to beacon area and then return to their start position.
+  This environment is used in
+  Ciber-Rato 2001-2011
+  http://microrato.ua.pt/
+
+  This is the source code release of CiberRato tools.
+
+### Version Info
+
+  CiberRato tools v1.5.8
+
+  simulator         version 1.5.8  - February 8, 2011
+  Viewer            version 1.5.8  - February 8, 2011
+  logplayer         version 1.5.8  - February 8, 2011
+  robsample         version 1.5.8  - February 8, 2011
+  GUISample         version 1.5.8  - February 8, 2011
+  jClient           version 1.5.8  - February 8, 2011
+
+
+### Contents
+
+  simulator/           The simulator source code
+  Viewer/              The Visualizer source code
+  logplayer/           The logplayer source code
+  GUISample/           Graphical robot agent (C++) source code
+  robsample/           robot agent (C) source code
+  jClient/             robot agent (Java) source code
+  Labs/                examples of labyrinths used in previous competitions
+
+  README               This README file
+
+  startAll             Startup script that runs the simulator, the 
+                         visualizer and 5 GUISamples
+  startSimViewer       Startup script that runs the simulator and the Viewer
+
+### Operating System and Compiler
+
+    The source code was compiled with gcc/g++ - Gnu Project C/C++ Compiler
+    (gcc version  4.1.3) using the Qt libraries (release 3.3.8) on 
+    Ubuntou 7.10.
+        
+    It is required to have the development version of Qt libraries 
+    release 2.3 or 3.x installed in the system prior to compilation.
+    It is also required to have qmake installed.
+
+    More information on Qt can be found at http://www.trolltech.com
+
+
+### Instructions on how to use this release:
+
+    
+    * To compile the CiberRato tools
+
+        1- define QTDIR:
+
+          export QTDIR=/usr/include/qt3
+        
+        2- execute make:
+
+          make
+
+    * After compiling, to run the simulator, the visualizer and 3 GUISamples
+
+       ./startAll
+
+    * After compliling, to run the simulator and the Viewer
+
+       ./startSimViewer
+
+       Then each robot should be started manually
+
+    * After compiling, to run the logplayer
+
+       cd logplayer
+       logplayer -log <logfile>
+
+
+### More Information
+
+    Please consult:
+        http://microrato.ua.pt/
+
+    or Please Contact :
+        Nuno Lau
+        University of Aveiro
+        email: nunolau@ua.pt
+
+        Artur C. Pereira
+        University of Aveiro
+        email: artur@ua.pt
+
+        Andreia Melo
+        University of Aveiro
+        email: abmelo@criticalsoftware.com
+
+        Antonio Neves
+        University of Aveiro
+        email: an@ieeta.pt
+
+        Joao Figueiredo
+        University of Aveiro
+        email: joao.figueiredo@ieeta.pt
+
+Copyright (C) 2001-2011 Universidade de Aveiro
+

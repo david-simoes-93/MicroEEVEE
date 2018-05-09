@@ -1,0 +1,77 @@
+Log for qt3to4 on qui Nov 24 01:03:30 2011. Number of log entries: 74
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbbeacon.cpp
+In file /home/miguel/rmi/cpss/logplayer/cbclient.cpp at line 23 column 23: qsocketdevice.h -> q3socketdevice.h
+In file /home/miguel/rmi/cpss/logplayer/cbclient.cpp at line 31 column 36: QSocketDevice -> Q3SocketDevice
+In file /home/miguel/rmi/cpss/logplayer/cbclient.cpp at line 31 column 50: QSocketDevice -> Q3SocketDevice
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbgrid.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbgridhandler.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cblab.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cblabhandler.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbparameters.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbparamhandler.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbpoint.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbposition.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbreceptionhandler.cpp
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.cpp at line 31 column 15: qdict.h -> q3dict.h
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.cpp at line 51 column 65: QSocketDevice -> Q3SocketDevice
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.cpp at line 51 column 79: QSocketDevice -> Q3SocketDevice
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.cpp at line 116 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.cpp at line 116 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.cpp at line 127 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.cpp at line 127 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/cblogplayer.cpp at line 28 column 17: qcanvas.h -> q3canvas.h
+In file /home/miguel/rmi/cpss/logplayer/cblogplayer.cpp at line 30 column 24: qmultilineedit.h -> q3multilineedit.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbrobot.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbtarget.cpp
+In file /home/miguel/rmi/cpss/logplayer/cbview.cpp at line 23 column 23: qsocketdevice.h -> q3socketdevice.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbviewhandler.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbwall.cpp
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbloghandler.cpp
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 29 column 17: qcanvas.h -> q3canvas.h
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 31 column 24: qmultilineedit.h -> q3multilineedit.h
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 85 column 33: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 85 column 55: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 139 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 139 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 146 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 146 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 156 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 156 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 166 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 166 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 174 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 174 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 182 column 52: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 182 column 74: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 199 column 49: QMessageBox -> Qt
+In file /home/miguel/rmi/cpss/logplayer/logplayer.cpp at line 199 column 71: QMessageBox -> Qt
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbbeacon.h
+In file /home/miguel/rmi/cpss/logplayer/cbclient.h at line 24 column 23: qsocketdevice.h -> q3socketdevice.h
+In file /home/miguel/rmi/cpss/logplayer/cbclient.h at line 32 column 37: QSocketDevice -> Q3SocketDevice
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbgrid.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbgridhandler.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cblab.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cblabhandler.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbparameters.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbparamhandler.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbpoint.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbposition.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbreceptionform.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbreceptionhandler.h
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.h at line 27 column 23: qsocketdevice.h -> q3socketdevice.h
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.h at line 29 column 20: qasciidict.h -> q3asciidict.h
+In file /home/miguel/rmi/cpss/logplayer/cbreceptionist.h at line 54 column 43: QSocketDevice -> Q3SocketDevice
+In file /home/miguel/rmi/cpss/logplayer/cblogplayer.h at line 46 column 17: QCanvasView -> Q3CanvasView
+In file /home/miguel/rmi/cpss/logplayer/cblogplayer.h at line 47 column 13: QCanvas -> Q3Canvas
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbrobot.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbtarget.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbview.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbviewcommand.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbviewhandler.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbwall.h
+No changes made to file /home/miguel/rmi/cpss/logplayer/cbloghandler.h
+In file logplayer.pro: Added entry QT += xml network  qt3support 
+In file logplayer.pro: Added entry CONFIG += uic3
+
+In file logplayer.pro: Renamed INTERFACES to FORMS3
+

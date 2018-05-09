@@ -1,0 +1,15 @@
+Log for qt3to4 on qua Nov 23 22:55:15 2011. Number of log entries: 13
+No changes made to file /home/miguel/rmi/cpss/libRobSock/cmeasures.cpp
+No changes made to file /home/miguel/rmi/cpss/libRobSock/croblink.cpp
+No changes made to file /home/miguel/rmi/cpss/libRobSock/csimparam.cpp
+No changes made to file /home/miguel/rmi/cpss/libRobSock/netif.cpp
+No changes made to file /home/miguel/rmi/cpss/libRobSock/RobSock.cpp
+No changes made to file /home/miguel/rmi/cpss/libRobSock/structureparser.cpp
+No changes made to file /home/miguel/rmi/cpss/libRobSock/cmeasures.h
+No changes made to file /home/miguel/rmi/cpss/libRobSock/croblink.h
+No changes made to file /home/miguel/rmi/cpss/libRobSock/csimparam.h
+No changes made to file /home/miguel/rmi/cpss/libRobSock/netif.h
+No changes made to file /home/miguel/rmi/cpss/libRobSock/RobSock.h
+No changes made to file /home/miguel/rmi/cpss/libRobSock/structureparser.h
+In file RobSock.pro: Added entry QT += xml  qt3support 
+

@@ -7,7 +7,7 @@ import numpy as np
 
 # Connect to server
 if len(sys.argv) < 2:
-    sys.argv.append("localhost")
+    sys.argv.append("192.168.1.1")
 cif = CRobLinkAngs("EEVEE", 0, [0.0, 90.0, -90.0, 180], sys.argv[1])
 if cif.status != 0:
     print("Connection refused or error")
@@ -126,6 +126,8 @@ while True:
 
         max_speed = 0.10  # max is 0.15
         target_dir = normalize_angle(target_dir - my_dir)
+
+
     else:  # TODO: if enough time, explore shortest path first
         target_path = list(path_planner.astar(my_map.my_cell, my_map.home))
         my_map.reset_debug_dots()
@@ -148,12 +150,18 @@ while True:
         max_speed = 0.12
         target_dir = normalize_angle(target_dir - my_dir)
 
-        if abs(target_dir) < 10 and prev_left < 0.01 and prev_right < 0.01 and my_map.my_cell == my_map.cheese:
+        if cif.measures.returningLed:
+            cif.setReturningLed(0)
+
+        if cif.measures.visitingLed and abs(target_dir) < 10 and prev_left < 0.01 and prev_right < 0.01 and my_map.my_cell == my_map.cheese:
+            cif.setVisitingLed(0)
+            cif.setReturningLed(1)
             visitingLed = True
+
+        if my_map.my_cell == my_map.cheese and not visitingLed:
             cif.setVisitingLed(1)
 
         if dist(my_map.home.coords, my_map.eevee) < 0.1:
-            cif.setReturningLed(1)
             cif.finish()
             exit()
 

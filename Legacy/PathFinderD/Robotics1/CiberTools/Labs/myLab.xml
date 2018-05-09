@@ -1,0 +1,22 @@
+<Lab Name="Rui_David" Width="30.0" Height="15.0">
+    <Beacon X="15.0" Y="14.0" Height="2.0"/>
+    <Target X="15.0" Y="14.0" Radius="1.5"/>
+    <Wall Height="1.0">
+        <Corner X="6.5" Y="11.0"/>
+        <Corner X="23.5" Y="11.0"/>
+        <Corner X="23.5" Y="4.0"/>
+        <Corner X="18.5" Y="4.0"/>
+        <Corner X="18.5" Y="7.0"/>
+        <Corner X="19.5" Y="7.0"/>
+        <Corner X="19.5" Y="5.0"/>
+        <Corner X="22.5" Y="5.0"/>
+        <Corner X="22.5" Y="10.0"/>
+        <Corner X="7.5" Y="10.0"/>
+        <Corner X="7.5" Y="5.0"/>
+        <Corner X="10.5" Y="5.0"/>
+        <Corner X="10.5" Y="7.0"/>
+        <Corner X="11.5" Y="7.0"/>
+        <Corner X="11.5" Y="4.0"/>
+        <Corner X="6.5" Y="4.0"/>
+    </Wall>
+</Lab>

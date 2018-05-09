@@ -1,0 +1,129 @@
+Log for qt3to4 on qua Nov 23 23:19:11 2011. Number of log entries: 120
+No changes made to file /home/miguel/rmi/cpss/Viewer/crmainparameters.cpp
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 38 column 11: QCanvas -> Q3Canvas
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 86 column 33: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 107 column 33: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 195 column 13: QPointArray -> Q3PointArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 195 column 43: QPointArray -> Q3PointArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 205 column 16: QCanvasPolygon -> Q3CanvasPolygon
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 205 column 40: QCanvasPolygon -> Q3CanvasPolygon
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 227 column 16: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 227 column 49: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 231 column 27: cyan -> Qt::cyan
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 234 column 16: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 234 column 50: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 244 column 20: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 244 column 55: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 245 column 15: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 245 column 42: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 276 column 33: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 283 column 28: cyan -> Qt::cyan
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 329 column 22: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 354 column 13: QWMatrix -> QMatrix
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 379 column 13: QWMatrix -> QMatrix
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 387 column 35: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 392 column 17: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 392 column 44: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 513 column 16: QCanvasItemList -> Q3CanvasItemList
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 514 column 19: QCanvasItemList -> Q3CanvasItemList
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 611 column 21: IO_ReadOnly -> QIODevice::ReadOnly
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 672 column 39: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp at line 673 column 39: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.cpp: Added the following include directives:
+	#include <Q3PointArray> 
+In file /home/miguel/rmi/cpss/Viewer/crqdataview.cpp at line 26 column 14: qvbox.h -> q3vbox.h
+In file /home/miguel/rmi/cpss/Viewer/crqdataview.cpp at line 29 column 14: qhbox.h -> q3hbox.h
+In file /home/miguel/rmi/cpss/Viewer/crqdataview.cpp at line 80 column 27: QFrame -> Q3Frame
+In file /home/miguel/rmi/cpss/Viewer/crqdataview.cpp: Added the following include directives:
+	#include <Q3Frame> 	#include <QPaintEvent> 
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 26 column 14: qvbox.h -> q3vbox.h
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 29 column 20: qfiledialog.h -> q3filedialog.h
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 32 column 17: qtoolbar.h -> q3toolbar.h
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 33 column 17: qwmatrix.h -> qmatrix.h
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 47 column 14: QMainWindow -> Q3MainWindow
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 89 column 11: QPopupMenu -> Q3PopupMenu
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 89 column 34: QPopupMenu -> Q3PopupMenu
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 93 column 7: CTRL -> Qt::CTRL
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 93 column 13: Key_L -> Qt::Key_L
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 95 column 7: CTRL -> Qt::CTRL
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 95 column 13: Key_H -> Qt::Key_H
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 96 column 68: CTRL -> Qt::CTRL
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 96 column 74: Key_S -> Qt::Key_S
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 97 column 59: CTRL -> Qt::CTRL
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 97 column 65: Key_R -> Qt::Key_R
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 98 column 63: CTRL -> Qt::CTRL
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 98 column 69: Key_C -> Qt::Key_C
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 100 column 57: CTRL -> Qt::CTRL
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 100 column 63: Key_Q -> Qt::Key_Q
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 102 column 11: QPopupMenu -> Q3PopupMenu
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 102 column 34: QPopupMenu -> Q3PopupMenu
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 294 column 31: WFlags -> Qt::WFlags
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 295 column 14: QCanvasView -> Q3CanvasView
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 297 column 31: QCanvasView -> Q3CanvasView
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp at line 298 column 31: QCanvasView -> Q3CanvasView
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.cpp: Added the following include directives:
+	#include <QPixmap> 	#include <Q3PopupMenu> 
+No changes made to file /home/miguel/rmi/cpss/Viewer/crqparamhandler.cpp
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 25 column 15: qvbox.h -> q3vbox.h
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 30 column 18: qwmatrix.h -> qmatrix.h
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 52 column 11: QWMatrix -> QMatrix
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 64 column 11: QWMatrix -> QMatrix
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 76 column 11: QWMatrix -> QMatrix
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 87 column 11: QWMatrix -> QMatrix
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 98 column 11: QWMatrix -> QMatrix
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 131 column 33: QFrame -> Q3Frame
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 143 column 28: QFrame -> Q3Frame
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp at line 155 column 33: QFrame -> Q3Frame
+In file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.cpp: Added the following include directives:
+	#include <Q3Frame> 
+No changes made to file /home/miguel/rmi/cpss/Viewer/main.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/Lab/crbeacon.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/Lab/crgrid.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/Lab/crlab.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/Lab/crrobot.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/Lab/crtarget.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/Lab/crvertice.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/Lab/crwall.cpp
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcomm.cpp at line 39 column 23: qsocketdevice.h -> q3socketdevice.h
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcomm.cpp at line 60 column 16: QSocketDevice -> Q3SocketDevice
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcomm.cpp at line 60 column 31: QSocketDevice -> Q3SocketDevice
+No changes made to file /home/miguel/rmi/cpss/Viewer/Comm/crqcommhandler.cpp
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.cpp at line 27 column 16: qframe.h -> q3frame.h
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.cpp at line 34 column 20: qwhatsthis.h -> q3whatsthis.h
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.cpp at line 41 column 26: WFlags -> Qt::WFlags
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.cpp: Added the following include directives:
+	#include <QEvent> 	#include <QCloseEvent> 
+No changes made to file /home/miguel/rmi/cpss/Viewer/Comm/crqreplyhandler.cpp
+No changes made to file /home/miguel/rmi/cpss/Viewer/crmainparameters.h
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 26 column 17: qcanvas.h -> q3canvas.h
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 31 column 32: QCanvas -> Q3Canvas
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 76 column 21: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 81 column 22: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 105 column 14: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 106 column 19: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 111 column 14: QCanvasSprite -> Q3CanvasSprite
+In file /home/miguel/rmi/cpss/Viewer/crqcanvas.h at line 112 column 19: QCanvasPixmapArray -> Q3CanvasPixmapArray
+In file /home/miguel/rmi/cpss/Viewer/crqdataview.h at line 28 column 14: qvbox.h -> q3vbox.h
+In file /home/miguel/rmi/cpss/Viewer/crqdataview.h: Added the following include directives:
+	#include <QPaintEvent> 
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.h at line 27 column 20: qmainwindow.h -> q3mainwindow.h
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.h at line 29 column 16: qcanvas.h -> q3canvas.h
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.h at line 39 column 40: QCanvasView -> Q3CanvasView
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.h at line 44 column 11: WFlags -> Qt::WFlags
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.h at line 51 column 37: QMainWindow -> Q3MainWindow
+In file /home/miguel/rmi/cpss/Viewer/crqlabview.h at line 62 column 32: QToolBar -> Q3ToolBar
+No changes made to file /home/miguel/rmi/cpss/Viewer/crqparamhandler.h
+No changes made to file /home/miguel/rmi/cpss/Viewer/crqrobotinfo.h
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcomm.h at line 25 column 23: qsocketdevice.h -> q3socketdevice.h
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcomm.h at line 41 column 52: QSocketDevice -> Q3SocketDevice
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h at line 37 column 17: QVBoxLayout -> Q3VBoxLayout
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h at line 38 column 17: QHBoxLayout -> Q3HBoxLayout
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h at line 39 column 17: QGridLayout -> Q3GridLayout
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h at line 40 column 12: QFrame -> Q3Frame
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h at line 54 column 52: WFlags -> Qt::WFlags
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h at line 62 column 10: QFrame -> Q3Frame
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h at line 74 column 10: QFrame -> Q3Frame
+In file /home/miguel/rmi/cpss/Viewer/Comm/crqcontrolpanel.h: Added the following include directives:
+	#include <Q3VBoxLayout> 	#include <Q3Frame> 	#include <Q3GridLayout> 	#include <QCloseEvent> 	#include <Q3HBoxLayout> 	#include <QLabel> 
+In file Viewer.pro: Added entry QT += network xml  qt3support 
+

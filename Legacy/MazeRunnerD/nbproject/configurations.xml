@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="94">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>Behaviour.h</itemPath>
+      <itemPath>DodgeObstacle.h</itemPath>
+      <itemPath>FollowTheBeacon.h</itemPath>
+      <itemPath>FollowTheWall.h</itemPath>
+      <itemPath>Sensors.h</itemPath>
+      <itemPath>StopAtBeacon.h</itemPath>
+      <itemPath>Wander.h</itemPath>
+      <itemPath>rmi-mr32.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>DodgeObstacle.c</itemPath>
+      <itemPath>FollowTheBeacon.c</itemPath>
+      <itemPath>FollowTheWall.c</itemPath>
+      <itemPath>StopAtBeacon.c</itemPath>
+      <itemPath>Wander.c</itemPath>
+      <itemPath>main.c</itemPath>
+      <itemPath>rmi-mr32.c</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+      </compileType>
+      <item path="Behaviour.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="DodgeObstacle.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="DodgeObstacle.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FollowTheBeacon.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="FollowTheBeacon.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FollowTheWall.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="FollowTheWall.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Sensors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="StopAtBeacon.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="StopAtBeacon.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Wander.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="Wander.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="rmi-mr32.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="rmi-mr32.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="Behaviour.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="DodgeObstacle.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="DodgeObstacle.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FollowTheBeacon.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="FollowTheBeacon.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="FollowTheWall.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="FollowTheWall.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Sensors.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="StopAtBeacon.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="StopAtBeacon.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="Wander.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="Wander.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="rmi-mr32.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="rmi-mr32.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

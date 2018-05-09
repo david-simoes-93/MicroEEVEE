@@ -1,0 +1,6 @@
+Log for qt3to4 on qua Nov 23 23:00:44 2011. Number of log entries: 4
+No changes made to file /home/miguel/rmi/cpss/robsample/mainRob.c
+No changes made to file /home/miguel/rmi/cpss/robsample/robfunc.c
+No changes made to file /home/miguel/rmi/cpss/robsample/robfunc.h
+In file robsample.pro: Added entry QT +=  qt3support 
+

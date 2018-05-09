@@ -1,0 +1,19 @@
+Log for qt3to4 on qua Nov 23 22:53:58 2011. Number of log entries: 17
+No changes made to file /home/miguel/rmi/cpss/libRobSock/RobSock.h
+In file /home/miguel/rmi/cpss/GUISample/robview.h at line 23 column 17: qcanvas.h -> q3canvas.h
+In file /home/miguel/rmi/cpss/GUISample/robview.h at line 29 column 43: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/GUISample/robview.h at line 32 column 28: QCanvas -> Q3Canvas
+In file /home/miguel/rmi/cpss/GUISample/robview.h at line 39 column 31: QCanvas -> Q3Canvas
+In file /home/miguel/rmi/cpss/GUISample/robview.h at line 45 column 15: QCanvasLine -> Q3CanvasLine
+In file /home/miguel/rmi/cpss/GUISample/robview.h at line 46 column 22: QCanvasLine -> Q3CanvasLine
+In file /home/miguel/rmi/cpss/GUISample/robview.h at line 52 column 33: QCanvasView -> Q3CanvasView
+No changes made to file /home/miguel/rmi/cpss/GUISample/sampapp.h
+No changes made to file /home/miguel/rmi/cpss/GUISample/main.cpp
+In file /home/miguel/rmi/cpss/GUISample/robview.cpp at line 39 column 38: QCanvas -> Q3Canvas
+In file /home/miguel/rmi/cpss/GUISample/robview.cpp at line 41 column 47: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/GUISample/robview.cpp at line 82 column 22: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/GUISample/robview.cpp at line 82 column 46: QCanvasEllipse -> Q3CanvasEllipse
+In file /home/miguel/rmi/cpss/GUISample/robview.cpp at line 87 column 35: QCanvasLine -> Q3CanvasLine
+In file /home/miguel/rmi/cpss/GUISample/robview.cpp at line 94 column 47: QCanvasLine -> Q3CanvasLine
+In file GUISample.pro: Added entry QT +=  qt3support 
+
