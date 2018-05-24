@@ -7,15 +7,15 @@ import time
 # Quando chega aos 100% de duty cycle, inverte a rotação e assim sucessivamente em loop
 
 
-EN0_left_pin = 16
-EN1_left_pin = 18
-PWM_left_pin = 12
+EN0_left_pin = 29 # 16
+EN1_left_pin = 31 #18
+PWM_left_pin = 33 #12
 rotation_value_left = 0
 
-EN0_right_pin = 29
-EN1_right_pin = 31
-PWM_right_pin = 33
-rotation_right = 0
+EN0_right_pin = 16 #29
+EN1_right_pin = 18 #31
+PWM_right_pin = 12 #33
+rotation_value_right = 1
 
 
 # int pin0, int pin1, bool forward
@@ -33,21 +33,21 @@ def invert_rotation(motor_num):
 
     if motor_num == 'A':
         if rotation_value_left:
-            GPIO.output(EN0_left_pin, initial=GPIO.HIGH)
-            GPIO.output(EN1_left_pin, initial=GPIO.LOW)
+            GPIO.output(EN0_left_pin,GPIO.HIGH)
+            GPIO.output(EN1_left_pin,GPIO.LOW)
             rotation_value_left = 0
         else:
-            GPIO.output(EN1_left_pin, initial=GPIO.HIGH)
-            GPIO.output(EN0_left_pin, initial=GPIO.LOW)
+            GPIO.output(EN1_left_pin, GPIO.HIGH)
+            GPIO.output(EN0_left_pin, GPIO.LOW)
             rotation_value_left = 1
     elif motor_num == 'B':
         if rotation_value_right:
-            GPIO.output(EN0_right_pin, initial=GPIO.HIGH)
-            GPIO.output(EN1_right_pin, initial=GPIO.LOW)
+            GPIO.output(EN0_right_pin, GPIO.HIGH)
+            GPIO.output(EN1_right_pin, GPIO.LOW)
             rotation_value_right = 0
         else:
-            GPIO.output(EN1_right_pin, initial=GPIO.HIGH)
-            GPIO.output(EN0_right_pin, initial=GPIO.LOW)
+            GPIO.output(EN1_right_pin, GPIO.HIGH)
+            GPIO.output(EN0_right_pin, GPIO.LOW)
             rotation_value_right = 1
     else:
         print("ERROR no motor with that name [A or B]\n")
@@ -66,19 +66,21 @@ GPIO.setup(PWM_right_pin, GPIO.OUT)
 GPIO.setup(EN0_left_pin, GPIO.OUT, initial=GPIO.HIGH)  # enableA
 GPIO.setup(EN1_left_pin, GPIO.OUT, initial=GPIO.LOW)
 
-GPIO.setup(EN0_right_pin, GPIO.OUT, initial=GPIO.HIGH)  # enableB
-GPIO.setup(EN1_right_pin, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(EN0_right_pin, GPIO.OUT, initial=GPIO.LOW)  # enableB
+GPIO.setup(EN1_right_pin, GPIO.OUT, initial=GPIO.HIGH)
 
 # Configure the pwm objects and initialize its value
 pwm_left = GPIO.PWM(PWM_left_pin, 100)
 pwm_left.start(0)
 
 pwm_right = GPIO.PWM(PWM_right_pin, 100)
-pwm_right.start(100)
+pwm_right.start(0)
 
 # Create the dutycycle variables
 duty_cycle_left = 0
-duty_cycle_right = 100
+#duty_cycle_right = 100
+
+increment = +1
 
 # Loop infinite
 while True:
@@ -86,18 +88,25 @@ while True:
     # increment gradually the speed
     pwm_left.ChangeDutyCycle(duty_cycle_left)
     time.sleep(0.05)
-    duty_cycle_left += 1
-    if duty_cycle_left == 100:
-        invert_rotation('A')
-        duty_cycle_left = 0
+    pwm_right.ChangeDutyCycle(duty_cycle_left)
+    time.sleep(0.05)
+    duty_cycle_left += increment
+    if duty_cycle_left == 50:
+#        invert_rotation('A')
+#	invert_rotation('B')
+        increment = -1	
+    if duty_cycle_left== 0:
+	invert_rotation('A')
+	invert_rotation('B')
+	increment = 1
 
     # decrement gradually the speed
-    pwm_right.ChangeDutyCycle(duty_cycle_right)
-    time.sleep(0.05)
-    duty_cycle_right -= 1
-    if duty_cycle_right == 0:
-        invert_rotation('B')
-        duty_cycle_right = 100
+#    pwm_right.ChangeDutyCycle(duty_cycle_left)
+#    time.sleep(0.05)
+#    duty_cycle_right -= increment
+#    if duty_cycle_right == 0:
+#        invert_rotation('B')
+#        duty_cycle_right = 100
 
 # End code
 pwm_left.ChangeDutyCycle(0)
