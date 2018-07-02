@@ -7,7 +7,7 @@ import numpy as np
 
 # Connect to server
 if len(sys.argv) < 2:
-    sys.argv.append("192.168.1.1")
+    sys.argv.append("localhost")
 cif = CRobLinkAngs("EEVEE", 0, [0.0, 90.0, -90.0, 180], sys.argv[1])
 if cif.status != 0:
     print("Connection refused or error")

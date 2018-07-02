@@ -1,92 +1,115 @@
 # -*- coding: utf-8 -*-
-#Define Libraries
+# Define Libraries
 import RPi.GPIO as GPIO
 import time
-# inicia a roda parada, vai aumentado a velocidade. Quando chega aos 100% de duty cycle, inverte a rotação e assim sucessivamente em loop
+
+# inicia a roda parada, vai aumentado a velocidade.
+# Quando chega aos 100% de duty cycle, inverte a rotação e assim sucessivamente em loop
 
 
-ENA_0 = 16
-ENA_1 = 18
-PWM_A = 12
-rotation_value_A = 0
+EN0_left_pin = 29 # 16
+EN1_left_pin = 31 #18
+PWM_left_pin = 33 #12
+rotation_value_left = 0
 
-ENB_0 = 29
-ENB_1 = 31
-PWM_B = 33
-rotation_value_B = 0
-
-def invertRotation(motor_num):
-	if(motor_num == 'A'):
-		if(rotation_value_A):
-			GPIO.output(ENA_0, initial=GPIO.HIGH)
-			GPIO.output(ENA_1, initial=GPIO.LOW)
-			rotation_value_A = 0
-		else:
-			GPIO.output(ENA_1, initial=GPIO.HIGH)
-			GPIO.output(ENA_0, initial=GPIO.LOW)
-			rotation_value_A = 1
-	elif(motor_num == 'B'):
-		if(rotation_value_B):
-			GPIO.output(ENB_0, initial=GPIO.HIGH)
-			GPIO.output(ENB_1, initial=GPIO.LOW)
-			rotation_value_B = 0
-		else:
-			GPIO.output(ENB_1, initial=GPIO.HIGH)
-			GPIO.output(ENB_0, initial=GPIO.LOW)
-			rotation_value_B = 1
-	else:
-		print("ERROR no motor with that name [A or B]\n")
+EN0_right_pin = 16 #29
+EN1_right_pin = 18 #31
+PWM_right_pin = 12 #33
+rotation_value_right = 1
 
 
-#Configuring don’t show warnings 
-GPIO.setwarnings(False)
+# int pin0, int pin1, bool forward
+def invert_rotation(pin0, pin1, forward):
+    if forward:
+        GPIO.output(pin0, initial=GPIO.HIGH)
+        GPIO.output(pin1, initial=GPIO.LOW)
+    else:
+        GPIO.output(pin0, initial=GPIO.LOW)
+        GPIO.output(pin1, initial=GPIO.HIGH)
 
-#Configuring GPIO
+
+def invert_rotation(motor_num):
+    global rotation_value_left, rotation_value_right
+
+    if motor_num == 'A':
+        if rotation_value_left:
+            GPIO.output(EN0_left_pin,GPIO.HIGH)
+            GPIO.output(EN1_left_pin,GPIO.LOW)
+            rotation_value_left = 0
+        else:
+            GPIO.output(EN1_left_pin, GPIO.HIGH)
+            GPIO.output(EN0_left_pin, GPIO.LOW)
+            rotation_value_left = 1
+    elif motor_num == 'B':
+        if rotation_value_right:
+            GPIO.output(EN0_right_pin, GPIO.HIGH)
+            GPIO.output(EN1_right_pin, GPIO.LOW)
+            rotation_value_right = 0
+        else:
+            GPIO.output(EN1_right_pin, GPIO.HIGH)
+            GPIO.output(EN0_right_pin, GPIO.LOW)
+            rotation_value_right = 1
+    else:
+        print("ERROR no motor with that name [A or B]\n")
+
+# Configuring don’t show warnings
+#GPIO.setwarnings(False)
+
+# Configuring GPIO
 GPIO.setmode(GPIO.BOARD)
 print("RPI info", GPIO.RPI_INFO)
 
-GPIO.setup(PWM_A,GPIO.OUT)
-GPIO.setup(PWM_B,GPIO.OUT)
+GPIO.setup(PWM_left_pin, GPIO.OUT)
+GPIO.setup(PWM_right_pin, GPIO.OUT)
 
-#Enables
-GPIO.setup(ENA_0,GPIO.OUT, initial=GPIO.HIGH) # enableA
-GPIO.setup(ENA_1,GPIO.OUT, initial=GPIO.LOW)
+# Enables
+GPIO.setup(EN0_left_pin, GPIO.OUT, initial=GPIO.HIGH)  # enableA
+GPIO.setup(EN1_left_pin, GPIO.OUT, initial=GPIO.LOW)
 
-GPIO.setup(ENB_0,GPIO.OUT, initial=GPIO.HIGH) # enableB
-GPIO.setup(ENB_1,GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(EN0_right_pin, GPIO.OUT, initial=GPIO.LOW)  # enableB
+GPIO.setup(EN1_right_pin, GPIO.OUT, initial=GPIO.HIGH)
 
-#Configure the pwm objects and initialize its value
-pwmBlue = GPIO.PWM(PWM_A,100)
-pwmBlue.start(0)
+# Configure the pwm objects and initialize its value
+pwm_left = GPIO.PWM(PWM_left_pin, 100)
+pwm_left.start(0)
 
-pwmRed = GPIO.PWM(PWM_B,100)
-pwmRed.start(100)
- 
-#Create the dutycycle variables
-dcBlue = 0
-dcRed  = 100
+pwm_right = GPIO.PWM(PWM_right_pin, 100)
+pwm_right.start(0)
 
-#Loop infinite
+# Create the dutycycle variables
+duty_cycle_left = 0
+#duty_cycle_right = 100
+
+increment = +1
+
+# Loop infinite
 while True:
-   
-    #increment gradually the luminosity
-    pwmBlue.ChangeDutyCycle(dcBlue)
-    time.sleep(0.05)
-    dcBlue = dcBlue + 1
-    if dcBlue == 100:
-	invertRotation('A')
-        dcBlue = 0
 
-    #decrement gradually the luminosity
-    pwmRed.ChangeDutyCycle(dcRed)
+    # increment gradually the speed
+    pwm_left.ChangeDutyCycle(duty_cycle_left)
     time.sleep(0.05)
-    dcRed = dcRed - 1
-    if dcRed == 0:
-	invertRotation('B')
-        dcRed = 100
-    
-#End code
-pwmBlue.ChangeDutyCycle(0)
-pwmRed.ChangeDutyCycle(0)
+    pwm_right.ChangeDutyCycle(duty_cycle_left)
+    time.sleep(0.05)
+    duty_cycle_left += increment
+    if duty_cycle_left == 50:
+#        invert_rotation('A')
+#	invert_rotation('B')
+        increment = -1	
+    if duty_cycle_left== 0:
+	invert_rotation('A')
+	invert_rotation('B')
+	increment = 1
+
+    # decrement gradually the speed
+#    pwm_right.ChangeDutyCycle(duty_cycle_left)
+#    time.sleep(0.05)
+#    duty_cycle_right -= increment
+#    if duty_cycle_right == 0:
+#        invert_rotation('B')
+#        duty_cycle_right = 100
+
+# End code
+pwm_left.ChangeDutyCycle(0)
+pwm_right.ChangeDutyCycle(0)
 GPIO.cleanup()
 exit()
