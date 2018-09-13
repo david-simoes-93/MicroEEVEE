@@ -309,20 +309,20 @@ unsigned int readLineSensors(int gain)
 
 // discharge capacitors
     LATECLR = 0x0020;			// Disable line sensor
-	LATD = LATD | 0x00EC;		// All 5 outputs set (just in case, set in initPIC32() )
-	TRISD = TRISD & ~(0x00EC);	// 5 bits as output
+	LATD = LATD | 0x00EC;		// All 5 outputs set (just in case, set in initPIC32() ) escreve valor
+	TRISD = TRISD & ~(0x00EC);	// 5 bits as outputs		set in 1/out 0
 
 	delay(1);					// Wait, discharging capacitors
 // charge capacitors
 	TRISD = TRISD | 0x00EC;		// 5 bits as input
-    LATESET = 0x0020;			// Enable line sensor
+    LATESET = 0x0020;			// Enable line sensor  		output 1 (onde 1)
 
 	delay(gain);				// wait 5 ms (for the default gain)
 								// this time is critical... capacitors take time to charge
 								// too little time: output capacitors don't charge enough
 	sensValue = PORTD >> 2;
 	sensValue = (sensValue & 0x0003) | ((sensValue & 0x38) >> 1);
-    LATECLR = 0x0020;			// Disable line sensor
+    LATECLR = 0x0020;			// Disable line            outputs a 0 (onde 1)
 
 	return sensValue;
 }

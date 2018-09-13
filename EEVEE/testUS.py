@@ -213,7 +213,7 @@ class USSensorAsynch:
 
 def main():
     # Asynchronous, using concurrency devices
-    if True:
+    if False:
         us0 = USSensorAsynch(12, 16)
         while True:
             #us0.get()

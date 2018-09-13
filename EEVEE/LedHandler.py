@@ -1,0 +1,12 @@
+import RPi.GPIO as GPIO
+
+
+# LED actuator
+class LedActuator:
+    # In Board mode, the LED pin numbers
+    def __init__(self, led):
+        GPIO.setup(led, GPIO.OUT, initial=GPIO.LOW)
+        self.led = led
+
+    def set(self, led):
+        GPIO.output(self.led, GPIO.HIGH if led else GPIO.LOW)
