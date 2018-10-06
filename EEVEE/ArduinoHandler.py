@@ -21,7 +21,15 @@ class ArduinoHandler:
         self.m2_encoder = 0
 
     def get(self):
-        sensors = self.arduino.readline().split(";")
+        sensors = self.arduino.readline().decode().split(";")
+        self.m1_encoder=0
+        self.m2_encoder=0
+        # read extra lines if they exist
+        while self.arduino.in_waiting>0:
+            print("Losing cycles...")
+            self.m1_encoder += float(sensors[9])
+            self.m2_encoder += float(sensors[10])
+            sensors = self.arduino.readline().decode().split(";")
 
         self.ir0 = float(sensors[0])
         self.ir1 = float(sensors[1])
@@ -35,6 +43,6 @@ class ArduinoHandler:
         self.ground3 = sensors[7] is '1'
         self.ground4 = sensors[8] is '1'
 
-        self.m1_encoder = float(sensors[9])
-        self.m2_encoder = float(sensors[10])
+        self.m1_encoder += float(sensors[9])
+        self.m2_encoder += float(sensors[10])
 

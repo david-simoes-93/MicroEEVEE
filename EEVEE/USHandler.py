@@ -52,7 +52,7 @@ class USSensor:
         self.time_since = time.time()
         self.state = 1
 
-    def ping(self):
+    def pong(self):
         self.time_since = time.time()
         self.state = 2
 

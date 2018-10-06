@@ -6,18 +6,18 @@ const int ground3pin = 8;
 const int ground4pin = 9;
 bool ground0, ground1, ground2, ground3, ground4;
 
-const int ir0pin = 4;
-const int ir1pin = 5;
+const int ir0pin = 0;
+const int ir1pin = 1;
 float ir0, ir1;
 
 const int button0pin = 11;
 const int button1pin = 10;
 bool button0, button1;
 
-const int m1enA = 2;
-const int m1enB = 13;
-const int m2enA = 3;
-const int m2enB = 12;
+const int m2enA = 2;
+const int m2enB = 13;
+const int m1enA = 3;
+const int m1enB = 12;
 int m1, m2, counterM1, counterM2;
 
 void setup() {
@@ -109,7 +109,7 @@ void m2_enc(){
 void readMotors(){
   noInterrupts();
   m1 = -counterM1;
-  m2 = counterM2;
+  m2 = -counterM2;
   counterM1 = 0;
   counterM2 = 0;
   interrupts();

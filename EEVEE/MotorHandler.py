@@ -21,8 +21,8 @@ class MotorActuator:
             GPIO.output(self.en_a, GPIO.HIGH)
             GPIO.output(self.en_b, GPIO.LOW)
         else:
-            GPIO.output(self.en_a, GPIO.HIGH)
-            GPIO.output(self.en_b, GPIO.LOW)
+            GPIO.output(self.en_a, GPIO.LOW)
+            GPIO.output(self.en_b, GPIO.HIGH)
 
-        self.pwm.ChangeDutyCycle(abs(pwm))
+        self.pwm.ChangeDutyCycle(min(abs(pwm),100))
 
