@@ -4,7 +4,7 @@ from EEVEE.USHandler import us_async
 from EEVEE.MotorHandler import MotorActuator
 from EEVEE.LedHandler import LedActuator
 import RPi.GPIO as GPIO
-from EEVEE.ArduinoHandler import ArduinoHandler
+from EEVEE.ArduinoHandler import ArduinoHandler, EmptyArduino
 import pygame
 import math
 
@@ -50,7 +50,11 @@ def main():
     led0 = LedActuator(26)
 
     # Arduino
-    arduino = ArduinoHandler()
+    try:
+        arduino = ArduinoHandler()
+    except RuntimeError:
+        print("Serial connection not found")
+        arduino = EmptyArduino()
 
     Gui = True
     if Gui:

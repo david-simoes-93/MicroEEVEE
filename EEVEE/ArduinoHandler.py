@@ -1,6 +1,21 @@
 import serial
 
 
+class EmptyArduino(object):
+    def __init__(self):
+        self.ir0 = 0
+        self.ir1 = 0
+        self.button0 = False
+        self.button1 = False
+        self.ground0 = False
+        self.ground1 = False
+        self.ground2 = False
+        self.ground3 = False
+        self.ground4 = False
+        self.m1_encoder = 0
+        self.m2_encoder = 0
+
+
 # Arduino handler
 class ArduinoHandler:
     def __init__(self):
