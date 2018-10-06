@@ -1,4 +1,5 @@
 import serial
+import random
 
 
 class EmptyArduino(object):
@@ -14,6 +15,22 @@ class EmptyArduino(object):
         self.ground4 = False
         self.m1_encoder = 0
         self.m2_encoder = 0
+
+    def get(self):
+        self.ir0 = random.random()*4
+        self.ir1 = random.random()*4
+
+        self.button0 = random.random()>0.5
+        self.button1 = random.random()>0.5
+
+        self.ground0 = random.random()>0.5
+        self.ground1 = random.random()>0.5
+        self.ground2 = random.random()>0.5
+        self.ground3 = random.random()>0.5
+        self.ground4 = random.random()>0.5
+
+        self.m1_encoder += random.random()*0.8
+        self.m2_encoder += random.random()*0.8
 
 
 # Arduino handler

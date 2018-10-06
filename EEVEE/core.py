@@ -7,6 +7,7 @@ import RPi.GPIO as GPIO
 from EEVEE.ArduinoHandler import ArduinoHandler, EmptyArduino
 import pygame
 import math
+from serial import SerialException
 
 
 def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
@@ -52,7 +53,7 @@ def main():
     # Arduino
     try:
         arduino = ArduinoHandler()
-    except RuntimeError:
+    except SerialException:
         print("Serial connection not found")
         arduino = EmptyArduino()
 

@@ -1,2 +1,2 @@
 export PYTHONPATH=$(pwd)
-python3 MicroEEVEE/core.py
+python3 EEVEE/core.py
