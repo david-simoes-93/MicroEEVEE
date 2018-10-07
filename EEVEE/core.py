@@ -45,7 +45,7 @@ def main():
 
     # motors
     m1 = MotorActuator(35, 37, 33)  # IN1 IN2 ENA - Right Motor
-    m2 = MotorActuator(40, 38, 32)  # IN3 IN4 ENB - Left Motor
+    m2 = MotorActuator(38, 40, 32)  # IN3 IN4 ENB - Left Motor
 
     # LED
     led0 = LedActuator(26)
@@ -73,15 +73,45 @@ def main():
         print(arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
         print(arduino.m1_encoder, arduino.m2_encoder)
 
-        m1.set(left_motor_speed)
-        m2.set(right_motor_speed)
-
         led0.set(us1.value > 0.20)
 
         if Gui:
             render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
                    arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
 
+            if left_motor_speed > 0:
+                left_motor_speed -= 5
+            elif left_motor_speed < 0:
+                left_motor_speed += 5
+            if right_motor_speed > 0:
+                right_motor_speed -= 5
+            elif right_motor_speed < 0:
+                right_motor_speed += 5
+
+            pressed = pygame.key.get_pressed()
+            if pressed[pygame.K_LEFT]:
+                left_motor_speed -= 15
+                right_motor_speed += 15
+            elif pressed[pygame.K_RIGHT]:
+                left_motor_speed += 15
+                right_motor_speed -= 15
+
+            if pressed[pygame.K_UP]:
+                left_motor_speed += 10
+                right_motor_speed += 10
+            elif pressed[pygame.K_DOWN]:
+                left_motor_speed -= 10
+                right_motor_speed -= 10
+
+            if pressed[pygame.K_SPACE]:
+                left_motor_speed = 0
+                right_motor_speed = 0
+            if pressed[pygame.K_ESCAPE]:
+                m1.set(0)
+                m2.set(0)
+                pygame.quit()
+                exit()
+            """
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
@@ -100,15 +130,20 @@ def main():
                         print("down")
                         left_motor_speed -= 10
                         right_motor_speed -= 10
-                    elif event.key == pygame.K_ESCAPE:
+                    
+                    if event.key == pygame.K_SPACE:
                         print("break")
                         left_motor_speed = 0
                         right_motor_speed = 0
-                    elif event.key == pygame.K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE:
                         m1.set(0)
                         m2.set(0)
                         pygame.quit()
-                        exit()
+                        exit()"""
+            
+        m1.set(left_motor_speed)
+        m2.set(right_motor_speed)
+
 
 
 if __name__ == "__main__":
