@@ -11,7 +11,8 @@ from serial import SerialException
 
 
 def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
-           ground_far_left, ground_left, ground_mid, ground_right, ground_far_right):
+           ground_far_left, ground_left, ground_mid, ground_right, ground_far_right,
+           motor_left, motor_right):
     white, black = (255, 255, 255), (0, 0, 0)
     screen.fill(white)
 
@@ -26,16 +27,27 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
     pygame.draw.line(screen, (0, 255, 0), [150, 141], [150, 141 - int(us_front * 10)], 2)
     pygame.draw.line(screen, (0, 255, 0), [150, 159], [150, 159 + int(us_back * 10)], 2)
 
-    pygame.draw.circle(screen, black if ground_far_left else white, [100, 10], 2)
-    pygame.draw.circle(screen, black if ground_left else white, [125, 10], 2)
-    pygame.draw.circle(screen, black if ground_mid else white, [150, 10], 2)
-    pygame.draw.circle(screen, black if ground_right else white, [175, 10], 2)
-    pygame.draw.circle(screen, black if ground_far_right else white, [200, 10], 2)
+    pygame.draw.circle(screen, black, [100, 10], 6)
+    pygame.draw.circle(screen, black, [125, 10], 6)
+    pygame.draw.circle(screen, black, [150, 10], 6)
+    pygame.draw.circle(screen, black, [175, 10], 6)
+    pygame.draw.circle(screen, black, [200, 10], 6)
+    pygame.draw.circle(screen, black if ground_far_left else white, [100, 10], 5)
+    pygame.draw.circle(screen, black if ground_left else white, [125, 10], 5)
+    pygame.draw.circle(screen, black if ground_mid else white, [150, 10], 5)
+    pygame.draw.circle(screen, black if ground_right else white, [175, 10], 5)
+    pygame.draw.circle(screen, black if ground_far_right else white, [200, 10], 5)
+
+    pygame.draw.line(screen, (255, 0, 0), [10, 150], [10, 150 - int(motor_left)], 5)
+    pygame.draw.line(screen, (255, 0, 0), [290, 150], [290, 150 - int(motor_left)], 5)
 
     pygame.display.flip()
 
 
 def main():
+    gui = True
+    remote_control = True
+
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BOARD)
 
@@ -57,8 +69,8 @@ def main():
         print("Serial connection not found")
         arduino = EmptyArduino()
 
-    Gui = True
-    if Gui:
+
+    if gui:
         pygame.init()
         screen = pygame.display.set_mode([300, 300])
         pygame.display.set_caption("EEVEE")
@@ -75,10 +87,11 @@ def main():
 
         led0.set(us1.value > 0.20)
 
-        if Gui:
+        if gui:
             render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
                    arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
 
+        if remote_control:
             if left_motor_speed > 0:
                 left_motor_speed -= 5
             elif left_motor_speed < 0:
@@ -143,7 +156,6 @@ def main():
 
         m1.set(left_motor_speed)
         m2.set(right_motor_speed)
-
 
 
 if __name__ == "__main__":
