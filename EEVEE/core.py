@@ -39,7 +39,7 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
     pygame.draw.circle(screen, black if ground_far_right else white, [200, 10], 5)
 
     pygame.draw.line(screen, (255, 0, 0), [10, 150], [10, 150 - int(motor_left)], 5)
-    pygame.draw.line(screen, (255, 0, 0), [290, 150], [290, 150 - int(motor_left)], 5)
+    pygame.draw.line(screen, (255, 0, 0), [290, 150], [290, 150 - int(motor_right)], 5)
 
     pygame.display.flip()
 
@@ -53,7 +53,8 @@ def main():
 
     # asynchronously update US sensors
     us0, us1, us2, us3 = Value('f', 0), Value('f', 0), Value('f', 0), Value('f', 0)
-    Process(target=us_async, args=(13, 16, us0, 11, 18, us1, 7, 22, us2, 12, 24, us3)).start()
+    keep_running_us = Value('b', True)
+    Process(target=us_async, args=(keep_running_us, 13, 16, us0, 11, 18, us1, 7, 22, us2, 12, 24, us3)).start()
 
     # motors
     m1 = MotorActuator(35, 37, 33)  # IN1 IN2 ENA - Right Motor
@@ -151,6 +152,7 @@ def main():
                         m1.set(0)
                         m2.set(0)
                         pygame.quit()
+                        keep_running_us.value = False
                         exit()
 
         if gui:

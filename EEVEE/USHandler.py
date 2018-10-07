@@ -57,7 +57,7 @@ class USSensor:
         self.state = 2
 
 
-def us_async(echo0, trig0, dist0, echo1, trig1, dist1, echo2, trig2, dist2, echo3, trig3, dist3):
+def us_async(keep_running, echo0, trig0, dist0, echo1, trig1, dist1, echo2, trig2, dist2, echo3, trig3, dist3):
     us0 = USSensor(echo0, trig0)
     us1 = USSensor(echo1, trig1)
     us2 = USSensor(echo2, trig2)
@@ -68,7 +68,7 @@ def us_async(echo0, trig0, dist0, echo1, trig1, dist1, echo2, trig2, dist2, echo
     us2.trigger()
     us3.trigger()
 
-    while True:
+    while keep_running.value:
         us0.do_phase(dist0)
         us1.do_phase(dist1)
         us2.do_phase(dist2)
