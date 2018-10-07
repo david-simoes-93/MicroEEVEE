@@ -128,24 +128,19 @@ def main():
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
-                        print("left")
                         left_motor_speed -= 10
                         right_motor_speed += 10
                     elif event.key == pygame.K_RIGHT:
-                        print("right")
                         left_motor_speed += 10
                         right_motor_speed -= 10
                     if event.key == pygame.K_UP:
-                        print("up")
                         left_motor_speed += 10
                         right_motor_speed += 10
                     elif event.key == pygame.K_DOWN:
-                        print("down")
                         left_motor_speed -= 10
                         right_motor_speed -= 10
                     
                     if event.key == pygame.K_SPACE:
-                        print("break")
                         left_motor_speed = 0
                         right_motor_speed = 0
                     if event.key == pygame.K_ESCAPE:
@@ -155,13 +150,15 @@ def main():
                         keep_running_us.value = False
                         exit()
 
+        left_motor_speed = max(min(100, left_motor_speed), -100)
+        right_motor_speed = max(min(100, right_motor_speed), -100)
+        m1.set(left_motor_speed)
+        m2.set(right_motor_speed)
+
         if gui:
             render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
                    arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4,
                    left_motor_speed, right_motor_speed)
-
-        m1.set(left_motor_speed)
-        m2.set(right_motor_speed)
 
 
 if __name__ == "__main__":
