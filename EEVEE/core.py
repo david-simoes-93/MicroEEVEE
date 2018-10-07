@@ -87,10 +87,6 @@ def main():
 
         led0.set(us1.value > 0.20)
 
-        if gui:
-            render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
-                   arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
-
         if remote_control:
             if left_motor_speed > 0:
                 left_motor_speed -= 5
@@ -153,6 +149,11 @@ def main():
                         m2.set(0)
                         pygame.quit()
                         exit()"""
+
+        if gui:
+            render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
+                   arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4,
+                   left_motor_speed, right_motor_speed)
 
         m1.set(left_motor_speed)
         m2.set(right_motor_speed)
