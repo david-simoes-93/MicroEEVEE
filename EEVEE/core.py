@@ -44,7 +44,7 @@ def main():
     Process(target=us_async, args=(13, 16, us0, 11, 18, us1, 7, 22, us2, 12, 24, us3)).start()
 
     # motors
-    m1 = MotorActuator(37, 35, 33)  # IN1 IN2 ENA - Right Motor
+    m1 = MotorActuator(35, 37, 33)  # IN1 IN2 ENA - Right Motor
     m2 = MotorActuator(40, 38, 32)  # IN3 IN4 ENB - Left Motor
 
     # LED
@@ -63,6 +63,8 @@ def main():
         screen = pygame.display.set_mode([300, 300])
         pygame.display.set_caption("EEVEE")
 
+    left_motor_speed, right_motor_speed = 0,0
+
     while True:
         arduino.get()
         print(us0.value, us1.value, us2.value, us3.value)
@@ -71,14 +73,42 @@ def main():
         print(arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
         print(arduino.m1_encoder, arduino.m2_encoder)
 
-        m1.set(10)
-        m2.set(-10)
+        m1.set(left_motor_speed)
+        m2.set(right_motor_speed)
 
         led0.set(us1.value > 0.20)
 
         if Gui:
             render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
                    arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        print("left")
+                        left_motor_speed -= 10
+                        right_motor_speed += 10
+                    elif event.key == pygame.K_RIGHT:
+                        print("right")
+                        left_motor_speed += 10
+                        right_motor_speed -= 10
+                    if event.key == pygame.K_UP:
+                        print("up")
+                        left_motor_speed += 10
+                        right_motor_speed += 10
+                    elif event.key == pygame.K_DOWN:
+                        print("down")
+                        left_motor_speed -= 10
+                        right_motor_speed -= 10
+                    elif event.key == pygame.K_ESCAPE:
+                        print("break")
+                        left_motor_speed = 0
+                        right_motor_speed = 0
+                    elif event.key == pygame.K_ESCAPE:
+                        m1.set(0)
+                        m2.set(0)
+                        pygame.quit()
+                        exit()
 
 
 if __name__ == "__main__":

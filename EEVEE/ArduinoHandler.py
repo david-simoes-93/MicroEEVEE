@@ -1,5 +1,6 @@
 import serial
 import random
+import time
 
 
 class EmptyArduino(object):
@@ -31,6 +32,8 @@ class EmptyArduino(object):
 
         self.m1_encoder += random.random()*0.8
         self.m2_encoder += random.random()*0.8
+
+        time.sleep(0.1)
 
 
 # Arduino handler
