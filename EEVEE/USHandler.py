@@ -38,7 +38,7 @@ class USSensor:
             if not GPIO.input(self.echo):
                 #if time_elapsed >= 0.2:
                 self.trigger()
-                dist.value = time_elapsed * 171.7
+                dist.value = min(time_elapsed * 171.7, 2)
             elif time_elapsed > self.limit:
                 self.trigger()
 

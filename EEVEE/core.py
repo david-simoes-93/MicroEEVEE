@@ -140,7 +140,7 @@ def main():
                         m2.set(0)
                         pygame.quit()
                         exit()"""
-            
+
         m1.set(left_motor_speed)
         m2.set(right_motor_speed)
 
