@@ -98,6 +98,7 @@ def main():
                 right_motor_speed += 5
 
             pressed = pygame.key.get_pressed()
+            print(pressed)
             if pressed[pygame.K_LEFT]:
                 print("LEFT")
                 left_motor_speed -= 15
