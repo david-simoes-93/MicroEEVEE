@@ -97,7 +97,7 @@ def main():
             elif right_motor_speed < 0:
                 right_motor_speed += 5
 
-            pressed = pygame.key.get_pressed()
+            """pressed = pygame.key.get_pressed()
             print(pressed)
             if pressed[pygame.K_LEFT]:
                 print("LEFT")
@@ -122,8 +122,8 @@ def main():
                 m1.set(0)
                 m2.set(0)
                 pygame.quit()
-                exit()
-            """
+                exit()"""
+
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
@@ -151,7 +151,7 @@ def main():
                         m1.set(0)
                         m2.set(0)
                         pygame.quit()
-                        exit()"""
+                        exit()
 
         if gui:
             render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
