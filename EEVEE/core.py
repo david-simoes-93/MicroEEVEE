@@ -79,10 +79,10 @@ def main():
 
     while True:
         arduino.get()
-        print(us0.value, us1.value, us2.value, us3.value)
-        print(arduino.ir0, arduino.ir1)
+        #print(us0.value, us1.value, us2.value, us3.value)
+        #print(arduino.ir0, arduino.ir1)
         print(arduino.button0, arduino.button1)
-        print(arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+        #print(arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
         print(arduino.m1_encoder, arduino.m2_encoder)
 
         led0.set(us1.value > 0.20)
@@ -99,6 +99,7 @@ def main():
 
             pressed = pygame.key.get_pressed()
             if pressed[pygame.K_LEFT]:
+                print("LEFT")
                 left_motor_speed -= 15
                 right_motor_speed += 15
             elif pressed[pygame.K_RIGHT]:
@@ -106,6 +107,7 @@ def main():
                 right_motor_speed -= 15
 
             if pressed[pygame.K_UP]:
+                print("UP")
                 left_motor_speed += 10
                 right_motor_speed += 10
             elif pressed[pygame.K_DOWN]:
