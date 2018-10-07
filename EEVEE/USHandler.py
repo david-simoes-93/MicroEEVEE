@@ -7,7 +7,7 @@ class USSensor:
     # In Board mode, the TRIG and ECHO pin numbers
     def __init__(self, trig, echo):
         GPIO.setup(trig, GPIO.OUT)
-        GPIO.setup(echo, GPIO.IN)
+        GPIO.setup(echo, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
         self.limit = 0.5
         self.echo = echo
