@@ -13,3 +13,14 @@ Install dependencies with
     sudo pip3 install pygame
     (cd CiberSim; make)
     (cd CiberViewer; make)
+
+TODO:
+
+    mudar o design 3d
+    fazer PID
+    odometria
+    soldar as placas
+    testar os botoes
+    buracos pos LEDs
+    buracos para os pilares tb
+    espaço pa bateria tb
