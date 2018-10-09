@@ -16,11 +16,15 @@ Install dependencies with
 
 TODO:
 
-    mudar o design 3d
-    fazer PID
-    odometria
+    software
+        fazer PID
+        odometria
     soldar as placas
     testar os botoes
-    buracos pos LEDs
-    buracos para os pilares tb
-    espaço pa bateria tb
+    mudar o design 3d
+        mudar botoes
+        buracos pos LEDs
+        buracos para os pilares tb
+    espaço pa bateria(s) tb
+    UBEC https://electronics.stackexchange.com/questions/400000/powering-a-rpi-and-a-motor-driver-with-the-same-lipo-battery/400210#400210
+    eevee a fazer AP
