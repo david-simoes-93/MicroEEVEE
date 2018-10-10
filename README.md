@@ -13,6 +13,8 @@ Install dependencies with
     sudo pip3 install pygame
     (cd CiberSim; make)
     (cd CiberViewer; make)
+    
+Make your RPi an [AP](https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md) so you can remotely control things.
 
 TODO:
 
@@ -27,4 +29,3 @@ TODO:
         buracos para os pilares tb
     espaço pa bateria(s) tb
     UBEC https://electronics.stackexchange.com/questions/400000/powering-a-rpi-and-a-motor-driver-with-the-same-lipo-battery/400210#400210
-    eevee a fazer AP
