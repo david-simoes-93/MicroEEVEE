@@ -14,15 +14,35 @@ Here's the circuitry, made with [draw.io](https://drive.google.com/file/d/1LcyPt
 
 ![circuits](https://raw.githubusercontent.com/bluemoon93/MicroEEVEE/master/EEVEE/Circuits.png)
 
-Make your RPi an [AP](https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md) so you can remotely control things.
+Install [Raspbian Lite](https://www.raspberrypi.org/downloads/raspbian/), enable [ssh](https://www.raspberrypi.org/documentation/remote-access/ssh/README.md), and make your RPi an [AP](https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md) so you can remotely control things. Make sure to ssh into the RPi with the -X option if you want to see the GUI. Then update everything, install required packages, get the repo, and ready things.
 
-TODO:
+    sudo apt update
+    sudo apt upgrade
+    nano .bashrc
+        export LANG=en_GB.UTF-8
+        export LC_ALL=en_GB.UTF-8
+        export LC_CTYPE=en_GB.UTF-8
+    source .bashrc
+    sudo apt install tmux git python3-serial 
+    virtualenv -p /usr/bin/python3 py3env
+    source py3env/bin/activate
+    pip install RPi.GPIO pygame
+    git clone https://github.com/bluemoon93/MicroEEVEE.git
+    cd MicroEEVEE
+    chmod +x startMEevee.sh
+    
+To run, simply 
+
+    ./startMEevee.sh
+    
+Not everything is complete! Our TODO list:
+
     software
         fazer PID
         odometria
     soldar as placas
     testar os botoes
-    espaço pa bateria(s) tb
+    testar UBEC
     
 
 ## MazeRunner (Micro-Rato)
