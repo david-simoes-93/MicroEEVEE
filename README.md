@@ -4,7 +4,7 @@ A global repository for MicroMouse, CiberMouse, and a DIY EEVEE agent.
 
 ## EEVEE
 
-We built the 3D Model in [TinkerCad](https://www.tinkercad.com/), [SolidWorks](https://www.solidworks.com/), and [MeshMixer](http://www.meshmixer.com/), and published it in [ThingiVerse](https://www.thingiverse.com/thing:3148948). We based our design on Jukka Seppänen's great [model](https://www.yobi3d.com/v/4kIfHKWdJ5/eevee-kijaidesign-01.stl).
+We built the 3D Model in [TinkerCad](https://www.tinkercad.com/), [SolidWorks](https://www.solidworks.com/), and [MeshMixer](http://www.meshmixer.com/), and published it in [Thingiverse](https://www.thingiverse.com/thing:3148948). We based our design on Jukka Seppänen's great [model](https://www.yobi3d.com/v/4kIfHKWdJ5/eevee-kijaidesign-01.stl).
 
 ![eevee model](https://user-images.githubusercontent.com/9117323/46804341-4600ac00-cd5a-11e8-8fcd-86e9f92aa558.png)
 
