@@ -61,9 +61,8 @@ More info [here](http://microrato.ua.pt/ciberrato). To run CiberEEVEE, just acti
     
 Install dependencies with
 
-    python3 -m venv ./venv
-    source venv/bin/activate
-    sudo pip install --upgrade pip
-    sudo pip3 install pygame
+    virtualenv -p python3 venvCiber
+    source venvCiber/bin/activate
+    pip3 install pygame numpy
     (cd CiberSim; make)
     (cd CiberViewer; make)
