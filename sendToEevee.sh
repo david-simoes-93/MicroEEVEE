@@ -1,0 +1,1 @@
+scp -r EEVEE/ *.sh pi@192.168.4.1:~/MicroEEVEE/

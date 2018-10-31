@@ -1,12 +1,12 @@
 #/bin/bash
 
-source venv/bin/activate 
+source venvCiber/bin/activate 
 
 (cd CiberSim; ./simulator)&
-sleep 1 
+sleep 3
 
-#(cd CiberViewer; ./Viewer)&
-#sleep 1
+(cd CiberViewer; ./Viewer)&
+sleep 3
 
 (export PYTHONPATH=$(pwd); cd CiberEEVEE; python3 eevee.py)
 

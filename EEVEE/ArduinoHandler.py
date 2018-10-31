@@ -18,20 +18,20 @@ class EmptyArduino(object):
         self.m2_encoder = 0
 
     def get(self):
-        self.ir0 = random.random()*4
-        self.ir1 = random.random()*4
+        self.ir0 = random.random() * 4
+        self.ir1 = random.random() * 4
 
-        self.button0 = random.random()>0.5
-        self.button1 = random.random()>0.5
+        self.button0 = random.random() > 0.5
+        self.button1 = random.random() > 0.5
 
-        self.ground0 = random.random()>0.5
-        self.ground1 = random.random()>0.5
-        self.ground2 = random.random()>0.5
-        self.ground3 = random.random()>0.5
-        self.ground4 = random.random()>0.5
+        self.ground0 = random.random() > 0.5
+        self.ground1 = random.random() > 0.5
+        self.ground2 = random.random() > 0.5
+        self.ground3 = random.random() > 0.5
+        self.ground4 = random.random() > 0.5
 
-        self.m1_encoder += random.random()*0.8
-        self.m2_encoder += random.random()*0.8
+        self.m1_encoder += random.random() * 0.8
+        self.m2_encoder += random.random() * 0.8
 
         time.sleep(0.1)
 
@@ -55,13 +55,21 @@ class ArduinoHandler:
         self.m1_encoder = 0
         self.m2_encoder = 0
 
+        # Min message = 5.00;5.00;1;1;0;0;0;0;0;0;0;\r\n
+        self.min_mess_size = 30
+
     def get(self):
-        sensors = self.arduino.readline().decode().split(";")
-        self.m1_encoder=0
-        self.m2_encoder=0
+        line = self.arduino.readline()
+        # just debugging line, eventually remove after confirming
+        if len(line) < self.min_mess_size:
+            print("min value is bugged", len(line))
+        sensors = line.decode().split(";")
+        self.m1_encoder = 0
+        self.m2_encoder = 0
+
         # read extra lines if they exist
-        while self.arduino.in_waiting>0:
-            print("Losing cycles...")
+        while self.arduino.in_waiting >= self.min_mess_size:
+            print("Losing cycles... ", self.arduino.in_waiting)
             self.m1_encoder += float(sensors[9])
             self.m2_encoder += float(sensors[10])
             sensors = self.arduino.readline().decode().split(";")
@@ -80,4 +88,3 @@ class ArduinoHandler:
 
         self.m1_encoder += float(sensors[9])
         self.m2_encoder += float(sensors[10])
-

@@ -62,7 +62,7 @@ void readLineSensors() {
   digitalWrite(groundEnablePin, HIGH);    
 
   // wait 0.5 ms (for the default gain)
-  delayMicroseconds(500);           
+  delayMicroseconds(400);           
   ground0 = digitalRead(ground0pin);
   ground1 = digitalRead(ground1pin);
   ground2 = digitalRead(ground2pin);

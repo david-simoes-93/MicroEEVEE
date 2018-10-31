@@ -18,14 +18,14 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
 
     pygame.draw.circle(screen, black, [150, 150], 10)
 
-    pygame.draw.line(screen, (0, 0, 255), [148, 150], [148 - int(ir_left * 10), 150], 2)
-    pygame.draw.line(screen, (0, 0, 255), [152, 150], [152 + int(ir_right * 10), 150], 2)
+    pygame.draw.line(screen, (0, 0, 255), [148, 150], [148 - int(ir_left * 100), 150], 2)
+    pygame.draw.line(screen, (0, 0, 255), [152, 150], [152 + int(ir_right * 100), 150], 2)
 
-    us_left_xy, us_right_xy = int(math.sqrt(us_left) / 2 * 10), int(math.sqrt(us_right) / 2 * 10)
+    us_left_xy, us_right_xy = int(math.sqrt(us_left) / 2 * 100), int(math.sqrt(us_right) / 2 * 100)
     pygame.draw.line(screen, (0, 255, 0), [144, 144], [144 - us_left_xy, 144 - us_left_xy], 2)
     pygame.draw.line(screen, (0, 255, 0), [156, 144], [156 + us_right_xy, 144 - us_right_xy], 2)
-    pygame.draw.line(screen, (0, 255, 0), [150, 141], [150, 141 - int(us_front * 10)], 2)
-    pygame.draw.line(screen, (0, 255, 0), [150, 159], [150, 159 + int(us_back * 10)], 2)
+    pygame.draw.line(screen, (0, 255, 0), [150, 141], [150, 141 - int(us_front * 100)], 2)
+    pygame.draw.line(screen, (0, 255, 0), [150, 159], [150, 159 + int(us_back * 100)], 2)
 
     pygame.draw.circle(screen, black, [100, 10], 6)
     pygame.draw.circle(screen, black, [125, 10], 6)
@@ -45,16 +45,17 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
 
 
 def main():
-    gui = True
-    remote_control = True
+    gui = False
+    remote_control = False
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BOARD)
 
     # asynchronously update US sensors
-    us0, us1, us2, us3 = Value('f', 0), Value('f', 0), Value('f', 0), Value('f', 0)
+    us_left, us_front, us_right, us_back = Value('f', 0), Value('f', 0), Value('f', 0), Value('f', 0)
     keep_running_us = Value('b', True)
-    Process(target=us_async, args=(keep_running_us, 13, 16, us0, 11, 18, us1, 7, 22, us2, 12, 24, us3)).start()
+    Process(target=us_async, args=(keep_running_us, 13, 16, us_right, 11, 18, us_front,
+                                   7, 22, us_left, 12, 24, us_back)).start()
 
     # motors
     m1 = MotorActuator(35, 37, 33)  # IN1 IN2 ENA - Right Motor
@@ -62,6 +63,7 @@ def main():
 
     # LED
     led0 = LedActuator(26)
+    led1 = LedActuator(29)
 
     # Arduino
     try:
@@ -69,7 +71,6 @@ def main():
     except SerialException:
         print("Serial connection not found")
         arduino = EmptyArduino()
-
 
     if gui:
         pygame.init()
@@ -80,13 +81,15 @@ def main():
 
     while True:
         arduino.get()
-        #print(us0.value, us1.value, us2.value, us3.value)
-        #print(arduino.ir0, arduino.ir1)
-        print(arduino.button0, arduino.button1)
-        #print(arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
-        print(arduino.m1_encoder, arduino.m2_encoder)
+        if not gui:
+            print(us_left.value, us_front.value, us_right.value, us_back.value)
+            #print(arduino.ir0, arduino.ir1)
+            #print(arduino.button0, arduino.button1)
+            print(arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+            #print(arduino.m1_encoder, arduino.m2_encoder)
 
-        led0.set(us1.value > 0.20)
+        led0.set(us_front.value < 0.20)
+        led1.set(us_left.value < 0.20 or us_right.value < 0.20)
 
         if remote_control:
             if left_motor_speed > 0:
@@ -97,33 +100,6 @@ def main():
                 right_motor_speed -= 5
             elif right_motor_speed < 0:
                 right_motor_speed += 5
-
-            """pressed = pygame.key.get_pressed()
-            print(pressed)
-            if pressed[pygame.K_LEFT]:
-                print("LEFT")
-                left_motor_speed -= 15
-                right_motor_speed += 15
-            elif pressed[pygame.K_RIGHT]:
-                left_motor_speed += 15
-                right_motor_speed -= 15
-
-            if pressed[pygame.K_UP]:
-                print("UP")
-                left_motor_speed += 10
-                right_motor_speed += 10
-            elif pressed[pygame.K_DOWN]:
-                left_motor_speed -= 10
-                right_motor_speed -= 10
-
-            if pressed[pygame.K_SPACE]:
-                left_motor_speed = 0
-                right_motor_speed = 0
-            if pressed[pygame.K_ESCAPE]:
-                m1.set(0)
-                m2.set(0)
-                pygame.quit()
-                exit()"""
 
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
@@ -156,7 +132,7 @@ def main():
         m2.set(right_motor_speed)
 
         if gui:
-            render(screen, arduino.ir0, arduino.ir1, us0.value, us1.value, us2.value, us3.value,
+            render(screen, arduino.ir0, arduino.ir1, us_left.value, us_front.value, us_right.value, us_back.value,
                    arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4,
                    left_motor_speed, right_motor_speed)
 

@@ -10,7 +10,7 @@ class MotorActuator:
         GPIO.setup(en_b, GPIO.OUT, initial=GPIO.LOW)
 
         # Configure the pwm and enable pins
-        self.pwm = GPIO.PWM(pwm, 100)
+        self.pwm = GPIO.PWM(pwm, 100) # 100 Hz
         self.en_a = en_a
         self.en_b = en_b
 
@@ -24,5 +24,7 @@ class MotorActuator:
             GPIO.output(self.en_a, GPIO.LOW)
             GPIO.output(self.en_b, GPIO.HIGH)
 
-        self.pwm.ChangeDutyCycle(min(abs(pwm),100))
+        # https://www.bananarobotics.com/shop/How-to-use-the-L298N-Dual-H-Bridge-Motor-Driver
+        # Don't use above 90% PWM
+        self.pwm.ChangeDutyCycle(min(abs(pwm),90))
 
