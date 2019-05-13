@@ -20,9 +20,15 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m_le
 
     my_x, my_y, my_theta = 0, 0, 0
 
+    encoder_l, encoder_r = 0, 0
+
     while not beacon_area_detected(arduino):
         arduino.get()
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+
+        encoder_l += arduino.m1_encoder
+        encoder_r += arduino.m2_encoder
+        print(encoder_l, encoder_r)
 
         print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
         # print("IR:",arduino.ir0, arduino.ir1)
@@ -51,8 +57,8 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m_le
         print("Moving: %4.2f %4.2f" % (left_motor_speed, right_motor_speed))
         left_motor_speed = max(min(100, left_motor_speed), -100)
         right_motor_speed = max(min(100, right_motor_speed), -100)
-        m_left.set(left_motor_speed)
-        m_right.set(right_motor_speed)
+        #m_left.set(left_motor_speed)
+        #m_right.set(right_motor_speed)
 
 
 def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m1, m2, return_area):

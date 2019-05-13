@@ -6,13 +6,12 @@ from EEVEE.Utils import normalize_radian_angle
 PI = 3.14159265359
 
 # Motor parameters
-RPM_OUT = 210  # RPM in the output shaft @ 9.6V
-GEAR_RATIO = 34  # Gear box ratio
-ENCODER_PULSES = 11  # Encoder, pulses per revolution
+# "Gear box ratio" times "Encoder, pulses per revolution"
+GEAR_RATIO_times_ENCODER_PULSES = 236   # 34 * 11 but with 1.58 ratio?
 
 # Robot dimensions
-WHEEL2WHEEL_DIST = 19  # cm
-WHEEL_DIAM = 6.5  # cm
+WHEEL2WHEEL_DIST = 14.7  # cm
+WHEEL_DIAM = 6.7  # cm
 WHEEL_PER = PI * WHEEL_DIAM
 
 
@@ -45,8 +44,8 @@ class MotorActuator:
 
 
 def odometry(encLeft, encRight, xpos, ypos, theta):
-    dLeft = (encLeft * WHEEL_PER) / (ENCODER_PULSES * GEAR_RATIO)
-    dRight = (encRight * WHEEL_PER) / (ENCODER_PULSES * GEAR_RATIO)
+    dLeft = (encLeft * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
+    dRight = (encRight * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
 
     dCenter = (dLeft + dRight) / 2.0
     phi = (dRight - dLeft) / WHEEL2WHEEL_DIST
