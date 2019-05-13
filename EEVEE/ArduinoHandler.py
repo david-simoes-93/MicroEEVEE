@@ -90,3 +90,6 @@ class ArduinoHandler:
 
         self.m1_encoder += float(sensors[9])
         self.m2_encoder += float(sensors[10])
+
+        # negate m1 encoder
+        self.m1_encoder = -self.m1_encoder

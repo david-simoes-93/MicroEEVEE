@@ -1,5 +1,7 @@
 import time
 from multiprocessing import Process, Value
+
+from EEVEE import MotorHandler, Utils
 from EEVEE.USHandler import us_async
 from EEVEE.MotorHandler import MotorActuator
 from EEVEE.LedHandler import LedActuator
@@ -9,35 +11,62 @@ import pygame
 import math
 from serial import SerialException
 import time
+import sys
+import signal
 
 
-def main_loop(arduino, us_left, us_front, us_right, us_back, ir_left, ir_right, led0, led1, button0, button1, m1, m2):
-    left_motor_speed, right_motor_speed = 0, 0
-    movedl, movedr = 0, 0
-
+def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m_left, m_right):
     moving_forward = True
 
-    while True:
-        arduino.get()
-        movedl += arduino.m1_encoder
-        movedr += arduino.m2_encoder
+    my_x, my_y, my_theta = 0, 0, 0
 
-        if movedl > 1000 and movedr > 1000:
+    while not beacon_area_detected(arduino):
+        arduino.get()
+        my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+
+        print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
+        # print("IR:",arduino.ir0, arduino.ir1)
+        # print("Buttons:",arduino.button0, arduino.button1)
+        # print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+        print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
+
+        if my_x > 100:
             moving_forward = False
-        elif movedl < -1000 and movedr < -1000:
+        elif my_x < -100:
             moving_forward = True
 
         if moving_forward:
             left_motor_speed = 25
-            right_motor_speed = 25
+            right_motor_speed = 35
         else:
             left_motor_speed = -25
-            right_motor_speed = -25
+            right_motor_speed = -35
 
+        #if moving_forward:
+        if my_theta > 0:
+            left_motor_speed *= 0.9
+        elif my_theta < 0:
+            right_motor_speed *= 0.9
+
+        print("Moving: %4.2f %4.2f" % (left_motor_speed, right_motor_speed))
         left_motor_speed = max(min(100, left_motor_speed), -100)
         right_motor_speed = max(min(100, right_motor_speed), -100)
-        m1.set(left_motor_speed)
-        m2.set(right_motor_speed)
+        m_left.set(left_motor_speed)
+        m_right.set(right_motor_speed)
+
+
+def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m1, m2, return_area):
+    pass
+
+
+def beacon_area_detected(arduino):
+    # arduino.ground2 is always dead :|
+
+    if not arduino.ground0 and not arduino.ground1 and not arduino.ground2 \
+            and not arduino.ground3 and not arduino.ground4:
+        print("Beacon found!", arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+        # return True
+    return False
 
 
 def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
@@ -78,12 +107,17 @@ def blink_lights_until_button(arduino, led0, led1):
     last_time = time.time()
     led0_state, led1_state = False, True
 
+    print("Ready to go. Press a button...")
     while True:
+        arduino.get()
+
         if arduino.button0 or arduino.button1:
             break
         curr_time = time.time()
 
         if curr_time - last_time > 1:
+            last_time = curr_time
+
             led0_state = not led0_state
             led1_state = not led1_state
             led0.set(led0_state)
@@ -91,8 +125,8 @@ def blink_lights_until_button(arduino, led0, led1):
 
 
 def main():
-    gui = False
-    remote_control = False
+    """gui = False
+    remote_control = False"""
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BOARD)
@@ -100,10 +134,11 @@ def main():
     # asynchronously update US sensors
     us_left, us_front, us_right, us_back = Value('f', 0), Value('f', 0), Value('f', 0), Value('f', 0)
     keep_running_us = Value('b', True)
-    Process(target=us_async, args=(keep_running_us, 13, 16, us_right, 11, 18, us_front,
-                                   7, 22, us_left, 12, 24, us_back)).start()
+    Process(target=us_async, args=(keep_running_us, 13, 16, us_back, 11, 18, us_right,
+                                   7, 22, us_front, 12, 24, us_left)).start()
 
     # motors
+    global m1, m2
     m1 = MotorActuator(36, 37, 33)  # IN1 IN2 ENA - Right Motor
     m2 = MotorActuator(40, 38, 32)  # IN3 IN4 ENB - Left Motor
 
@@ -118,16 +153,28 @@ def main():
         print("Serial connection not found")
         arduino = EmptyArduino()
 
-    if gui:
+    """if gui:
+        print("Enabling GUI...")
         pygame.init()
         screen = pygame.display.set_mode([300, 300])
-        pygame.display.set_caption("EEVEE")
+        pygame.display.set_caption("EEVEE")"""
 
     left_motor_speed, right_motor_speed = 0, 0
     movedl, movedr = 0, 0
 
     blink_lights_until_button(arduino, led0, led1)
 
+    explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m2, m1)
+
+    blink_lights_until_button(arduino, led0, led1)
+
+    return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m2, m1, None)
+
+    while True:
+        blink_lights_until_button(arduino, led0, led1)
+
+    # irrelevant legacy code
+    """
     while True:
         arduino.get()
         if not gui:
@@ -186,8 +233,22 @@ def main():
         if gui:
             render(screen, arduino.ir0, arduino.ir1, us_left.value, us_front.value, us_right.value, us_back.value,
                    arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4,
-                   left_motor_speed, right_motor_speed)
+                   left_motor_speed, right_motor_speed)"""
+
+
+m1, m2 = None, None
+
+
+def signal_handler(sig, frame):
+    print('Terminating...')
+    if m1 is not None:
+        m1.set(0)
+    if m2 is not None:
+        m2.set(0)
+    GPIO.cleanup()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
     main()
