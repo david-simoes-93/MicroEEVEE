@@ -58,6 +58,8 @@ class ArduinoHandler:
         # Min message = 5.00;5.00;1;1;0;0;0;0;0;0;0;\r\n
         self.min_mess_size = 30
 
+        self.arduino.readline()
+
     def get(self):
         line = self.arduino.readline()
         # just debugging line, eventually remove after confirming

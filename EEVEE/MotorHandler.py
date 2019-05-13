@@ -10,7 +10,7 @@ class MotorActuator:
         GPIO.setup(en_b, GPIO.OUT, initial=GPIO.LOW)
 
         # Configure the pwm and enable pins
-        self.pwm = GPIO.PWM(pwm, 100) # 100 Hz
+        self.pwm = GPIO.PWM(pwm, 100)   # 100 Hz
         self.en_a = en_a
         self.en_b = en_b
 

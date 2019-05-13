@@ -8,6 +8,36 @@ from EEVEE.ArduinoHandler import ArduinoHandler, EmptyArduino
 import pygame
 import math
 from serial import SerialException
+import time
+
+
+def main_loop(arduino, us_left, us_front, us_right, us_back, ir_left, ir_right, led0, led1, button0, button1, m1, m2):
+    left_motor_speed, right_motor_speed = 0, 0
+    movedl, movedr = 0, 0
+
+    moving_forward = True
+
+    while True:
+        arduino.get()
+        movedl += arduino.m1_encoder
+        movedr += arduino.m2_encoder
+
+        if movedl > 1000 and movedr > 1000:
+            moving_forward = False
+        elif movedl < -1000 and movedr < -1000:
+            moving_forward = True
+
+        if moving_forward:
+            left_motor_speed = 25
+            right_motor_speed = 25
+        else:
+            left_motor_speed = -25
+            right_motor_speed = -25
+
+        left_motor_speed = max(min(100, left_motor_speed), -100)
+        right_motor_speed = max(min(100, right_motor_speed), -100)
+        m1.set(left_motor_speed)
+        m2.set(right_motor_speed)
 
 
 def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
@@ -44,6 +74,22 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
     pygame.display.flip()
 
 
+def blink_lights_until_button(arduino, led0, led1):
+    last_time = time.time()
+    led0_state, led1_state = False, True
+
+    while True:
+        if arduino.button0 or arduino.button1:
+            break
+        curr_time = time.time()
+
+        if curr_time - last_time > 1:
+            led0_state = not led0_state
+            led1_state = not led1_state
+            led0.set(led0_state)
+            led1.set(led1_state)
+
+
 def main():
     gui = False
     remote_control = False
@@ -58,8 +104,8 @@ def main():
                                    7, 22, us_left, 12, 24, us_back)).start()
 
     # motors
-    m1 = MotorActuator(35, 37, 33)  # IN1 IN2 ENA - Right Motor
-    m2 = MotorActuator(38, 40, 32)  # IN3 IN4 ENB - Left Motor
+    m1 = MotorActuator(36, 37, 33)  # IN1 IN2 ENA - Right Motor
+    m2 = MotorActuator(40, 38, 32)  # IN3 IN4 ENB - Left Motor
 
     # LED
     led0 = LedActuator(26)
@@ -77,16 +123,22 @@ def main():
         screen = pygame.display.set_mode([300, 300])
         pygame.display.set_caption("EEVEE")
 
-    left_motor_speed, right_motor_speed = 0,0
+    left_motor_speed, right_motor_speed = 0, 0
+    movedl, movedr = 0, 0
+
+    blink_lights_until_button(arduino, led0, led1)
 
     while True:
         arduino.get()
         if not gui:
             print(us_left.value, us_front.value, us_right.value, us_back.value)
-            #print(arduino.ir0, arduino.ir1)
-            #print(arduino.button0, arduino.button1)
+            print(arduino.ir0, arduino.ir1)
+            print(arduino.button0, arduino.button1)
             print(arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
-            #print(arduino.m1_encoder, arduino.m2_encoder)
+            # print(arduino.m1_encoder, arduino.m2_encoder)
+            movedl += arduino.m1_encoder
+            movedr += arduino.m2_encoder
+            print("Enc", movedl, movedr)
 
         led0.set(us_front.value < 0.20)
         led1.set(us_left.value < 0.20 or us_right.value < 0.20)
@@ -115,7 +167,7 @@ def main():
                     elif event.key == pygame.K_DOWN:
                         left_motor_speed -= 10
                         right_motor_speed -= 10
-                    
+
                     if event.key == pygame.K_SPACE:
                         left_motor_speed = 0
                         right_motor_speed = 0

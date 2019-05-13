@@ -10,12 +10,12 @@ const int ir0pin = 0;
 const int ir1pin = 1;
 float ir0, ir1;
 
-const int button0pin = 11;
+const int button0pin = 13;
 const int button1pin = 10;
 bool button0, button1;
 
 const int m2enA = 2;
-const int m2enB = 13;
+const int m2enB = 11; 
 const int m1enA = 3;
 const int m1enB = 12;
 int m1, m2, counterM1, counterM2;
@@ -100,6 +100,7 @@ void m1_enc(){
 }
 
 void m2_enc(){
+  
   if(digitalRead(m2enB))
     counterM2++;
   else
