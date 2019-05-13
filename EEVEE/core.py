@@ -3,7 +3,7 @@ from multiprocessing import Process, Value
 
 from EEVEE import MotorHandler, Utils
 from EEVEE.USHandler import us_async
-from EEVEE.MotorHandler import MotorActuator
+from EEVEE.MotorHandler import MotorActuator, MovementHandler
 from EEVEE.LedHandler import LedActuator
 import RPi.GPIO as GPIO
 from EEVEE.ArduinoHandler import ArduinoHandler, EmptyArduino
@@ -15,20 +15,13 @@ import sys
 import signal
 
 
-def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m_left, m_right):
+def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors):
     moving_forward = True
-
     my_x, my_y, my_theta = 0, 0, 0
-
-    encoder_l, encoder_r = 0, 0
 
     while not beacon_area_detected(arduino):
         arduino.get()
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
-
-        encoder_l += arduino.m1_encoder
-        encoder_r += arduino.m2_encoder
-        print(encoder_l, encoder_r)
 
         print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
         # print("IR:",arduino.ir0, arduino.ir1)
@@ -42,26 +35,13 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m_le
             moving_forward = True
 
         if moving_forward:
-            left_motor_speed = 25
-            right_motor_speed = 35
+            motors.follow_direction(0, my_theta, 35)
         else:
-            left_motor_speed = -25
-            right_motor_speed = -35
-
-        #if moving_forward:
-        if my_theta > 0:
-            left_motor_speed *= 0.9
-        elif my_theta < 0:
-            right_motor_speed *= 0.9
-
-        print("Moving: %4.2f %4.2f" % (left_motor_speed, right_motor_speed))
-        left_motor_speed = max(min(100, left_motor_speed), -100)
-        right_motor_speed = max(min(100, right_motor_speed), -100)
-        #m_left.set(left_motor_speed)
-        #m_right.set(right_motor_speed)
+            motors.follow_direction(-math.pi, my_theta, -35)
 
 
-def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m1, m2, return_area):
+
+def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, return_area):
     pass
 
 
@@ -147,6 +127,7 @@ def main():
     global m1, m2
     m1 = MotorActuator(36, 37, 33)  # IN1 IN2 ENA - Right Motor
     m2 = MotorActuator(40, 38, 32)  # IN3 IN4 ENB - Left Motor
+    motors = MovementHandler(m2, m1)
 
     # LED
     led0 = LedActuator(26)
@@ -170,11 +151,11 @@ def main():
 
     blink_lights_until_button(arduino, led0, led1)
 
-    explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m2, m1)
+    explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors)
 
     blink_lights_until_button(arduino, led0, led1)
 
-    return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, m2, m1, None)
+    return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, None)
 
     while True:
         blink_lights_until_button(arduino, led0, led1)
