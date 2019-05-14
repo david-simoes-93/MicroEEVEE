@@ -23,11 +23,11 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
         arduino.get()
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
 
-        print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
+        #print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
         # print("IR:",arduino.ir0, arduino.ir1)
         # print("Buttons:",arduino.button0, arduino.button1)
-        # print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
-        print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
+        print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+        #print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
 
         if my_x > 100:
             moving_forward = False
@@ -37,7 +37,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
         if moving_forward:
             motors.follow_direction(0, my_theta, 35)
         else:
-            motors.follow_direction(-math.pi, my_theta, -35)
+            motors.follow_direction(0, my_theta, -35)
 
 
 
@@ -46,7 +46,7 @@ def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motor
 
 
 def beacon_area_detected(arduino):
-    # arduino.ground2 is always dead :|
+    # arduino.ground2 is always true :|
 
     if not arduino.ground0 and not arduino.ground1 and not arduino.ground2 \
             and not arduino.ground3 and not arduino.ground4:
