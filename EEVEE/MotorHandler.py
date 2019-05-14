@@ -1,9 +1,6 @@
 import RPi.GPIO as GPIO
 import math
-
-from EEVEE.Utils import normalize_radian_angle
-
-PI = 3.14159265359
+from EEVEE.Utils import *
 
 # Motor parameters
 # "Gear box ratio" times "Encoder, pulses per revolution"
@@ -12,7 +9,7 @@ GEAR_RATIO_times_ENCODER_PULSES = 236  # 34 * 11 but with 1.58 ratio?
 # Robot dimensions
 WHEEL2WHEEL_DIST = 14.7  # cm
 WHEEL_DIAM = 6.7  # cm
-WHEEL_PER = PI * WHEEL_DIAM
+WHEEL_PER = math.pi * WHEEL_DIAM
 
 
 # Motor actuator
@@ -67,9 +64,27 @@ class MovementHandler:
         self.prev_left_speed = 0
         self.prev_right_speed = 0
 
+        self.gradual_speed_increment = 5
+
+        self.state = STOPPED
+
     def slow_adapt_speed(self, l_speed, r_speed):
-        self.prev_left_speed = (self.prev_left_speed + l_speed) / 2
-        self.prev_right_speed = (self.prev_right_speed + r_speed) / 2
+        if l_speed - self.prev_left_speed > self.gradual_speed_increment:
+            self.prev_left_speed += self.gradual_speed_increment
+        elif l_speed - self.prev_left_speed < -self.gradual_speed_increment:
+            self.prev_left_speed -= self.gradual_speed_increment
+        else:
+            self.prev_left_speed = l_speed
+
+        if r_speed - self.prev_right_speed > self.gradual_speed_increment:
+            self.prev_right_speed += self.gradual_speed_increment
+        elif r_speed - self.prev_right_speed < -self.gradual_speed_increment:
+            self.prev_right_speed -= self.gradual_speed_increment
+        else:
+            self.prev_right_speed = r_speed
+
+        # self.prev_left_speed = (self.prev_left_speed + l_speed) / 2
+        # self.prev_right_speed = (self.prev_right_speed + r_speed) / 2
 
         self.motor_left.set(l_speed)
         self.motor_right.set(r_speed)
@@ -80,39 +95,60 @@ class MovementHandler:
         r_speed = speed
         self.slow_adapt_speed(l_speed, r_speed)
 
+        self.state = TURNING_RIGHT
+
     def rotate_left(self, speed=35):
         l_speed = speed
         r_speed = -speed
         self.slow_adapt_speed(l_speed, r_speed)
 
+        self.state = TURNING_LEFT
+
     def forward(self, speed=35):
-        l_speed = speed * 0.7
+        l_speed = speed
         r_speed = speed
         self.slow_adapt_speed(l_speed, r_speed)
 
+        # not possible to have positive left and negative right, i think
+        if self.prev_left_speed > 0 or self.prev_right_speed > 0:
+            self.state = FORWARD
+        else:
+            self.state = BACK
+
     def follow_direction(self, theta_target, my_theta, speed=35):
-        l_speed = speed * 0.7
+        l_speed = speed
         r_speed = speed
 
         # cap angle difference at 45º
-        theta_diff = min(max(normalize_radian_angle(theta_target-my_theta), -math.pi/2), math.pi/2)
-        if theta_diff > math.pi/4:
+        theta_diff = min(max(normalize_radian_angle(theta_target - my_theta), -math.pi / 2), math.pi / 2)
+        # print("theta_diff", to_degree(theta_diff))
+        if (theta_diff > math.pi / 4 and speed > 0) or (theta_diff < -math.pi / 4 and speed < 0):
             l_speed *= 1.2
             r_speed *= 0.8
-        elif theta_diff > 0:
+        elif (theta_diff > 0 and speed > 0) or (theta_diff < 0 and speed < 0):
             l_speed *= 1.1
             r_speed *= 0.9
-        elif theta_diff < -math.pi/4:
+        elif (theta_diff < -math.pi / 4 and speed > 0) or (theta_diff > math.pi / 4 and speed < 0):
             l_speed *= 0.8
             r_speed *= 1.2
-        elif theta_diff < 0:
+        elif (theta_diff < 0 and speed > 0) or (theta_diff > 0 and speed < 0):
             l_speed *= 0.9
             r_speed *= 1.1
 
         self.slow_adapt_speed(l_speed, r_speed)
 
+        # not possible to have positive left and negative right, i think
+        if self.prev_left_speed > 0 or self.prev_right_speed > 0:
+            self.state = FORWARD
+        else:
+            self.state = BACK
+
     def stop(self):
-        self.slow_adapt_speed(0,0)
+        self.slow_adapt_speed(0, 0)
+        if self.prev_left_speed != 0 or self.prev_right_speed != 0:
+            self.state = STOPPING
+        else:
+            self.state = STOPPED
 
     def emergency_stop(self):
         # abrupt stop

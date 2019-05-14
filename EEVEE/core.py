@@ -1,7 +1,8 @@
 import time
 from multiprocessing import Process, Value
-
+import multiprocessing
 from EEVEE import MotorHandler, Utils
+from EEVEE.CameraHandler import CameraHandler
 from EEVEE.USHandler import us_async
 from EEVEE.MotorHandler import MotorActuator, MovementHandler
 from EEVEE.LedHandler import LedActuator
@@ -13,11 +14,19 @@ from serial import SerialException
 import time
 import sys
 import signal
+from EEVEE.mapping import Maze, Cell
+from EEVEE.pathplanner import AStar
+from EEVEE.Utils import *
 
 
-def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors):
-    moving_forward = True
+def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam):
     my_x, my_y, my_theta = 0, 0, 0
+    path_planner = AStar()
+    my_map = Maze()
+
+    target_cell = Cell(20,10)
+    planned_path = list(path_planner.astar(my_map.my_cell, target_cell))
+    print([str(x) for x in planned_path])
 
     while not beacon_area_detected(arduino):
         arduino.get()
@@ -26,18 +35,64 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
         #print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
         # print("IR:",arduino.ir0, arduino.ir1)
         # print("Buttons:",arduino.button0, arduino.button1)
-        print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
-        #print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
+        #print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+        print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
 
+        if motors.state == STOPPED:
+            beacon = cam.get()
+            if beacon is not None:
+                print("Beacon!", beacon)
+
+        if motors.state == STOPPING:
+            print("Stopping")
+            motors.stop()
+            continue
+
+        # shouldnt happen :|
+        if planned_path is None:
+            print("None path")
+            motors.follow_direction(my_theta, my_theta, 35)
+            continue
+
+        if len(planned_path) == 1:
+            print("Got to destination")
+            motors.stop()
+            continue
+
+        target_dir = normalize_radian_angle(to_radian(
+            get_angle_between_points(planned_path[0].coords, planned_path[1].coords)))
+        print("Target dir:", to_degree(target_dir))
+
+        if target_dir > math.pi/2:
+            print("turning right")
+            if motors.state != TURNING_RIGHT:
+                motors.stop()
+                continue
+            motors.rotate_right()
+            continue
+
+        if target_dir < -math.pi/2:
+            print("turning left")
+            if motors.state != TURNING_LEFT:
+                motors.stop()
+                continue
+            motors.rotate_left()
+
+        motors.follow_direction(target_dir, my_theta, 35)
+        print("moved forward")
+
+        """
         if my_x > 100:
+            print("MOVING BACKWARDS")
             moving_forward = False
         elif my_x < -100:
+            print("MOVING FORWARDS")
             moving_forward = True
 
         if moving_forward:
             motors.follow_direction(0, my_theta, 35)
         else:
-            motors.follow_direction(0, my_theta, -35)
+            motors.follow_direction(0, my_theta, -35)"""
 
 
 
@@ -46,7 +101,7 @@ def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motor
 
 
 def beacon_area_detected(arduino):
-    # arduino.ground2 is always true :|
+    # arduino.ground1 is always true :|
 
     if not arduino.ground0 and not arduino.ground1 and not arduino.ground2 \
             and not arduino.ground3 and not arduino.ground4:
@@ -111,6 +166,7 @@ def blink_lights_until_button(arduino, led0, led1):
 
 
 def main():
+    cam = CameraHandler()
     """gui = False
     remote_control = False"""
 
@@ -119,6 +175,7 @@ def main():
 
     # asynchronously update US sensors
     us_left, us_front, us_right, us_back = Value('f', 0), Value('f', 0), Value('f', 0), Value('f', 0)
+    global keep_running_us
     keep_running_us = Value('b', True)
     Process(target=us_async, args=(keep_running_us, 13, 16, us_back, 11, 18, us_right,
                                    7, 22, us_front, 12, 24, us_left)).start()
@@ -140,18 +197,18 @@ def main():
         print("Serial connection not found")
         arduino = EmptyArduino()
 
+    for _ in range(5):
+        arduino.get()
+
     """if gui:
         print("Enabling GUI...")
         pygame.init()
         screen = pygame.display.set_mode([300, 300])
         pygame.display.set_caption("EEVEE")"""
 
-    left_motor_speed, right_motor_speed = 0, 0
-    movedl, movedr = 0, 0
-
     blink_lights_until_button(arduino, led0, led1)
 
-    explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors)
+    explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam)
 
     blink_lights_until_button(arduino, led0, led1)
 
@@ -223,11 +280,18 @@ def main():
                    left_motor_speed, right_motor_speed)"""
 
 
-m1, m2 = None, None
+m1, m2, keep_running_us = None, None, None
 
 
 def signal_handler(sig, frame):
+    if multiprocessing.current_process().name != 'MainProcess':
+        print("Thread...")
+        return
+
     print('Terminating...')
+    if keep_running_us is not None:
+        keep_running_us.value = False
+        time.sleep(0.5)
     if m1 is not None:
         m1.set(0)
     if m2 is not None:

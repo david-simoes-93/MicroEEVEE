@@ -16,7 +16,7 @@ class USSensor:
 
         self.time_since = 0
         self.state = 0
-        self.buf = [None]*MEDIAN_SIZE
+        self.buf = [0]*MEDIAN_SIZE
         self.i = 0
 
     def do_phase(self, dist):

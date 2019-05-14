@@ -2,6 +2,13 @@ import math
 
 MEDIAN_SIZE = 5
 
+STOPPED = 0
+FORWARD = 1
+TURNING_LEFT = 2
+TURNING_RIGHT = 3
+BACK = 4
+STOPPING = 5
+
 def normalize_radian_angle(angle):
     while angle < -math.pi:
         angle += 2.0 * math.pi
@@ -146,7 +153,7 @@ def update_robot_pos_time_delay(prev_left, prev_right, in_lefts, in_rights, my_x
     return my_x, my_y, my_dir, prev_left, prev_right
 
 
-# returns angle between line [c,e] and x-axis in degress
+# returns angle between line [c,e] and x-axis in degrees
 def get_angle_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]

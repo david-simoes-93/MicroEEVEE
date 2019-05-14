@@ -61,7 +61,7 @@ class ArduinoHandler:
 
         self.arduino.readline()
 
-        self.buf = [[None]*MEDIAN_SIZE, [None]*MEDIAN_SIZE ]
+        self.buf = [[0]*MEDIAN_SIZE, [0]*MEDIAN_SIZE ]
         self.i = [0,0]
 
 

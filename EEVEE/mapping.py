@@ -4,6 +4,8 @@ from pygame.locals import *
 import pygame
 from Utils import *
 
+from EEVEE.Utils import to_degree
+
 cell_resolution = 16
 half_cell_resolution = int(cell_resolution / 2)
 
@@ -12,8 +14,8 @@ class Maze(object):
     """docstring for Maze"""
 
     def __init__(self):
-        self.width = 15
-        self.height = 15
+        self.width = 21
+        self.height = 21
         self.maze = [[Cell(x, y) for y in range(self.height)] for x in range(self.width)]
         for x in range(0, self.width):
             for y in range(0, self.height):
@@ -39,12 +41,13 @@ class Maze(object):
         self.cheese = None
         self.home = self.my_cell
 
-    def pick_exploration_target(self, path_planner, dir):
-        if -45 <= dir <= 45:
+    def pick_exploration_target(self, path_planner, radian_theta):
+        degree_theta = to_degree(radian_theta)
+        if -45 <= degree_theta <= 45:
             prev_cell = self.my_cell.neighbor_west
-        elif -135 <= dir < -45:
+        elif -135 <= degree_theta < -45:
             prev_cell = self.my_cell.neighbor_south
-        elif 45 < dir <= 135:
+        elif 45 < degree_theta <= 135:
             prev_cell = self.my_cell.neighbor_north
         else:
             prev_cell = self.my_cell.neighbor_east
@@ -74,7 +77,7 @@ class Maze(object):
                 for y in range(0, self.height):
                     self.maze[x][y].explored = False
             self.my_cell.explored = True
-            return self.pick_exploration_target(path_planner, dir)
+            return self.pick_exploration_target(path_planner, degree_theta)
 
     # def reset_side_odometry(self, my_x, my_y, left_sensor, right_sensor, compass):
     #     if self.prev_side_odometry_reset_cell == self.my_cell:

@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from heapq import heappush, heappop
 
-from CiberEEVEE.utils import dist, dist_manhattan
+from EEVEE.Utils import dist, dist_manhattan
 
 Infinite = float('inf')
 
