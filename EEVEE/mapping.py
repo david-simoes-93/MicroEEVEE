@@ -2,7 +2,7 @@ import numpy as np
 import math
 from pygame.locals import *
 import pygame
-from CiberEEVEE.utils import *
+from Utils import *
 
 cell_resolution = 16
 half_cell_resolution = int(cell_resolution / 2)
@@ -12,8 +12,8 @@ class Maze(object):
     """docstring for Maze"""
 
     def __init__(self):
-        self.width = 32
-        self.height = 18
+        self.width = 15
+        self.height = 15
         self.maze = [[Cell(x, y) for y in range(self.height)] for x in range(self.width)]
         for x in range(0, self.width):
             for y in range(0, self.height):
@@ -76,92 +76,92 @@ class Maze(object):
             self.my_cell.explored = True
             return self.pick_exploration_target(path_planner, dir)
 
-    def reset_side_odometry(self, my_x, my_y, left_sensor, right_sensor, compass):
-        if self.prev_side_odometry_reset_cell == self.my_cell:
-            return my_x, my_y
+    # def reset_side_odometry(self, my_x, my_y, left_sensor, right_sensor, compass):
+    #     if self.prev_side_odometry_reset_cell == self.my_cell:
+    #         return my_x, my_y
+    #
+    #     self.prev_side_odometry_reset_cell = self.my_cell
+    #     compass_rad_left = compass * math.pi / 180 + math.pi / 2
+    #     compass_rad_right = compass * math.pi / 180 - math.pi / 2
+    #
+    #     # print("pos:", my_x, my_y, self.my_cell, "sensors", left_sensor, right_sensor, compass)
+    #
+    #     if -15 <= compass <= 15:
+    #         wall_left = self.my_cell.wall_north
+    #         wall_right = self.my_cell.wall_south
+    #         wall_left_coord_y = self.get_gps_coords_from_cell_coords(wall_left.line[0])[1]
+    #         wall_right_coord_y = self.get_gps_coords_from_cell_coords(wall_right.line[0])[1]
+    #         left_sensor_pos_in_eevee_y = wall_left_coord_y + left_sensor
+    #         right_sensor_pos_in_eevee_y = wall_right_coord_y - right_sensor
+    #         my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left)) \
+    #                + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
+    #     elif -105 <= compass < -75:
+    #         wall_left = self.my_cell.wall_west
+    #         wall_right = self.my_cell.wall_east
+    #         wall_left_coord_x = self.get_gps_coords_from_cell_coords(wall_left.line[0])[0]
+    #         wall_right_coord_x = self.get_gps_coords_from_cell_coords(wall_right.line[0])[0]
+    #         left_sensor_pos_in_eevee_x = wall_left_coord_x + left_sensor
+    #         right_sensor_pos_in_eevee_x = wall_right_coord_x - right_sensor
+    #         my_x = 0.5 * (left_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_left)) \
+    #                + 0.5 * (right_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_right))
+    #     elif 75 < compass <= 105:
+    #         wall_left = self.my_cell.wall_east
+    #         wall_right = self.my_cell.wall_west
+    #         wall_left_coord_x = self.get_gps_coords_from_cell_coords(wall_left.line[0])[0]
+    #         wall_right_coord_x = self.get_gps_coords_from_cell_coords(wall_right.line[0])[0]
+    #         left_sensor_pos_in_eevee_x = wall_left_coord_x - left_sensor
+    #         right_sensor_pos_in_eevee_x = wall_right_coord_x + right_sensor
+    #         my_x = 0.5 * (left_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_left)) \
+    #                + 0.5 * (right_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_right))
+    #     elif compass >= 165 or compass <= -165:
+    #         wall_left = self.my_cell.wall_south
+    #         wall_right = self.my_cell.wall_north
+    #         wall_left_coord_y = self.get_gps_coords_from_cell_coords(wall_left.line[0])[1]
+    #         wall_right_coord_y = self.get_gps_coords_from_cell_coords(wall_right.line[0])[1]
+    #         left_sensor_pos_in_eevee_y = wall_left_coord_y - left_sensor
+    #         right_sensor_pos_in_eevee_y = wall_right_coord_y + right_sensor
+    #         my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left)) \
+    #                + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
+    #
+    #     # print("new pos:", my_x, my_y)
+    #
+    #     return my_x, my_y
 
-        self.prev_side_odometry_reset_cell = self.my_cell
-        compass_rad_left = compass * math.pi / 180 + math.pi / 2
-        compass_rad_right = compass * math.pi / 180 - math.pi / 2
-
-        # print("pos:", my_x, my_y, self.my_cell, "sensors", left_sensor, right_sensor, compass)
-
-        if -15 <= compass <= 15:
-            wall_left = self.my_cell.wall_north
-            wall_right = self.my_cell.wall_south
-            wall_left_coord_y = self.get_gps_coords_from_cell_coords(wall_left.line[0])[1]
-            wall_right_coord_y = self.get_gps_coords_from_cell_coords(wall_right.line[0])[1]
-            left_sensor_pos_in_eevee_y = wall_left_coord_y + left_sensor
-            right_sensor_pos_in_eevee_y = wall_right_coord_y - right_sensor
-            my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left)) \
-                   + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
-        elif -105 <= compass < -75:
-            wall_left = self.my_cell.wall_west
-            wall_right = self.my_cell.wall_east
-            wall_left_coord_x = self.get_gps_coords_from_cell_coords(wall_left.line[0])[0]
-            wall_right_coord_x = self.get_gps_coords_from_cell_coords(wall_right.line[0])[0]
-            left_sensor_pos_in_eevee_x = wall_left_coord_x + left_sensor
-            right_sensor_pos_in_eevee_x = wall_right_coord_x - right_sensor
-            my_x = 0.5 * (left_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_left)) \
-                   + 0.5 * (right_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_right))
-        elif 75 < compass <= 105:
-            wall_left = self.my_cell.wall_east
-            wall_right = self.my_cell.wall_west
-            wall_left_coord_x = self.get_gps_coords_from_cell_coords(wall_left.line[0])[0]
-            wall_right_coord_x = self.get_gps_coords_from_cell_coords(wall_right.line[0])[0]
-            left_sensor_pos_in_eevee_x = wall_left_coord_x - left_sensor
-            right_sensor_pos_in_eevee_x = wall_right_coord_x + right_sensor
-            my_x = 0.5 * (left_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_left)) \
-                   + 0.5 * (right_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad_right))
-        elif compass >= 165 or compass <= -165:
-            wall_left = self.my_cell.wall_south
-            wall_right = self.my_cell.wall_north
-            wall_left_coord_y = self.get_gps_coords_from_cell_coords(wall_left.line[0])[1]
-            wall_right_coord_y = self.get_gps_coords_from_cell_coords(wall_right.line[0])[1]
-            left_sensor_pos_in_eevee_y = wall_left_coord_y - left_sensor
-            right_sensor_pos_in_eevee_y = wall_right_coord_y + right_sensor
-            my_y = 0.5 * (left_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_left)) \
-                   + 0.5 * (right_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad_right))
-
-        # print("new pos:", my_x, my_y)
-
-        return my_x, my_y
-
-    def reset_odometry(self, my_x, my_y, front_sensor, compass):
-        compass_rad = compass * math.pi / 180
-
-        # print("pos:", my_x, my_y, self.my_cell, "sensors", front_sensor, compass)
-        wall = None
-        # front_sensor_pos_in_eevee = [my_x + 0.5 * math.cos(compass), my_y + 0.5 * math.sin(compass)]
-
-        # find wall we're hitting
-        if -15 <= compass <= 15:
-            wall = self.my_cell.wall_east
-            wall_coord_x = self.get_gps_coords_from_cell_coords(wall.line[0])[0]
-            front_sensor_pos_in_eevee_x = wall_coord_x - front_sensor
-            my_x = front_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad)
-        elif -105 <= compass < -75:
-            wall = self.my_cell.wall_north
-            wall_coord_y = self.get_gps_coords_from_cell_coords(wall.line[0])[1]
-            front_sensor_pos_in_eevee_y = wall_coord_y + front_sensor
-            my_y = front_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad)
-        elif 75 < compass <= 105:
-            wall = self.my_cell.wall_south
-            wall_coord_y = self.get_gps_coords_from_cell_coords(wall.line[0])[1]
-            front_sensor_pos_in_eevee_y = wall_coord_y - front_sensor
-            my_y = front_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad)
-        elif compass >= 165 or compass <= -165:
-            wall = self.my_cell.wall_west
-            wall_coord_x = self.get_gps_coords_from_cell_coords(wall.line[0])[0]
-            front_sensor_pos_in_eevee_x = wall_coord_x + front_sensor
-            my_x = front_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad)
-
-        if wall is not None:
-            wall.confirm_wall()
-            wall.get_adjacent_wall().confirm_wall()
-            # print("new pos:", my_x, my_y)
-
-        return my_x, my_y
+    # def reset_odometry(self, my_x, my_y, front_sensor, compass):
+    #     compass_rad = compass * math.pi / 180
+    #
+    #     # print("pos:", my_x, my_y, self.my_cell, "sensors", front_sensor, compass)
+    #     wall = None
+    #     # front_sensor_pos_in_eevee = [my_x + 0.5 * math.cos(compass), my_y + 0.5 * math.sin(compass)]
+    #
+    #     # find wall we're hitting
+    #     if -15 <= compass <= 15:
+    #         wall = self.my_cell.wall_east
+    #         wall_coord_x = self.get_gps_coords_from_cell_coords(wall.line[0])[0]
+    #         front_sensor_pos_in_eevee_x = wall_coord_x - front_sensor
+    #         my_x = front_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad)
+    #     elif -105 <= compass < -75:
+    #         wall = self.my_cell.wall_north
+    #         wall_coord_y = self.get_gps_coords_from_cell_coords(wall.line[0])[1]
+    #         front_sensor_pos_in_eevee_y = wall_coord_y + front_sensor
+    #         my_y = front_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad)
+    #     elif 75 < compass <= 105:
+    #         wall = self.my_cell.wall_south
+    #         wall_coord_y = self.get_gps_coords_from_cell_coords(wall.line[0])[1]
+    #         front_sensor_pos_in_eevee_y = wall_coord_y - front_sensor
+    #         my_y = front_sensor_pos_in_eevee_y - 0.5 * math.sin(compass_rad)
+    #     elif compass >= 165 or compass <= -165:
+    #         wall = self.my_cell.wall_west
+    #         wall_coord_x = self.get_gps_coords_from_cell_coords(wall.line[0])[0]
+    #         front_sensor_pos_in_eevee_x = wall_coord_x + front_sensor
+    #         my_x = front_sensor_pos_in_eevee_x - 0.5 * math.cos(compass_rad)
+    #
+    #     if wall is not None:
+    #         wall.confirm_wall()
+    #         wall.get_adjacent_wall().confirm_wall()
+    #         # print("new pos:", my_x, my_y)
+    #
+    #     return my_x, my_y
 
     def render(self, close=False):
         if close:
@@ -211,10 +211,10 @@ class Maze(object):
                              [round(wall_dot[0] * cell_resolution), round(wall_dot[1] * cell_resolution),
                               1, 1])
 
-        for debug_dot in self.debug_dots:
-            pygame.draw.rect(self.screen, (255, 0, 255),
-                             [round(debug_dot[0] * cell_resolution), round(debug_dot[1] * cell_resolution),
-                              1, 1])
+        # for debug_dot in self.debug_dots:
+        #     pygame.draw.rect(self.screen, (255, 0, 255),
+        #                      [round(debug_dot[0] * cell_resolution), round(debug_dot[1] * cell_resolution),
+        #                       1, 1])
 
         self.gui_window.blit(pygame.transform.scale(self.screen, self.screen_res), (0, 0))
         pygame.display.flip()
