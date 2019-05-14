@@ -42,7 +42,7 @@ class USSensor:
                 #if time_elapsed >= 0.2:
                 self.trigger()
                 #dist.value = min(time_elapsed * 171.7, 2)
-                dist.value = self.median(min(time_elapsed * 171.7, 2))
+                dist.value = self.median(min(time_elapsed * 1717, 2))
             elif time_elapsed > self.limit:
                 self.trigger()
 

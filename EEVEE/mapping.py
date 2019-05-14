@@ -177,11 +177,7 @@ class Maze(object):
                         self.maze[my_cell.coords[0] + 1][my_cell.coords[1]],
                         self.maze[my_cell.coords[0] - 1][my_cell.coords[1]],
                         self.maze[my_cell.coords[0]][my_cell.coords[1] + 1],
-                        self.maze[my_cell.coords[0]][my_cell.coords[1] - 1],
-                        self.maze[my_cell.coords[0] + 1][my_cell.coords[1] + 1],
-                        self.maze[my_cell.coords[0] - 1][my_cell.coords[1] - 1],
-                        self.maze[my_cell.coords[0] - 1][my_cell.coords[1] + 1],
-                        self.maze[my_cell.coords[0] + 1][my_cell.coords[1] - 1]]
+                        self.maze[my_cell.coords[0]][my_cell.coords[1] - 1]]
 
         # US sensors
         min_left_sensor = np.min([self.sensor_cutoff_point, left_sensor])
@@ -264,6 +260,7 @@ class Maze(object):
         # if obstacle found
         weighted_walls = []
         if sensor_val < self.sensor_cutoff_point:  # self.max_dist_threshold:
+            print("Sensor @",sensor_pos_in_eevee, "reading point", sensor_positions, "value",sensor_val)
             # check closest ray to any wall
             ray_dists = self.max_dist_threshold  # [, self.max_dist_threshold, self.max_dist_threshold]
             ray_walls = None
@@ -285,10 +282,12 @@ class Maze(object):
             # trust_val = 5 #self.trust_based_on_distance(
             #    dist_to_line_segment(sensor_pos_in_eevee, closest_dot_cell_wall.line[0], closest_dot_cell_wall.line[1]))
             # print("found obs", closest_dot_cell_wall, trust_val)
+            print("Cell", str(closest_dot_cell_wall.cell), "Wall", str(closest_dot_cell_wall), "Weighted", closest_dot_cell_wall.weight)
             closest_dot_cell_wall.weigh(self.trust_val)
             closest_dot_cell_wall.get_adjacent_wall().weigh(self.trust_val)
             weighted_walls = [closest_dot_cell_wall, closest_dot_cell_wall.get_adjacent_wall()]
             # print("wall", closest_dot_cell_wall)
+            exit()
 
         # decrease all other wall intersections score
         for cell in nearby_cells:

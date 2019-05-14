@@ -24,22 +24,28 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
     path_planner = AStar()
     my_map = Maze()
 
-    target_cell = Cell(20,10)
+    target_cell = Cell(20, 10)
     planned_path = list(path_planner.astar(my_map.my_cell, target_cell))
     print([str(x) for x in planned_path])
 
     while not beacon_area_detected(arduino):
         arduino.get()
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+        my_map.update(my_x, my_y,
+                      us_left.value, us_front.value, us_right.value, us_back.value,
+                      arduino.ir0, arduino.ir1,
+                      my_theta, arduino.get_ground_average())
+        #planned_path = list(path_planner.astar(my_map.my_cell, target_cell))
+        #print([str(x) for x in planned_path])
 
-        #print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
+        # print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
         # print("IR:",arduino.ir0, arduino.ir1)
         # print("Buttons:",arduino.button0, arduino.button1)
-        #print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
+        # print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
         print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
 
         if motors.state == STOPPED:
-            beacon = cam.get()
+            beacon = None #cam.get()
             if beacon is not None:
                 print("Beacon!", beacon)
 
@@ -63,7 +69,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             get_angle_between_points(planned_path[0].coords, planned_path[1].coords)))
         print("Target dir:", to_degree(target_dir))
 
-        if target_dir > math.pi/2:
+        if target_dir > math.pi / 2:
             print("turning right")
             if motors.state != TURNING_RIGHT:
                 motors.stop()
@@ -71,7 +77,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             motors.rotate_right()
             continue
 
-        if target_dir < -math.pi/2:
+        if target_dir < -math.pi / 2:
             print("turning left")
             if motors.state != TURNING_LEFT:
                 motors.stop()
@@ -93,7 +99,6 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             motors.follow_direction(0, my_theta, 35)
         else:
             motors.follow_direction(0, my_theta, -35)"""
-
 
 
 def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, return_area):
