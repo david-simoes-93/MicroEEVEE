@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+from Utils import MEDIAN_SIZE
 
 
 # UltraSound sensor
@@ -15,6 +16,8 @@ class USSensor:
 
         self.time_since = 0
         self.state = 0
+        self.buf = [None]*MEDIAN_SIZE
+        self.i = 0
 
     def do_phase(self, dist):
         curr_time = time.time()
@@ -38,7 +41,8 @@ class USSensor:
             if not GPIO.input(self.echo):
                 #if time_elapsed >= 0.2:
                 self.trigger()
-                dist.value = min(time_elapsed * 171.7, 2)
+                #dist.value = min(time_elapsed * 171.7, 2)
+                dist.value = self.median(min(time_elapsed * 171.7, 2))
             elif time_elapsed > self.limit:
                 self.trigger()
 
@@ -55,6 +59,20 @@ class USSensor:
     def pong(self):
         self.time_since = time.time()
         self.state = 2
+
+    def median(self, newValue):
+
+        aux= [None] *MEDIAN_SIZE
+
+        k = self.i
+        self.buf[k] = newValue
+        self.i = (k + 1) % MEDIAN_SIZE
+
+        for j in range(0,MEDIAN_SIZE):
+            aux[j] = self.buf[j]
+
+        aux.sort() #sort(aux, MEDIAN_SIZE);
+        return aux[int(MEDIAN_SIZE / 2)]
 
 
 def us_async(keep_running, echo0, trig0, dist0, echo1, trig1, dist1, echo2, trig2, dist2, echo3, trig3, dist3):

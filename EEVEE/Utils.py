@@ -1,5 +1,6 @@
 import math
 
+MEDIAN_SIZE = 5
 
 def normalize_radian_angle(angle):
     while angle < -math.pi:

@@ -1,7 +1,7 @@
 import serial
 import random
 import time
-
+from Utils import MEDIAN_SIZE
 
 class EmptyArduino(object):
     def __init__(self):
@@ -39,6 +39,7 @@ class EmptyArduino(object):
 # Arduino handler
 class ArduinoHandler:
     def __init__(self):
+
         # Arduino connection
         self.arduino = serial.Serial("/dev/ttyUSB0", 9600)
         self.arduino.flushInput()
@@ -60,6 +61,10 @@ class ArduinoHandler:
 
         self.arduino.readline()
 
+        self.buf = [[None]*MEDIAN_SIZE, [None]*MEDIAN_SIZE ]
+        self.i = [0,0]
+
+
     def get(self):
         line = self.arduino.readline()
         # just debugging line, eventually remove after confirming
@@ -76,8 +81,10 @@ class ArduinoHandler:
             self.m2_encoder += float(sensors[10])
             sensors = self.arduino.readline().decode().split(";")
 
-        self.ir0 = float(sensors[0])
-        self.ir1 = float(sensors[1])
+        #self.ir0 = float(sensors[0])
+        self.ir0 = self.median( float(sensors[0]) , 0)
+        #self.ir1 = float(sensors[1])
+        self.ir1 = self.median(float(sensors[1]), 1)
 
         self.button0 = sensors[2] is '1'
         self.button1 = sensors[3] is '1'
@@ -93,3 +100,21 @@ class ArduinoHandler:
 
         # negate m1 encoder
         self.m1_encoder = -self.m1_encoder
+
+    def median(self, newValue,index):
+
+
+        aux= [None] *MEDIAN_SIZE
+
+        k = self.i[index]
+        self.buf[index][k] = newValue
+        self.i[index] = (k + 1) % MEDIAN_SIZE
+
+        for j in range(0,MEDIAN_SIZE):
+            aux[j] = self.buf[index][j]
+
+        aux.sort() #sort(aux, MEDIAN_SIZE);
+        return aux[int(MEDIAN_SIZE / 2)]
+
+    def get_ground_average(self):
+        return sum([self.ground0, self.ground2, self.ground3, self.ground4])/4
