@@ -194,12 +194,14 @@ class Maze(object):
         dist_ir_from_robot_center = 2  # [cm]
 
         # 0º
+        print("eevee", self.eevee)
         front_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass),
                                      self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass)]
         front_sensor_wall_pos = [front_sensor_pos_in_eevee[0] + min_front_sensor / 2 * math.cos(compass),
                                  front_sensor_pos_in_eevee[1] + min_front_sensor / 2 * math.sin(compass)]
 
         self.update_single_sensor(front_sensor, nearby_cells, [front_sensor_wall_pos], front_sensor_pos_in_eevee)
+        return
 
         # -45º
         left45_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass - math.pi / 4),

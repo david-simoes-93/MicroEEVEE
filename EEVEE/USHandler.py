@@ -8,7 +8,7 @@ class USSensor:
     # In Board mode, the TRIG and ECHO pin numbers
     def __init__(self, trig, echo):
         GPIO.setup(trig, GPIO.OUT)
-        GPIO.setup(echo, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+        GPIO.setup(echo, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
         self.limit = 0.5
         self.echo = echo
@@ -16,7 +16,7 @@ class USSensor:
 
         self.time_since = 0
         self.state = 0
-        self.buf = [0]*MEDIAN_SIZE
+        self.buf = [0] * MEDIAN_SIZE
         self.i = 0
 
     def do_phase(self, dist):
@@ -31,7 +31,7 @@ class USSensor:
         # if waiting for ping, check pin/time and wait for pong
         elif self.state == 1:
             if GPIO.input(self.echo):
-                #if random.uniform(0,1)>0.99:
+                # if random.uniform(0,1)>0.99:
                 self.pong()
             elif time_elapsed > self.limit:
                 self.trigger()
@@ -39,9 +39,9 @@ class USSensor:
         # if waiting for pong, check pin/time and trigger again
         elif self.state == 2:
             if not GPIO.input(self.echo):
-                #if time_elapsed >= 0.2:
+                # if time_elapsed >= 0.2:
                 self.trigger()
-                #dist.value = min(time_elapsed * 171.7, 2)
+                # dist.value = min(time_elapsed * 171.7, 2)
                 dist.value = self.median(min(time_elapsed * 1717, 2))
             elif time_elapsed > self.limit:
                 self.trigger()
@@ -62,16 +62,16 @@ class USSensor:
 
     def median(self, newValue):
 
-        aux= [None] *MEDIAN_SIZE
+        aux = [None] * MEDIAN_SIZE
 
         k = self.i
         self.buf[k] = newValue
         self.i = (k + 1) % MEDIAN_SIZE
 
-        for j in range(0,MEDIAN_SIZE):
+        for j in range(0, MEDIAN_SIZE):
             aux[j] = self.buf[j]
 
-        aux.sort() #sort(aux, MEDIAN_SIZE);
+        aux.sort()  # sort(aux, MEDIAN_SIZE);
         return aux[int(MEDIAN_SIZE / 2)]
 
 
