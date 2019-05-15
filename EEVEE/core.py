@@ -28,6 +28,10 @@ prev_my_theta = 0
 slow_speed = 30
 fast_speed = 45
 
+TIME = 180  # seconds
+start_time = 0
+timeout = False
+
 
 def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam, my_map):
     my_x, my_y, my_theta = 0, 0, 0
@@ -43,9 +47,16 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
         """
     target_theta, target_cell = 0, Cell(10, 10)
     modified_target_theta_due_to_wall_being_close = False
-    while arduino.get_ground_average()<0.6:
+
+    while arduino.get_ground_average() < 0.6:
         if not arduino.get():
             blink_panic(led0, led1, motors)
+
+        if (time.time() > start_time + TIME):
+            motors.stop()
+            timeout = True
+            break
+
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
 
         # if not turning --> update map, else not worth it
@@ -155,7 +166,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                     target_theta = normalize_radian_angle(
                         get_radian_between_points(my_map.eevee, planned_path[0].coords))
 
-                    #motors.stop()
+                    # motors.stop()
                     # go forward slowly
                     motors.follow_direction(my_theta, my_theta, slow_speed)
                 else:
@@ -182,7 +193,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                             motors.rotate_right(fast_speed)
             else:
                 print("path not found")
-                #TODO rotate
+                # TODO rotate
             continue
 
         print(motors.state, "going somewhere", str(target_cell), "from", my_map.my_cell, to_degree(target_theta))
@@ -212,10 +223,10 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
 
         if motors.state == FORWARD:
             how_much_to_turn = normalize_radian_angle(target_theta - my_theta)
-            if how_much_to_turn > math.pi/4:
+            if how_much_to_turn > math.pi / 4:
                 motors.rotate_right()
                 continue
-            elif how_much_to_turn < -math.pi/4:
+            elif how_much_to_turn < -math.pi / 4:
                 motors.rotate_left()
                 continue
             print("forward")
@@ -318,9 +329,14 @@ def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motor
 
     target_theta, target_cell = 0, Cell(10, 10)
     modified_target_theta_due_to_wall_being_close = False
-    while not beacon_area_detected(arduino):
+    while True:
+        if (time.time() > start_time + TIME):
+            motors.stop()
+            timeout = True
+            break
         if not arduino.get():
             blink_panic(led0, led1, motors)
+
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
 
         # if not turning --> update map, else not worth it
@@ -471,7 +487,7 @@ def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motor
             elif dist_to_cell_center > prev_distances[(prev_distances_index + 1) % 5]:
                 # we're moving away from the cell
                 motors.stop()
-            elif us_front.value < 0.25: #25cm
+            elif us_front.value < 0.25:  # 25cm
                 motors.follow_direction(target_theta, my_theta, 20)
             else:
                 motors.follow_direction(target_theta, my_theta, fast_speed)
@@ -522,6 +538,39 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
     pygame.display.flip()
 
 
+def wait_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map):
+    last_time = time.time()
+    led0_state, led1_state = False, True
+
+    # LEDS out
+    led1.set(True)
+    print("Ready to go. Press a button...")
+    while True:
+        arduino.get()
+        my_map.update(0, 0,
+                      us_left.value * 100, us_front.value * 100, us_right.value * 100, us_back.value * 100,
+                      arduino.ir0, arduino.ir1,
+                      0, arduino.get_ground_average())
+
+        print("Sensors: L%4.2f F%4.2f R%4.2f" % (arduino.ir0, us_front.value * 100, arduino.ir1))
+
+        if arduino.button0 or arduino.button1:
+            break
+
+    # curr_time = time.time()
+    #
+    #     if curr_time - last_time > 1:
+    #         last_time = curr_time
+    #
+    #         led0_state = not led0_state
+    #         led1_state = not led1_state
+    #         led0.set(led0_state)
+    #         led1.set(led1_state)
+    #
+    # led0.set(False)
+    led1.set(False)
+
+
 def blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map):
     last_time = time.time()
     led0_state, led1_state = False, True
@@ -539,18 +588,19 @@ def blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led
 
         if arduino.button0 or arduino.button1:
             break
+
         curr_time = time.time()
 
         if curr_time - last_time > 1:
             last_time = curr_time
 
             led0_state = not led0_state
-            led1_state = not led1_state
+            # led1_state = not led1_state
             led0.set(led0_state)
-            led1.set(led1_state)
+            # led1.set(led1_state)
 
     led0.set(False)
-    led1.set(False)
+    # led1.set(False)
 
 
 def blink_panic(led0, led1, motors):
@@ -619,13 +669,18 @@ def main():
 
     # test_turning_odometry(arduino, motors)
 
-    blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map)
+    wait_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map)
+
+    start_time = time.time()
 
     explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam, my_map)
+    if not timeout:
+        # blink_lights_until_button(arduino, led0, led1)
+        led0.set(True)
 
-    blink_lights_until_button(arduino, led0, led1)
+        return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, my_map, None)
 
-    return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, my_map, None)
+        # led0.set(False)
 
     while True:
         blink_lights_until_button(arduino, led0, led1)
