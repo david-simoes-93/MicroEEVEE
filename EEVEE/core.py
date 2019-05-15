@@ -30,6 +30,8 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
     my_x, my_y, my_theta = 0, 0, 0
     path_planner = AStar()
     beacon_cell = None
+    prev_distances = [2,2,2,2,2]
+    prev_distances_index = 0
 
     """ 
     problems:
@@ -116,7 +118,9 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
 
         if motors.state == STOPPED:
             # take a picture, find a target_cell
-            beacon_cell = cam.get(my_x, my_y, my_theta, led0)
+            beacon_position = cam.get(my_x, my_y, my_theta, led0, led1)
+            if beacon_position is not None:
+                beacon_cell = Cell(my_map.get_cell_coords_from_gps_coords(beacon_position))
             arduino.clear()
 
             # follow a target
@@ -139,6 +143,8 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                     target_theta = normalize_radian_angle(
                         get_radian_between_points(my_map.eevee, planned_path[1].coords))
                     modified_target_theta_due_to_wall_being_close = False
+                    prev_distances = [2, 2, 2, 2, 2]
+                    prev_distances_index = 0
 
                     theta_diff = normalize_radian_angle(target_theta - my_theta)
                     if -math.pi / 4 < theta_diff < math.pi / 4:
@@ -149,7 +155,10 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                         motors.rotate_right()
                     else:
                         # back
-                        motors.rotate_left()
+                        if theta_diff < 0:
+                            motors.rotate_left()
+                        else:
+                            motors.rotate_right()
             else:
                 print("path not found")
             continue
@@ -186,6 +195,9 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             if dist_to_cell_center < 0.25:
                 # note: a new cell is going to be calculated in the next cycle
                 motors.stop()  # in next versions podemos por a ir logo para o proximo state em vez de parar
+            elif dist_to_cell_center > prev_distances[(prev_distances_index + 1) % 5]:
+                # we're moving away from the cell
+                motors.stop()
             elif us_front.value < 0.25:
                 motors.follow_direction(target_theta, my_theta, 20)
             else:
@@ -385,6 +397,8 @@ def blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led
                       us_left.value * 100, us_front.value * 100, us_right.value * 100, us_back.value * 100,
                       arduino.ir0, arduino.ir1,
                       0, arduino.get_ground_average())
+
+        print("Sensors: L%4.2f F%4.2f R%4.2f" % (arduino.ir0, us_front.value * 100, arduino.ir1))
 
         if arduino.button0 or arduino.button1:
             break

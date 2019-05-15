@@ -32,18 +32,18 @@ class CameraHandler:
         self.beacon_estimation = None
         # self.counter = 0
 
-    def get(self, my_x, my_y, my_theta, led):
+    def get(self, my_x, my_y, my_theta, led0, led1):
         # if to close to previous point where a sighting was found, just skip
         for line in self.triangulation_lines:
             if line is None:
                 continue
             if dist([my_x, my_y], line[0]) < 40: #40cm
                 return self.beacon_estimation
-            
+
         # grab an image from the camera
         # self.camera.capture(self.rawCapture, format="bgr")
         # img = self.rawCapture.array
-        led.set(1)
+        led0.set(1)
 
         self.camera.capture('image.jpg')
         img = cv2.imread('image.jpg', cv2.IMREAD_COLOR)
@@ -61,13 +61,14 @@ class CameraHandler:
         pixel_ratio = pixel_avg / 720
         theta = (pixel_ratio - 0.5) * 53.50
         if max_val > 0.8:
+            led1.set(1)
             self.add_new_sighting(theta, my_x, my_y, my_theta)
             self.triangulate()
             # print("Confidence:",max_val, "Pixels:", pixel_ratio, "Angle:", theta)
             #return theta
         # else:
         #    print("Unseen")
-        led.set(0)
+        led0.set(0)
 
         return self.beacon_estimation
 
@@ -98,7 +99,7 @@ class CameraHandler:
                 points.append(seg_intersect(self.triangulation_lines[2][0], self.triangulation_lines[2][1],
                           self.triangulation_lines[0][0], self.triangulation_lines[0][1]))
 
-        self.beacon_estimation = np.mean(points, axis=0) if len(points) != 0 else None
+        self.beacon_estimation = np.mean(points, axis=0) if len(points) != 0 else self.triangulation_lines[0][1]
 
 
 """
