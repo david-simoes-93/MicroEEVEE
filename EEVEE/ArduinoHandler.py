@@ -33,6 +33,8 @@ class EmptyArduino(object):
         self.m1_encoder += random.random() * 0.8
         self.m2_encoder += random.random() * 0.8
 
+        return True
+
         time.sleep(0.1)
 
     def get_ground_average(self):
@@ -68,7 +70,10 @@ class ArduinoHandler:
 
 
     def get(self):
-        line = self.arduino.readline()
+        try:
+            line = self.arduino.readline()
+        except:
+            return False
         # just debugging line, eventually remove after confirming
         if len(line) < self.min_mess_size:
             print("min value is bugged", len(line))
@@ -81,7 +86,10 @@ class ArduinoHandler:
             print("Losing cycles... ", self.arduino.in_waiting)
             self.m1_encoder += float(sensors[9])
             self.m2_encoder += float(sensors[10])
-            sensors = self.arduino.readline().decode().split(";")
+            try:
+                sensors = self.arduino.readline().decode().split(";")
+            except:
+                return False
 
         #self.ir0 = float(sensors[0])
         self.ir0 = self.median( float(sensors[0]) , 0)
@@ -102,6 +110,8 @@ class ArduinoHandler:
 
         # negate m1 encoder
         self.m1_encoder = -self.m1_encoder
+
+        return True
 
     def clear(self):
         self.arduino.flushInput()

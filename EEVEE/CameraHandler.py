@@ -6,7 +6,8 @@ import numpy as np
 import time
 
 # Motor actuator
-from EEVEE.Utils import normalize_radian_angle, intersects, seg_intersect, dist, to_degree, to_radian
+from EEVEE.Utils import normalize_radian_angle, intersects, seg_intersect, dist, to_degree, to_radian, \
+    dist_to_line_segment
 
 
 class CameraHandler:
@@ -37,7 +38,8 @@ class CameraHandler:
         for line in self.triangulation_lines:
             if line is None:
                 continue
-            if dist([my_x, my_y], line[0]) < 40: #40cm
+            if dist_to_line_segment([my_x, my_y], line[0], line[1]) < 20:
+            #if dist([my_x, my_y], line[0]) < 40: #40cm
                 return self.beacon_estimation
 
         # grab an image from the camera
@@ -74,6 +76,7 @@ class CameraHandler:
         return self.beacon_estimation
 
     def add_new_sighting(self, beacon_theta, my_x, my_y, my_theta):
+
         line_dir = normalize_radian_angle(beacon_theta + my_theta)
 
         # add a 3.6m line from our pos to beacon direction
