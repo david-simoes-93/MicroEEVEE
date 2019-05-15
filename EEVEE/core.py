@@ -28,7 +28,9 @@ prev_my_theta = 0
 slow_speed = 30
 fast_speed = 45
 
-
+TIME = 180 #seconds
+start_time = 0
+timeout = False
 def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam, my_map):
     my_x, my_y, my_theta = 0, 0, 0
     path_planner = AStar()
@@ -44,6 +46,10 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
     target_theta, target_cell = 0, Cell(10, 10)
     modified_target_theta_due_to_wall_being_close = False
     while not beacon_area_detected(arduino):
+        if (time.time() > start_time + TIME):
+            motors.stop()
+            timeout = True
+            break
         arduino.get()
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
 
@@ -299,6 +305,10 @@ def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motor
 
     planned_path = list(path_planner.astar(my_map.my_cell, Cell(10, 10)))
     while (1):
+        if (time.time() > start_time + TIME):
+            motors.stop()
+            timeout = True
+            break
         arduino.get()
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
 
@@ -401,9 +411,42 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
     pygame.display.flip()
 
 
+def wait_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map):
+    last_time = time.time()
+    led0_state, led1_state = False, True
+
+    # LEDS out
+    led1.set(True)
+    print("Ready to go. Press a button...")
+    while True:
+        arduino.get()
+        my_map.update(0, 0,
+                      us_left.value * 100, us_front.value * 100, us_right.value * 100, us_back.value * 100,
+                      arduino.ir0, arduino.ir1,
+                      0, arduino.get_ground_average())
+
+        print("Sensors: L%4.2f F%4.2f R%4.2f" % (arduino.ir0, us_front.value * 100, arduino.ir1))
+
+        if arduino.button0 or arduino.button1:
+            break
+
+    #     curr_time = time.time()
+    #
+    #     if curr_time - last_time > 1:
+    #         last_time = curr_time
+    #
+    #         led0_state = not led0_state
+    #         led1_state = not led1_state
+    #         led0.set(led0_state)
+    #         led1.set(led1_state)
+    #
+    # led0.set(False)
+    led1.set(False)
+
 def blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map):
     last_time = time.time()
     led0_state, led1_state = False, True
+
 
     print("Ready to go. Press a button...")
     while True:
@@ -417,18 +460,19 @@ def blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led
 
         if arduino.button0 or arduino.button1:
             break
+
         curr_time = time.time()
 
         if curr_time - last_time > 1:
             last_time = curr_time
 
             led0_state = not led0_state
-            led1_state = not led1_state
+            #led1_state = not led1_state
             led0.set(led0_state)
-            led1.set(led1_state)
+            #led1.set(led1_state)
 
     led0.set(False)
-    led1.set(False)
+    #led1.set(False)
 
 
 def main():
@@ -477,13 +521,19 @@ def main():
 
     #test_turning_odometry(arduino, motors)
 
-    blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map)
+    wait_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map)
+
+    start_time = time.time()
 
     explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam, my_map)
+    if not timeout:
 
-    blink_lights_until_button(arduino, led0, led1)
+        #blink_lights_until_button(arduino, led0, led1)
+        led0.set(True)
 
-    return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, my_map, None)
+        return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, my_map, None)
+
+        #led0.set(False)
 
     while True:
         blink_lights_until_button(arduino, led0, led1)
