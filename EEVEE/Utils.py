@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 MEDIAN_SIZE = 5
 
@@ -39,8 +40,6 @@ def to_radian(degree):
 
 
 ##----------------cyberEEVEE------------------
-import numpy as np
-
 
 # returns dot product of "v" and "w"
 def dist2(v, w):
@@ -94,7 +93,7 @@ def normalize_angle(a):
         a -= 360
     return a
 
-
+"""
 # return a color scheme for each wall
 def get_wall_color(wall):
     if wall.confirmed_no_wall:
@@ -151,7 +150,7 @@ def update_robot_pos_time_delay(prev_left, prev_right, in_lefts, in_rights, my_x
         my_x, my_y, my_dir, prev_left, prev_right = update_robot_pos(
             prev_left, prev_right, in_lefts[i], in_rights[i], my_x, my_y, my_dir, collidings[i])
     return my_x, my_y, my_dir, prev_left, prev_right
-
+"""
 
 # returns angle between line [c,e] and x-axis in degrees
 def get_angle_between_points(c, e):
@@ -160,6 +159,13 @@ def get_angle_between_points(c, e):
     theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
     return theta * 180 / np.pi  # rads to degs
 
+# returns angle between line [c,e] and x-axis in degrees
+def get_radian_between_points(c, e):
+    # dy = e[1] - c[1]
+    # dx = e[0] - c[0]
+    theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
+    return theta
+"""
 
 def filter_buffer(buffer, val):
     if val < 0.4:
@@ -175,3 +181,22 @@ def filter_buffer(buffer, val):
 def stop_speed(prev_left, prev_right):
     stop_speed_val = -0.5 * prev_left - 0.5 * prev_right
     return stop_speed_val, stop_speed_val
+"""
+
+def perp( a ) :
+    b = np.empty_like(a)
+    b[0] = -a[1]
+    b[1] = a[0]
+    return b
+
+# line segment a given by endpoints a1, a2
+# line segment b given by endpoints b1, b2
+# return
+def seg_intersect(a1,a2, b1,b2):
+    da = a2-a1
+    db = b2-b1
+    dp = a1-b1
+    dap = perp(da)
+    denom = np.dot( dap, db)
+    num = np.dot( dap, dp )
+    return (num / denom.astype(float))*db + b1

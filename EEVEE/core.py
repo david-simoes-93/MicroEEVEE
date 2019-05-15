@@ -18,34 +18,194 @@ from EEVEE.mapping import Maze, Cell
 from EEVEE.pathplanner import AStar
 from EEVEE.Utils import *
 
+STATE_STOPPED = 0
+STATE_LEFT = 1
+STATE_RIGHT = 2
+STATE_FORWARD = 3
 
-def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam):
+prev_my_theta = 0
+
+
+def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam, my_map):
     my_x, my_y, my_theta = 0, 0, 0
     path_planner = AStar()
-    my_map = Maze()
+    beacon_cell = None
 
-    target_cell = Cell(20, 10)
-    planned_path = list(path_planner.astar(my_map.my_cell, target_cell))
-    print([str(x) for x in planned_path])
-
+    """ 
+    problems:
+        1. na mediana podemos estar a retornar o 2.00 pois pode haver demasiado ruido
+        2. ...
+        """
+    target_theta, target_cell = 0, Cell(10, 10)
+    modified_target_theta_due_to_wall_being_close = False
     while not beacon_area_detected(arduino):
         arduino.get()
         my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
-        my_map.update(my_x, my_y,
-                      us_left.value, us_front.value, us_right.value, us_back.value,
-                      arduino.ir0, arduino.ir1,
-                      my_theta, arduino.get_ground_average())
-        #planned_path = list(path_planner.astar(my_map.my_cell, target_cell))
-        #print([str(x) for x in planned_path])
 
+        # if not turning --> update map, else not worth it
+        if motors.state != TURNING_RIGHT and motors.state != TURNING_LEFT:
+            my_map.update(my_x, my_y,
+                          us_left.value * 100, us_front.value * 100, us_right.value * 100, us_back.value * 100,
+                          arduino.ir0, arduino.ir1,
+                          my_theta, arduino.get_ground_average())
         # print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
+        print(motors.state, "Odometry %4.2f %4.2f %5.2f, Sensors: L%4.2f F%4.2f R%4.2f" %
+              (my_x, my_y, to_degree(my_theta), arduino.ir0, us_front.value * 100, arduino.ir1))
+
+        if motors.state == STOPPING:
+            motors.stop()
+            continue
+
+        if motors.state == BACK and us_front.value >= 0.10:
+            motors.stop()
+            continue
+
+        # -->emergency stop condition
+        if us_front.value < 0.10:  # 10cm
+            print("Emergency front")
+            if motors.state != STOPPED and motors.state != BACK:
+                print("Stopping. We could reset odometry!")
+                motors.stop()
+            else:
+                print("Backing up.")
+                motors.forward(-35)
+            continue
+
+        # we arent properly rotated! lets compensate with 20º theta change
+        if us_left.value < 0.10:  # 10cm
+            print("Emergency front-left")
+            if motors.state != STOPPED and motors.state != TURNING_RIGHT:
+                print("Stopping. We could reset odometry!")
+                motors.stop()
+            else:
+                if motors.state == STOPPED:
+                    # replace our theta, we probably are 20º (or more) skewed to the left
+                    my_theta -= math.pi / 8
+                print("Rotating a bit.")
+                motors.rotate_right()
+            continue
+        if us_right.value < 0.10:  # 10cm
+            print("Emergency front-right")
+            if motors.state != STOPPED and motors.state != TURNING_LEFT:
+                print("Stopping. We could reset odometry!")
+                motors.stop()
+            else:
+                if motors.state == STOPPED:
+                    # replace our theta, we probably are 20º (or more) skewed to the right
+                    my_theta += math.pi / 8
+                    print("Rotating a bit.")
+                motors.rotate_left()
+            continue
+
+        # too close to walls on side
+        if arduino.ir0 < 15 and not modified_target_theta_due_to_wall_being_close:  # 15cm (8 are within EEVEE)
+            modified_target_theta_due_to_wall_being_close = True
+            target_theta += math.pi / 8
+        elif arduino.ir0 > 15 and modified_target_theta_due_to_wall_being_close:
+            modified_target_theta_due_to_wall_being_close = False
+            target_theta -= math.pi / 8
+
+        if arduino.ir1 < 15 and not modified_target_theta_due_to_wall_being_close:  # 15cm (8 are within EEVEE)
+            modified_target_theta_due_to_wall_being_close = True
+            target_theta -= math.pi / 8
+        elif arduino.ir1 > 15 and modified_target_theta_due_to_wall_being_close:
+            modified_target_theta_due_to_wall_being_close = False
+            target_theta += math.pi / 8
+
+        # ---------------------------
+
+        if motors.state == STOPPED:
+            # take a picture, find a target_cell
+            beacon_cell = cam.get(my_x, my_y, my_theta, led0)
+            arduino.clear()
+
+            # follow a target
+            astar_target = beacon_cell if beacon_cell is not None else \
+                my_map.pick_exploration_target(path_planner, my_theta)
+            planned_path = list(path_planner.astar(my_map.my_cell, astar_target))
+            print("Current final destination", str(astar_target))
+
+            if planned_path is not None:
+                # print([str(x) for x in planned_path])
+
+                # beacon not found. a new photo has to be taken in the next cycle
+                if len(planned_path) == 1:
+                    print("Got to destination")
+                    target_cell = None
+                    motors.stop()
+                else:
+                    print("path:", [str(x) for x in planned_path])
+                    target_cell = planned_path[1]
+                    target_theta = normalize_radian_angle(
+                        get_radian_between_points(my_map.eevee, planned_path[1].coords))
+                    modified_target_theta_due_to_wall_being_close = False
+
+                    theta_diff = normalize_radian_angle(target_theta - my_theta)
+                    if -math.pi / 4 < theta_diff < math.pi / 4:
+                        motors.follow_direction(target_theta, my_theta)
+                    elif -3 * math.pi / 4 < theta_diff < -math.pi / 4:
+                        motors.rotate_left()
+                    elif math.pi / 4 < theta_diff < 3 * math.pi / 4:
+                        motors.rotate_right()
+                    else:
+                        # back
+                        motors.rotate_left()
+            else:
+                print("path not found")
+            continue
+
+        print(motors.state, "going somewhere", str(target_cell), "from", my_map.my_cell, to_degree(target_theta))
+        # turn 90º or whatever
+        if motors.state == TURNING_LEFT:
+            how_much_to_turn = normalize_radian_angle(target_theta - my_theta)
+            print("turning left", to_degree(my_theta), to_degree(target_theta), to_degree(how_much_to_turn))
+            # just wait until finish turning
+            if -math.pi / 16 < how_much_to_turn:  # 10º
+                motors.stop()
+            elif -math.pi / 3 < how_much_to_turn:
+                motors.rotate_left(25)
+            else:
+                motors.rotate_left()
+            continue
+        if motors.state == TURNING_RIGHT:
+            how_much_to_turn = normalize_radian_angle(target_theta - my_theta)
+            print("turning RIGHT", to_degree(my_theta), to_degree(target_theta), to_degree(how_much_to_turn))
+            # just wait until finish turning
+            if how_much_to_turn < math.pi / 16:
+                motors.stop()
+            elif how_much_to_turn < math.pi / 3:
+                motors.rotate_right(25)
+            else:
+                motors.rotate_right()
+            continue
+
+        if motors.state == FORWARD:
+            print("forward")
+            # just wait until i'm in the middle of next
+            dist_to_cell_center = dist(my_map.eevee, target_cell.coords)
+            if dist_to_cell_center < 0.25:
+                # note: a new cell is going to be calculated in the next cycle
+                motors.stop()  # in next versions podemos por a ir logo para o proximo state em vez de parar
+            elif us_front.value < 0.25:
+                motors.follow_direction(target_theta, my_theta, 20)
+            else:
+                motors.follow_direction(target_theta, my_theta)
+            continue
+
+        ## -----------------------------------old stuff-------------------------------------
+
+        """ planned_path = list(path_planner.astar(my_map.my_cell, target_cell))
+        if planned_path is not None:
+            print([str(x) for x in planned_path])
+
+        print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
         # print("IR:",arduino.ir0, arduino.ir1)
         # print("Buttons:",arduino.button0, arduino.button1)
         # print("Ground:",arduino.ground0, arduino.ground1, arduino.ground2, arduino.ground3, arduino.ground4)
-        print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
+        # print("Pose: (%5.2f, %5.2f) %5.2fº" % (my_x, my_y, Utils.to_degree(my_theta)))
 
         if motors.state == STOPPED:
-            beacon = None #cam.get()
+            beacon = cam.get()
             if beacon is not None:
                 print("Beacon!", beacon)
 
@@ -65,27 +225,31 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             motors.stop()
             continue
 
+        target_dist = dist(my_map.eevee, planned_path[1].coords)
         target_dir = normalize_radian_angle(to_radian(
-            get_angle_between_points(planned_path[0].coords, planned_path[1].coords)))
-        print("Target dir:", to_degree(target_dir))
+            get_angle_between_points(my_map.eevee, planned_path[1].coords)))
+        print("Target dir:", to_degree(target_dir), "target dist", target_dist)
 
-        if target_dir > math.pi / 2:
+        if target_dir > math.pi / 6:
             print("turning right")
-            if motors.state != TURNING_RIGHT:
+            if motors.state != TURNING_RIGHT and motors.state != STOPPED:
                 motors.stop()
                 continue
             motors.rotate_right()
             continue
 
-        if target_dir < -math.pi / 2:
+        if target_dir < -math.pi / 6:
             print("turning left")
-            if motors.state != TURNING_LEFT:
+            if motors.state != TURNING_LEFT and motors.state != STOPPED:
                 motors.stop()
                 continue
             motors.rotate_left()
 
-        motors.follow_direction(target_dir, my_theta, 35)
-        print("moved forward")
+        if target_dist < 0.25:
+            motors.stop()
+        else:
+            motors.follow_direction(target_dir, my_theta, 25)
+        # print("moved forward") """
 
         """
         if my_x > 100:
@@ -101,8 +265,69 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             motors.follow_direction(0, my_theta, -35)"""
 
 
-def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, return_area):
-    pass
+def return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, my_map, return_area):
+    # TODO copy motor states above and never update map, unless front sensor captures something.
+    my_x, my_y, my_theta = 0, 0, 0
+    path_planner = AStar()
+
+    planned_path = list(path_planner.astar(my_map.my_cell, Cell(10, 10)))
+    while (1):
+        arduino.get()
+        my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+
+        # -->emergency stop condition
+        if us_front.vaue * 100 < 10:
+            print("Stopping")
+            motors.stop()
+            my_map.update(my_x, my_y,
+                          us_left.value * 100, us_front.value * 100, us_right.value * 100, us_back.value * 100,
+                          arduino.ir0, arduino.ir1,
+                          my_theta, arduino.get_ground_average())
+            planned_path = list(path_planner.astar(my_map.my_cell, Cell(10, 10)))
+
+            continue
+        if motors.state == STOPPED:
+
+            if planned_path is not None:
+
+                if len(planned_path) == 1:
+                    print("Got to destination")
+                    target_cell = None
+                    motors.stop()  # a new foto has to be taken in the next cycle
+                    break
+
+                elif len(planned_path) > 1:
+                    # TODO Do i need to remove first cell because it is the one i'm in ?
+                    print([str(x) for x in planned_path])
+                    # TODO find if next state is Forward or turning...
+                    # motors.rotate_right() or motors.rotate_left() or motors.forward()
+                    prev_my_theta = my_theta
+            continue
+
+        # TODO ver isto dos angulos que pode nao ser tao trivial como < ou >
+        if motors.state == TURNING_LEFT:
+            # just wait until finish turning
+            if my_theta <= prev_my_theta - math.pi / 2:
+                motors.stop()
+            continue
+
+        if motors.state == TURNING_RIGHT:
+            # just wait until finish turning
+            if my_theta >= prev_my_theta + math.pi / 2:
+                motors.stop()
+            continue
+
+        if motors.state == FORWARD:
+            # just wait until i'm in the middle of next
+            eevee = my_map.get_cell_coords_from_gps_coords([my_x, my_y])
+            my_cell = my_map.maze[int(round(eevee[0]))][int(round(eevee[1]))]
+            dist_to_cell_center = dist(eevee, my_cell.coords)
+            if dist_to_cell_center < 0.25:
+                # note: a new cell is going to be calculated in the next cycle
+                motors.stop()  # in next versions podemos por a ir logo para o proximo state em vez de parar
+            continue
+
+    return
 
 
 def beacon_area_detected(arduino):
@@ -149,13 +374,17 @@ def render(screen, ir_left, ir_right, us_left, us_front, us_right, us_back,
     pygame.display.flip()
 
 
-def blink_lights_until_button(arduino, led0, led1):
+def blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map):
     last_time = time.time()
     led0_state, led1_state = False, True
 
     print("Ready to go. Press a button...")
     while True:
         arduino.get()
+        my_map.update(0, 0,
+                      us_left.value * 100, us_front.value * 100, us_right.value * 100, us_back.value * 100,
+                      arduino.ir0, arduino.ir1,
+                      0, arduino.get_ground_average())
 
         if arduino.button0 or arduino.button1:
             break
@@ -172,6 +401,9 @@ def blink_lights_until_button(arduino, led0, led1):
 
 def main():
     cam = CameraHandler()
+
+    my_map = Maze()
+
     """gui = False
     remote_control = False"""
 
@@ -211,13 +443,13 @@ def main():
         screen = pygame.display.set_mode([300, 300])
         pygame.display.set_caption("EEVEE")"""
 
+    blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map)
+
+    explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam, my_map)
+
     blink_lights_until_button(arduino, led0, led1)
 
-    explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam)
-
-    blink_lights_until_button(arduino, led0, led1)
-
-    return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, None)
+    return_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, my_map, None)
 
     while True:
         blink_lights_until_button(arduino, led0, led1)

@@ -6,6 +6,7 @@ from EEVEE.Utils import *
 
 cell_resolution = 16
 half_cell_resolution = int(cell_resolution / 2)
+cm_per_cell = 45
 
 
 class Maze(object):
@@ -29,13 +30,13 @@ class Maze(object):
                     self.maze[x][y].neighbor_east = self.maze[x + 1][y]
         self.screen = None
         self.screen_res = [self.width * cell_resolution * 2, self.height * cell_resolution * 2]
-        self.max_dist_threshold = 75  # maximum sensor distance measured
-        self.sensor_cutoff_point = 25  # we ignore sensor measures beyond this point
+        self.max_dist_threshold = 1.5  # maximum sensor distance measured
+        self.sensor_cutoff_point = 0.75  # we ignore wall measures beyond half a cell
 
         self.eevee = [self.width / 2, self.height / 2]  # pos in cell
         self.my_cell = self.maze[int(self.width / 2)][int(self.height / 2)]
         self.sensor_dots, self.wall_dots, self.debug_dots = [], [], []
-        self.trust_val = 6
+        self.trust_val = 10
         self.prev_side_odometry_reset_cell = None
 
         self.cheese = None
@@ -89,7 +90,7 @@ class Maze(object):
             pygame.init()
             self.screen = pygame.surface.Surface(
                 (self.width * cell_resolution, self.height * cell_resolution))  # original GF size
-            self.gui_window = pygame.display.set_mode(self.screen_res, HWSURFACE | DOUBLEBUF | RESIZABLE)
+            self.gui_window = pygame.display.set_mode(self.screen_res, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
             pygame.display.set_caption("Eevee Map")
 
         self.screen.fill((255, 255, 255))
@@ -156,15 +157,23 @@ class Maze(object):
 
     def update(self, my_x, my_y, left_sensor, front_sensor, right_sensor, back_sensor, ir_left_sensor, ir_right_sensor,
                compass, ground):
+        #print("mappign", my_x, my_y, left_sensor, front_sensor, right_sensor, back_sensor, ir_left_sensor, ir_right_sensor,
+        #       compass, ground)
+        left_sensor /= cm_per_cell
+        front_sensor /= cm_per_cell
+        right_sensor /= cm_per_cell
+        back_sensor /= cm_per_cell
+        ir_left_sensor /= cm_per_cell
+        ir_right_sensor /= cm_per_cell
+
         self.eevee = self.get_cell_coords_from_gps_coords([my_x, my_y])
         my_cell = self.maze[int(round(self.eevee[0]))][int(round(self.eevee[1]))]
         self.my_cell = my_cell
 
-        dist_to_cell_center = \
-            np.sqrt((self.eevee[0] - my_cell.coords[0]) ** 2 + (self.eevee[1] - my_cell.coords[1]) ** 2)
-        # [1/4 cm da cell] : o robo tem 20cm e a celula 45cm
-        if dist_to_cell_center < 11.25:
-            self.my_cell.explored = True
+        # dist_to_cell_center = dist(self.eevee, my_cell.coords)
+        # # [1/4 cm da cell] : o robo tem 20cm e a celula 45cm
+        # if dist_to_cell_center < 0.25:
+        #    self.my_cell.explored = True
 
         # if we're within cheese's boundaries
         if ground > 2:  # ground average (3 or 4 ground sensors)
@@ -190,56 +199,59 @@ class Maze(object):
         min_ir_right_sensor = np.min([self.sensor_cutoff_point, ir_right_sensor])
 
         # save points for front of sensor and 30º to left and right of each sensor (they're cone sensors)
-        dist_sensor_from_robot_center = 10
-        dist_ir_from_robot_center = 2  # [cm]
+        dist_sensor_from_robot_center = 10/45
+        dist_ir_from_robot_center = 2/45 # [cm]
+        # all sensors > max_dist_threshold do not computam
+        if min_front_sensor < self.max_dist_threshold: #abs(compass) < math.pi / 6:
+            # 0º
+            front_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass),
+                                         self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass)]
+            front_sensor_wall_pos = [front_sensor_pos_in_eevee[0] + min_front_sensor * math.cos(compass),
+                                     front_sensor_pos_in_eevee[1] + min_front_sensor * math.sin(compass)]
+            self.update_single_sensor(front_sensor, nearby_cells, [front_sensor_wall_pos], front_sensor_pos_in_eevee)
 
-        # 0º
-        print("eevee", self.eevee)
-        front_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass),
-                                     self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass)]
-        front_sensor_wall_pos = [front_sensor_pos_in_eevee[0] + min_front_sensor / 2 * math.cos(compass),
-                                 front_sensor_pos_in_eevee[1] + min_front_sensor / 2 * math.sin(compass)]
 
-        self.update_single_sensor(front_sensor, nearby_cells, [front_sensor_wall_pos], front_sensor_pos_in_eevee)
-        return
 
-        # -45º
-        left45_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass - math.pi / 4),
-                                      self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass - math.pi / 4)]
-        left45_sensor_wall_pos = [left45_sensor_pos_in_eevee[0] + min_left_sensor / 2 * math.cos(compass - math.pi / 4),
-                                  left45_sensor_pos_in_eevee[1] + min_left_sensor / 2 * math.sin(compass - math.pi / 4)]
-        self.update_single_sensor(left_sensor, nearby_cells, [left45_sensor_wall_pos], left45_sensor_pos_in_eevee)
+        """# -45º
+        if min_left_sensor < self.max_dist_threshold: #abs(compass) > math.pi/6:
+            left45_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass - math.pi / 4),
+                                          self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass - math.pi / 4)]
+            left45_sensor_wall_pos = [left45_sensor_pos_in_eevee[0] + min_left_sensor * math.cos(compass - math.pi / 4),
+                                      left45_sensor_pos_in_eevee[1] + min_left_sensor * math.sin(compass - math.pi / 4)]
+            self.update_single_sensor(left_sensor, nearby_cells, [left45_sensor_wall_pos], left45_sensor_pos_in_eevee)"""
 
         # -90º --> IR
         left_sensor_pos_in_eevee = [self.eevee[0] + dist_ir_from_robot_center * math.cos(compass - math.pi / 2),
                                     self.eevee[1] + dist_ir_from_robot_center * math.sin(compass - math.pi / 2)]
-        left_sensor_wall_pos = [left_sensor_pos_in_eevee[0] + min_ir_left_sensor / 2 * math.cos(compass - math.pi / 2),
-                                left_sensor_pos_in_eevee[1] + min_ir_left_sensor / 2 * math.sin(compass - math.pi / 2)]
+        left_sensor_wall_pos = [left_sensor_pos_in_eevee[0] + min_ir_left_sensor * math.cos(compass - math.pi / 2),
+                                left_sensor_pos_in_eevee[1] + min_ir_left_sensor * math.sin(compass - math.pi / 2)]
         self.update_single_sensor(ir_left_sensor, nearby_cells, [left_sensor_wall_pos], left_sensor_pos_in_eevee)
 
-        # 45º
-        right45_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass + math.pi / 4),
-                                       self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass + math.pi / 4)]
-        right45_sensor_wall_pos = [
-            right45_sensor_pos_in_eevee[0] + min_right_sensor / 2 * math.cos(compass + math.pi / 4),
-            right45_sensor_pos_in_eevee[1] + min_right_sensor / 2 * math.sin(compass + math.pi / 4)]
-        self.update_single_sensor(right_sensor, nearby_cells, [right45_sensor_wall_pos], right45_sensor_pos_in_eevee)
+        """# 45º
+        if min_right_sensor < self.max_dist_threshold: #abs(compass) > math.pi / 6:
+            right45_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass + math.pi / 4),
+                                           self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass + math.pi / 4)]
+            right45_sensor_wall_pos = [
+                right45_sensor_pos_in_eevee[0] + min_right_sensor * math.cos(compass + math.pi / 4),
+                right45_sensor_pos_in_eevee[1] + min_right_sensor * math.sin(compass + math.pi / 4)]
+            self.update_single_sensor(right_sensor, nearby_cells, [right45_sensor_wall_pos], right45_sensor_pos_in_eevee)"""
 
         # 90º --> IR
         right_sensor_pos_in_eevee = [self.eevee[0] + dist_ir_from_robot_center * math.cos(compass + math.pi / 2),
                                      self.eevee[1] + dist_ir_from_robot_center * math.sin(compass + math.pi / 2)]
         right_sensor_wall_pos = [
-            right_sensor_pos_in_eevee[0] + min_ir_right_sensor / 2 * math.cos(compass + math.pi / 2),
-            right_sensor_pos_in_eevee[1] + min_ir_right_sensor / 2 * math.sin(compass + math.pi / 2)]
+            right_sensor_pos_in_eevee[0] + min_ir_right_sensor * math.cos(compass + math.pi / 2),
+            right_sensor_pos_in_eevee[1] + min_ir_right_sensor * math.sin(compass + math.pi / 2)]
         self.update_single_sensor(ir_right_sensor, nearby_cells, [right_sensor_wall_pos], right_sensor_pos_in_eevee)
 
+        """ Removed porque nao serve para nada
         # 180º
         back_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass + math.pi),
                                     self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass + math.pi)]
-        back_sensor_wall_pos = [back_sensor_pos_in_eevee[0] + min_back_sensor / 2 * math.cos(compass + math.pi),
-                                back_sensor_pos_in_eevee[1] + min_back_sensor / 2 * math.sin(compass + math.pi)]
+        back_sensor_wall_pos = [back_sensor_pos_in_eevee[0] + min_back_sensor * math.cos(compass + math.pi),
+                                back_sensor_pos_in_eevee[1] + min_back_sensor * math.sin(compass + math.pi)]
         self.update_single_sensor(back_sensor, nearby_cells, [back_sensor_wall_pos], back_sensor_pos_in_eevee)
-
+        """
         # # confirm no walls where we are moving through
         # colliding_possible_walls = []
         # for cell in nearby_cells:
@@ -259,10 +271,12 @@ class Maze(object):
         #     colliding_possible_walls[0].get_adjacent_wall().confirm_wall()
 
     def update_single_sensor(self, sensor_val, nearby_cells, sensor_positions, sensor_pos_in_eevee):
-        # if obstacle found
+        #print("Sensor @", sensor_pos_in_eevee, "reading point", sensor_positions, "value", sensor_val)
+
+        # if obstacle found within threshold
         weighted_walls = []
+        #só faz isto se estiver no range de uma parede
         if sensor_val < self.sensor_cutoff_point:  # self.max_dist_threshold:
-            print("Sensor @",sensor_pos_in_eevee, "reading point", sensor_positions, "value",sensor_val)
             # check closest ray to any wall
             ray_dists = self.max_dist_threshold  # [, self.max_dist_threshold, self.max_dist_threshold]
             ray_walls = None
@@ -284,31 +298,29 @@ class Maze(object):
             # trust_val = 5 #self.trust_based_on_distance(
             #    dist_to_line_segment(sensor_pos_in_eevee, closest_dot_cell_wall.line[0], closest_dot_cell_wall.line[1]))
             # print("found obs", closest_dot_cell_wall, trust_val)
-            print("Cell", str(closest_dot_cell_wall.cell), "Wall", str(closest_dot_cell_wall), "Weighted", closest_dot_cell_wall.weight)
+
             closest_dot_cell_wall.weigh(self.trust_val)
             closest_dot_cell_wall.get_adjacent_wall().weigh(self.trust_val)
             weighted_walls = [closest_dot_cell_wall, closest_dot_cell_wall.get_adjacent_wall()]
+            #print("Cell", str(closest_dot_cell_wall.cell), "Wall", str(closest_dot_cell_wall), "Weighted",
+            #      closest_dot_cell_wall.weight)
             # print("wall", closest_dot_cell_wall)
-            exit()
 
         # decrease all other wall intersections score
         for cell in nearby_cells:
             for wall in cell.walls:
                 if wall not in weighted_walls and intersects(wall.line[0], wall.line[1],
                                                              sensor_pos_in_eevee, sensor_positions[0]):
-                    # dist = dist_to_line_segment(sensor_pos_in_eevee, wall.line[0], wall.line[1])
-                    # if dist < 1:
-                    # trust_val = self.trust_based_on_distance(dist)
                     wall.weigh(-self.trust_val)
                     wall.get_adjacent_wall().weigh(-self.trust_val)
-                    # print("cleared wall", wall, trust_val)
-                    # print("no wall", wall)
                     weighted_walls.append(wall)
+                    #print("Cell", str(wall.cell), "Wall", str(wall), "Cleared",
+                    #      wall.weight)
 
         self.sensor_dots.append(sensor_positions[0])
 
 
-max_val, min_val = 355, -355
+max_val, min_val = 155, -155
 
 
 class Cell(object):

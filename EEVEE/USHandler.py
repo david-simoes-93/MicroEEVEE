@@ -42,7 +42,7 @@ class USSensor:
                 # if time_elapsed >= 0.2:
                 self.trigger()
                 # dist.value = min(time_elapsed * 171.7, 2)
-                dist.value = self.median(min(time_elapsed * 1717, 2))
+                dist.value = self.median(min(time_elapsed * 171.7, 2))
             elif time_elapsed > self.limit:
                 self.trigger()
 
@@ -61,17 +61,12 @@ class USSensor:
         self.state = 2
 
     def median(self, newValue):
-
-        aux = [None] * MEDIAN_SIZE
-
         k = self.i
         self.buf[k] = newValue
         self.i = (k + 1) % MEDIAN_SIZE
 
-        for j in range(0, MEDIAN_SIZE):
-            aux[j] = self.buf[j]
-
-        aux.sort()  # sort(aux, MEDIAN_SIZE);
+        aux = list(self.buf)
+        aux.sort()
         return aux[int(MEDIAN_SIZE / 2)]
 
 

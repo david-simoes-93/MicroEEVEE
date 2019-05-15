@@ -35,6 +35,8 @@ class EmptyArduino(object):
 
         time.sleep(0.1)
 
+    def get_ground_average(self):
+        return 0
 
 # Arduino handler
 class ArduinoHandler:
@@ -100,6 +102,10 @@ class ArduinoHandler:
 
         # negate m1 encoder
         self.m1_encoder = -self.m1_encoder
+
+    def clear(self):
+        self.arduino.flushInput()
+        self.arduino.readline()
 
     def median(self, newValue,index):
 

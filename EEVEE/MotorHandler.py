@@ -33,9 +33,12 @@ class MotorActuator:
         if pwm > 0:
             GPIO.output(self.en_a, GPIO.HIGH)
             GPIO.output(self.en_b, GPIO.LOW)
-        else:
+        elif pwm < 0:
             GPIO.output(self.en_a, GPIO.LOW)
             GPIO.output(self.en_b, GPIO.HIGH)
+        else:
+            GPIO.output(self.en_a, GPIO.LOW)
+            GPIO.output(self.en_b, GPIO.LOW)
 
         # https://www.bananarobotics.com/shop/How-to-use-the-L298N-Dual-H-Bridge-Motor-Driver
         # Don't use above 90% PWM
@@ -67,6 +70,7 @@ class MovementHandler:
         self.gradual_speed_increment = 5
 
         self.state = STOPPED
+        self.stopping_counter = 0
 
     def slow_adapt_speed(self, l_speed, r_speed):
         if l_speed - self.prev_left_speed > self.gradual_speed_increment:
@@ -88,23 +92,23 @@ class MovementHandler:
 
         self.motor_left.set(l_speed)
         self.motor_right.set(r_speed)
-        print("Moving: %4.2f %4.2f" % (l_speed, r_speed))
+        #print("Moving: %4.2f %4.2f" % (l_speed, r_speed))
 
     def rotate_right(self, speed=35):
-        l_speed = -speed
-        r_speed = speed
+        l_speed = speed
+        r_speed = -speed
         self.slow_adapt_speed(l_speed, r_speed)
 
         self.state = TURNING_RIGHT
 
     def rotate_left(self, speed=35):
-        l_speed = speed
-        r_speed = -speed
+        l_speed = -speed
+        r_speed = speed
         self.slow_adapt_speed(l_speed, r_speed)
 
         self.state = TURNING_LEFT
 
-    def forward(self, speed=35):
+    def forward(self, speed=30):
         l_speed = speed
         r_speed = speed
         self.slow_adapt_speed(l_speed, r_speed)
@@ -115,7 +119,7 @@ class MovementHandler:
         else:
             self.state = BACK
 
-    def follow_direction(self, theta_target, my_theta, speed=35):
+    def follow_direction(self, theta_target, my_theta, speed=30):
         l_speed = speed
         r_speed = speed
 
@@ -144,11 +148,18 @@ class MovementHandler:
             self.state = BACK
 
     def stop(self):
-        self.slow_adapt_speed(0, 0)
+        self.motor_left.set(0)
+        self.motor_right.set(0)
+
         if self.prev_left_speed != 0 or self.prev_right_speed != 0:
+            self.stopping_counter = 0
             self.state = STOPPING
-        else:
+        elif self.stopping_counter > 5:
             self.state = STOPPED
+        self.stopping_counter += 1
+
+        self.prev_left_speed = 0
+        self.prev_right_speed = 0
 
     def emergency_stop(self):
         # abrupt stop
