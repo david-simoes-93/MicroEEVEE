@@ -7,7 +7,7 @@ from EEVEE.Utils import *
 GEAR_RATIO_times_ENCODER_PULSES = 236  # 34 * 11 but with 1.58 ratio?
 
 # Robot dimensions
-WHEEL2WHEEL_DIST = 14.7  # cm
+WHEEL2WHEEL_DIST = 15.9 # 14.7  # cm
 WHEEL_DIAM = 6.7  # cm
 WHEEL_PER = math.pi * WHEEL_DIAM
 
@@ -94,21 +94,21 @@ class MovementHandler:
         self.motor_right.set(r_speed)
         #print("Moving: %4.2f %4.2f" % (l_speed, r_speed))
 
-    def rotate_right(self, speed=35):
+    def rotate_right(self, speed=45):
         l_speed = speed
         r_speed = -speed
         self.slow_adapt_speed(l_speed, r_speed)
 
         self.state = TURNING_RIGHT
 
-    def rotate_left(self, speed=35):
+    def rotate_left(self, speed=45):
         l_speed = -speed
         r_speed = speed
         self.slow_adapt_speed(l_speed, r_speed)
 
         self.state = TURNING_LEFT
 
-    def forward(self, speed=30):
+    def forward(self, speed=40):
         l_speed = speed
         r_speed = speed
         self.slow_adapt_speed(l_speed, r_speed)
@@ -119,7 +119,7 @@ class MovementHandler:
         else:
             self.state = BACK
 
-    def follow_direction(self, theta_target, my_theta, speed=30):
+    def follow_direction(self, theta_target, my_theta, speed=40):
         l_speed = speed
         r_speed = speed
 

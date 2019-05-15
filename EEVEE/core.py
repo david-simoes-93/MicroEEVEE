@@ -25,12 +25,15 @@ STATE_FORWARD = 3
 
 prev_my_theta = 0
 
+slow_speed = 30
+fast_speed = 45
+
 
 def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, motors, cam, my_map):
     my_x, my_y, my_theta = 0, 0, 0
     path_planner = AStar()
     beacon_cell = None
-    prev_distances = [2,2,2,2,2]
+    prev_distances = [2, 2, 2, 2, 2]
     prev_distances_index = 0
 
     """ 
@@ -70,7 +73,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                 motors.stop()
             else:
                 print("Backing up.")
-                motors.forward(-35)
+                motors.forward(-fast_speed)
             continue
 
         # we arent properly rotated! lets compensate with 20º theta change
@@ -84,7 +87,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                     # replace our theta, we probably are 20º (or more) skewed to the left
                     my_theta -= math.pi / 8
                 print("Rotating a bit.")
-                motors.rotate_right()
+                motors.rotate_right(fast_speed)
             continue
         if us_right.value < 0.10:  # 10cm
             print("Emergency front-right")
@@ -96,7 +99,7 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                     # replace our theta, we probably are 20º (or more) skewed to the right
                     my_theta += math.pi / 8
                     print("Rotating a bit.")
-                motors.rotate_left()
+                motors.rotate_left(fast_speed)
             continue
 
         # too close to walls on side
@@ -120,13 +123,25 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             # take a picture, find a target_cell
             beacon_position = cam.get(my_x, my_y, my_theta, led0, led1)
             if beacon_position is not None:
-                beacon_cell = Cell(my_map.get_cell_coords_from_gps_coords(beacon_position))
+                #print("beacon espectation", beacon_position)
+                cell_coords = my_map.get_cell_coords_from_gps_coords(beacon_position)
+                #print("beacon expectation (cell)", cell_coords)
+                if cell_coords[0] > 20:
+                    cell_coords[0] = 20
+                if cell_coords[1] > 20:
+                    cell_coords[1] = 20
+                print("beacon expectation (cell)", cell_coords)
+                beacon_cell = my_map.maze[int(round(cell_coords[0]))][int(round(cell_coords[1]))]
             arduino.clear()
 
             # follow a target
             astar_target = beacon_cell if beacon_cell is not None else \
                 my_map.pick_exploration_target(path_planner, my_theta)
-            planned_path = list(path_planner.astar(my_map.my_cell, astar_target))
+            planned_path = path_planner.astar(my_map.my_cell, astar_target)
+            if planned_path is not None:
+                planned_path = list(planned_path)
+            else:
+                print("PLANNED PATH = NONE")
             print("Current final destination", str(astar_target))
 
             if planned_path is not None:
@@ -148,17 +163,17 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
 
                     theta_diff = normalize_radian_angle(target_theta - my_theta)
                     if -math.pi / 4 < theta_diff < math.pi / 4:
-                        motors.follow_direction(target_theta, my_theta)
+                        motors.follow_direction(target_theta, my_theta, fast_speed)
                     elif -3 * math.pi / 4 < theta_diff < -math.pi / 4:
-                        motors.rotate_left()
+                        motors.rotate_left(fast_speed)
                     elif math.pi / 4 < theta_diff < 3 * math.pi / 4:
-                        motors.rotate_right()
+                        motors.rotate_right(fast_speed)
                     else:
                         # back
                         if theta_diff < 0:
-                            motors.rotate_left()
+                            motors.rotate_left(fast_speed)
                         else:
-                            motors.rotate_right()
+                            motors.rotate_right(fast_speed)
             else:
                 print("path not found")
             continue
@@ -172,9 +187,9 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             if -math.pi / 16 < how_much_to_turn:  # 10º
                 motors.stop()
             elif -math.pi / 3 < how_much_to_turn:
-                motors.rotate_left(25)
+                motors.rotate_left(slow_speed)
             else:
-                motors.rotate_left()
+                motors.rotate_left(fast_speed)
             continue
         if motors.state == TURNING_RIGHT:
             how_much_to_turn = normalize_radian_angle(target_theta - my_theta)
@@ -183,9 +198,9 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
             if how_much_to_turn < math.pi / 16:
                 motors.stop()
             elif how_much_to_turn < math.pi / 3:
-                motors.rotate_right(25)
+                motors.rotate_right(slow_speed)
             else:
-                motors.rotate_right()
+                motors.rotate_right(fast_speed)
             continue
 
         if motors.state == FORWARD:
@@ -199,9 +214,9 @@ def explore_loop(arduino, us_left, us_front, us_right, us_back, led0, led1, moto
                 # we're moving away from the cell
                 motors.stop()
             elif us_front.value < 0.25:
-                motors.follow_direction(target_theta, my_theta, 20)
+                motors.follow_direction(target_theta, my_theta, slow_speed)
             else:
-                motors.follow_direction(target_theta, my_theta)
+                motors.follow_direction(target_theta, my_theta, fast_speed)
             continue
 
         ## -----------------------------------old stuff-------------------------------------
@@ -412,6 +427,9 @@ def blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led
             led0.set(led0_state)
             led1.set(led1_state)
 
+    led0.set(False)
+    led1.set(False)
+
 
 def main():
     cam = CameraHandler()
@@ -456,6 +474,8 @@ def main():
         pygame.init()
         screen = pygame.display.set_mode([300, 300])
         pygame.display.set_caption("EEVEE")"""
+
+    #test_turning_odometry(arduino, motors)
 
     blink_lights_until_button(arduino, us_left, us_front, us_right, us_back, led0, led1, my_map)
 
@@ -533,6 +553,47 @@ def main():
 
 m1, m2, keep_running_us = None, None, None
 
+
+def test_moving_odometry(arduino, motors):
+    my_x, my_y, my_theta = 0, 0, 0
+    encL, encR = 0, 0
+    arduino.get()
+
+    while my_x < 100:
+        arduino.get()
+        encL += arduino.m2_encoder
+        encR += arduino.m1_encoder
+        my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+        motors.forward(slow_speed)
+        print(encL, encR, to_degree(my_theta), my_x, my_y)
+    while True:
+        motors.stop()
+        arduino.get()
+        encL += arduino.m2_encoder
+        encR += arduino.m1_encoder
+        my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+        print(encL, encR, to_degree(my_theta), my_x, my_y)
+
+
+def test_turning_odometry(arduino, motors):
+    my_x, my_y, my_theta = 0, 0, 0
+    encL, encR = 0, 0
+    arduino.get()
+
+    while my_theta < to_radian(80):
+        arduino.get()
+        encL += arduino.m2_encoder
+        encR += arduino.m1_encoder
+        my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+        motors.rotate_right(slow_speed)
+        print(encL, encR, to_degree(my_theta), my_x, my_y)
+    while True:
+        motors.stop()
+        arduino.get()
+        encL += arduino.m2_encoder
+        encR += arduino.m1_encoder
+        my_x, my_y, my_theta = MotorHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+        print(encL, encR, to_degree(my_theta), my_x, my_y)
 
 def signal_handler(sig, frame):
     if multiprocessing.current_process().name != 'MainProcess':

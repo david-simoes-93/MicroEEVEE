@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 # Motor actuator
-from EEVEE.Utils import normalize_radian_angle, intersects, seg_intersect, dist
+from EEVEE.Utils import normalize_radian_angle, intersects, seg_intersect, dist, to_degree, to_radian
 
 
 class CameraHandler:
@@ -56,13 +56,14 @@ class CameraHandler:
         bottom_right = (top_left[0] + self.w, top_left[1] + self.h)
 
         cv2.rectangle(img, top_left, bottom_right, (255, 0, 0), 2)
-        # cv2.imwrite('image' + str(self.counter) + '.jpg', img)
+        cv2.imwrite('image-CV.jpg', img)
         pixel_avg = (top_left[0] + bottom_right[0]) / 2
         pixel_ratio = pixel_avg / 720
         theta = (pixel_ratio - 0.5) * 53.50
         if max_val > 0.8:
+            print("BEACON FOUND", theta)
             led1.set(1)
-            self.add_new_sighting(theta, my_x, my_y, my_theta)
+            self.add_new_sighting(to_radian(theta), my_x, my_y, my_theta)
             self.triangulate()
             # print("Confidence:",max_val, "Pixels:", pixel_ratio, "Angle:", theta)
             #return theta
@@ -75,8 +76,8 @@ class CameraHandler:
     def add_new_sighting(self, beacon_theta, my_x, my_y, my_theta):
         line_dir = normalize_radian_angle(beacon_theta + my_theta)
 
-        # add a 5m line from our pos to beacon direction
-        new_line = [np.array([my_x, my_y]), np.array([my_x + math.cos(line_dir) * 500, my_y + math.sin(line_dir) * 500])]
+        # add a 3.6m line from our pos to beacon direction
+        new_line = [np.array([my_x, my_y]), np.array([my_x + math.cos(line_dir) * 360, my_y + math.sin(line_dir) * 360])]
 
         self.triangulation_lines[self.triangulation_index] = new_line
         self.triangulation_index = (self.triangulation_index + 1) % 3
