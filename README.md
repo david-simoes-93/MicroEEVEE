@@ -14,7 +14,7 @@ Regarding the DC/DC Step-Down Converter (a.k.a UBEC in the RC community), as per
 
 Here's the circuitry, made with [draw.io](https://drive.google.com/file/d/1LcyPtO9vEOZJ04b2OpFpYvRo7CwWos43/view?usp=sharing).
 
-![circuits](https://raw.githubusercontent.com/bluemoon93/MicroEEVEE/master/EEVEE/Circuits.png)
+![circuits](https://raw.githubusercontent.com/bluemoon93/MicroEEVEE/master/Docs/Circuits.png)
 
 Install [Raspbian Lite](https://www.raspberrypi.org/downloads/raspbian/), enable [ssh](https://www.raspberrypi.org/documentation/remote-access/ssh/README.md), and make your RPi an [AP](https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md) so you can remotely control things. Make sure to ssh into the RPi with the -X option if you want to see the GUI. Then update everything, install required packages, get the repo, and ready things.
 
