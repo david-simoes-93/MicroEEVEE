@@ -1,6 +1,6 @@
 import serial
 import random
-import time
+
 from Utils import MEDIAN_SIZE
 
 class EmptyArduino(object):
@@ -30,12 +30,10 @@ class EmptyArduino(object):
         self.ground3 = random.random() > 0.5
         self.ground4 = random.random() > 0.5
 
-        self.m1_encoder += random.random() * 0.8
-        self.m2_encoder += random.random() * 0.8
+        self.m1_encoder = 0 #+= random.random() * 0.8
+        self.m2_encoder = 0 #+= random.random() * 0.8
 
         return True
-
-        time.sleep(0.1)
 
     def get_ground_average(self):
         return 0
@@ -96,14 +94,14 @@ class ArduinoHandler:
         #self.ir1 = float(sensors[1])
         self.ir1 = self.median(float(sensors[1]), 1)
 
-        self.button0 = sensors[2] is '1'
-        self.button1 = sensors[3] is '1'
+        self.button0 = sensors[2] == '1'
+        self.button1 = sensors[3] == '1'
 
-        self.ground0 = sensors[4] is '1'
-        self.ground1 = sensors[5] is '1'
-        self.ground2 = sensors[6] is '1'
-        self.ground3 = sensors[7] is '1'
-        self.ground4 = sensors[8] is '1'
+        self.ground0 = sensors[4] == '1'
+        self.ground1 = sensors[5] == '1'
+        self.ground2 = sensors[6] == '1'
+        self.ground3 = sensors[7] == '1'
+        self.ground4 = sensors[8] == '1'
 
         self.m1_encoder += float(sensors[9])
         self.m2_encoder += float(sensors[10])
@@ -133,4 +131,6 @@ class ArduinoHandler:
         return aux[int(MEDIAN_SIZE / 2)]
 
     def get_ground_average(self):
-        return sum([self.ground0, self.ground2, self.ground3, self.ground4])/4
+        # ground1 is broken, always true
+        ground_sensors = [self.ground0, self.ground2, self.ground3, self.ground4]
+        return sum(ground_sensors)/len(ground_sensors)

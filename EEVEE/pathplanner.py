@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from heapq import heappush, heappop
-from EEVEE.Utils import *
+from Utils import *
 
 Infinite = float('inf')
 

@@ -1,18 +1,24 @@
 import cv2
 import math
-from picamera import PiCamera
 import numpy as np
-# from picamera.array import PiRGBArray
-import time
 
 # Motor actuator
-from EEVEE.Utils import normalize_radian_angle, intersects, seg_intersect, dist, to_degree, to_radian, \
-    dist_to_line_segment
+from Utils import normalize_radian_angle, intersects, seg_intersect, to_radian, dist_to_line_segment
+
+class FakeCamera:
+    def capture(self, file_name: str):
+        pass
 
 
 class CameraHandler:
     def __init__(self):
-        self.camera = PiCamera()
+        try:
+            from picamera import PiCamera
+            self.camera = PiCamera()
+        except Exception as e:
+            print(e)
+            self.camera = FakeCamera()
+        
         # maybe we need to invert resolution?
         # https://www.programcreek.com/python/example/106952/picamera.array.PiRGBArray
         # self.rawCapture = PiRGBArray(self.camera)
@@ -39,7 +45,7 @@ class CameraHandler:
             if line is None:
                 continue
             if dist_to_line_segment([my_x, my_y], line[0], line[1]) < 20:
-            #if dist([my_x, my_y], line[0]) < 40: #40cm
+                # if dist([my_x, my_y], line[0]) < 40: #40cm
                 return self.beacon_estimation
 
         # grab an image from the camera
@@ -68,7 +74,7 @@ class CameraHandler:
             self.add_new_sighting(to_radian(theta), my_x, my_y, my_theta)
             self.triangulate()
             # print("Confidence:",max_val, "Pixels:", pixel_ratio, "Angle:", theta)
-            #return theta
+            # return theta
         # else:
         #    print("Unseen")
         led0.set(0)
@@ -80,7 +86,8 @@ class CameraHandler:
         line_dir = normalize_radian_angle(beacon_theta + my_theta)
 
         # add a 3.6m line from our pos to beacon direction
-        new_line = [np.array([my_x, my_y]), np.array([my_x + math.cos(line_dir) * 360, my_y + math.sin(line_dir) * 360])]
+        new_line = [np.array([my_x, my_y]), np.array(
+            [my_x + math.cos(line_dir) * 360, my_y + math.sin(line_dir) * 360])]
 
         self.triangulation_lines[self.triangulation_index] = new_line
         self.triangulation_index = (self.triangulation_index + 1) % 3
@@ -91,19 +98,20 @@ class CameraHandler:
             if intersects(self.triangulation_lines[0][0], self.triangulation_lines[0][1],
                           self.triangulation_lines[1][0], self.triangulation_lines[1][1]):
                 points.append(seg_intersect(self.triangulation_lines[0][0], self.triangulation_lines[0][1],
-                          self.triangulation_lines[1][0], self.triangulation_lines[1][1]))
+                                            self.triangulation_lines[1][0], self.triangulation_lines[1][1]))
         if self.triangulation_lines[1] is not None and self.triangulation_lines[2] is not None:
             if intersects(self.triangulation_lines[2][0], self.triangulation_lines[2][1],
                           self.triangulation_lines[1][0], self.triangulation_lines[1][1]):
                 points.append(seg_intersect(self.triangulation_lines[2][0], self.triangulation_lines[2][1],
-                          self.triangulation_lines[1][0], self.triangulation_lines[1][1]))
+                                            self.triangulation_lines[1][0], self.triangulation_lines[1][1]))
         if self.triangulation_lines[0] is not None and self.triangulation_lines[2] is not None:
             if intersects(self.triangulation_lines[2][0], self.triangulation_lines[2][1],
                           self.triangulation_lines[0][0], self.triangulation_lines[0][1]):
                 points.append(seg_intersect(self.triangulation_lines[2][0], self.triangulation_lines[2][1],
-                          self.triangulation_lines[0][0], self.triangulation_lines[0][1]))
+                                            self.triangulation_lines[0][0], self.triangulation_lines[0][1]))
 
-        self.beacon_estimation = np.mean(points, axis=0) if len(points) != 0 else self.triangulation_lines[0][1]
+        self.beacon_estimation = np.mean(points, axis=0) if len(
+            points) != 0 else self.triangulation_lines[0][1]
 
 
 """

@@ -1,15 +1,31 @@
-import RPi.GPIO as GPIO
 import math
-from EEVEE.Utils import *
+from enum import Enum
+
+try:
+    import RPi.GPIO as GPIO
+except Exception as e:
+    print(e)
+    from fake_gpio import GPIO
+
+from Utils import normalize_radian_angle
 
 # Motor parameters
 # "Gear box ratio" times "Encoder, pulses per revolution"
 GEAR_RATIO_times_ENCODER_PULSES = 236  # 34 * 11 but with 1.58 ratio?
 
 # Robot dimensions
-WHEEL2WHEEL_DIST = 15.9 # 14.7  # cm
+WHEEL2WHEEL_DIST = 15.9  # 14.7  # cm
 WHEEL_DIAM = 6.7  # cm
 WHEEL_PER = math.pi * WHEEL_DIAM
+
+
+class MotorState(Enum):
+    STOPPED = 0
+    FORWARD = 1
+    TURNING_LEFT = 2
+    TURNING_RIGHT = 3
+    BACK = 4
+    STOPPING = 5
 
 
 # Motor actuator
@@ -69,7 +85,7 @@ class MovementHandler:
 
         self.gradual_speed_increment = 5
 
-        self.state = STOPPED
+        self.state = MotorState.STOPPED
         self.stopping_counter = 0
 
     def slow_adapt_speed(self, l_speed, r_speed):
@@ -92,21 +108,21 @@ class MovementHandler:
 
         self.motor_left.set(l_speed)
         self.motor_right.set(r_speed)
-        #print("Moving: %4.2f %4.2f" % (l_speed, r_speed))
+        # print("Moving: %4.2f %4.2f" % (l_speed, r_speed))
 
     def rotate_right(self, speed=45):
         l_speed = speed
         r_speed = -speed
         self.slow_adapt_speed(l_speed, r_speed)
 
-        self.state = TURNING_RIGHT
+        self.state = MotorState.TURNING_RIGHT
 
     def rotate_left(self, speed=45):
         l_speed = -speed
         r_speed = speed
         self.slow_adapt_speed(l_speed, r_speed)
 
-        self.state = TURNING_LEFT
+        self.state = MotorState.TURNING_LEFT
 
     def forward(self, speed=40):
         l_speed = speed
@@ -115,16 +131,17 @@ class MovementHandler:
 
         # not possible to have positive left and negative right, i think
         if self.prev_left_speed > 0 or self.prev_right_speed > 0:
-            self.state = FORWARD
+            self.state = MotorState.FORWARD
         else:
-            self.state = BACK
+            self.state = MotorState.BACK
 
     def follow_direction(self, theta_target, my_theta, speed=40):
         l_speed = speed
         r_speed = speed
 
         # cap angle difference at 45º
-        theta_diff = min(max(normalize_radian_angle(theta_target - my_theta), -math.pi / 2), math.pi / 2)
+        theta_diff = min(max(normalize_radian_angle(
+            theta_target - my_theta), -math.pi / 2), math.pi / 2)
         # print("theta_diff", to_degree(theta_diff))
         if (theta_diff > math.pi / 4 and speed > 0) or (theta_diff < -math.pi / 4 and speed < 0):
             l_speed *= 1.2
@@ -143,9 +160,9 @@ class MovementHandler:
 
         # not possible to have positive left and negative right, i think
         if self.prev_left_speed > 0 or self.prev_right_speed > 0:
-            self.state = FORWARD
+            self.state = MotorState.FORWARD
         else:
-            self.state = BACK
+            self.state = MotorState.BACK
 
     def stop(self):
         self.motor_left.set(0)
@@ -153,9 +170,9 @@ class MovementHandler:
 
         if self.prev_left_speed != 0 or self.prev_right_speed != 0:
             self.stopping_counter = 0
-            self.state = STOPPING
+            self.state = MotorState.STOPPING
         elif self.stopping_counter > 5:
-            self.state = STOPPED
+            self.state = MotorState.STOPPED
         self.stopping_counter += 1
 
         self.prev_left_speed = 0
