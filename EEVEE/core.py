@@ -53,7 +53,6 @@ def explore_loop(arduino: ArduinoHandler, us_handler: UltrasoundHandler, led0, l
 
         # timeout check
         if (time.time() > start_time + TIME):
-            print("timeout")
             motors.stop()
             global timeout
             timeout = True
@@ -65,8 +64,7 @@ def explore_loop(arduino: ArduinoHandler, us_handler: UltrasoundHandler, led0, l
         # if not turning --> update map, else not worth it
         if motors.state != MotorState.TURNING_RIGHT and motors.state != MotorState.TURNING_LEFT:
             my_map.update(my_x, my_y,
-                          us_handler.left(), us_handler.front(
-                          ), us_handler.right(), us_handler.back(),
+                          us_handler.left(), us_handler.front(), us_handler.right(), us_handler.back(),
                           arduino.ir0, arduino.ir1,
                           my_theta, arduino.get_ground_average())
         # print("US: %4.2f %4.2f %4.2f %4.2f" % (us_left.value, us_front.value, us_right.value, us_back.value))
@@ -403,14 +401,11 @@ def return_loop(arduino, us_handler, led0, led1, motors, my_map, return_area, gu
                 print("path not found")
             continue
 
-        print(motors.state, "going somewhere", str(target_cell),
-              "from", my_map.my_cell, Utils.to_degree(target_theta))
+        print(motors.state, "going somewhere", str(target_cell), "from", my_map.my_cell, Utils.to_degree(target_theta))
         # turn 90º or whatever
         if motors.state == MotorState.TURNING_LEFT:
-            how_much_to_turn = Utils.normalize_radian_angle(
-                target_theta - my_theta)
-            print("turning left", Utils.to_degree(my_theta), Utils.to_degree(
-                target_theta), Utils.to_degree(how_much_to_turn))
+            how_much_to_turn = Utils.normalize_radian_angle(target_theta - my_theta)
+            print("turning left", Utils.to_degree(my_theta), Utils.to_degree(target_theta), Utils.to_degree(how_much_to_turn))
             # just wait until finish turning
             if -math.pi / 16 < how_much_to_turn:  # 10º
                 motors.stop()
@@ -420,10 +415,8 @@ def return_loop(arduino, us_handler, led0, led1, motors, my_map, return_area, gu
                 motors.rotate_left(fast_speed)
             continue
         if motors.state == MotorState.TURNING_RIGHT:
-            how_much_to_turn = Utils.normalize_radian_angle(
-                target_theta - my_theta)
-            print("turning RIGHT", Utils.to_degree(my_theta), Utils.to_degree(
-                target_theta), Utils.to_degree(how_much_to_turn))
+            how_much_to_turn = Utils.normalize_radian_angle(target_theta - my_theta)
+            print("turning RIGHT", Utils.to_degree(my_theta), Utils.to_degree(target_theta), Utils.to_degree(how_much_to_turn))
             # just wait until finish turning
             if how_much_to_turn < math.pi / 16:
                 motors.stop()
@@ -555,6 +548,8 @@ def main():
     wait_until_button(arduino, us_handler, led0, led1, my_map)
 
     # Explore until timeout or until goal is found
+    global start_time
+    start_time = time.time()
     explore_loop(arduino, us_handler, led0, led1, motors, cam, my_map, gui_handler)
 
     # If we didn't time-out, return to start

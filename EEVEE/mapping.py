@@ -2,7 +2,7 @@ import numpy as np
 import math
 from pygame.locals import *
 import pygame
-from Utils import *
+import Utils
 
 CELL_RESOLUTION = 16
 HALF_CELL_RESOLUTION = int(CELL_RESOLUTION / 2)
@@ -110,7 +110,7 @@ class Maze(object):
         for row in self.maze:
             for cell in row:
                 for wall in cell.walls:
-                    wall_color = get_wall_color(wall)
+                    wall_color = Utils.get_wall_color(wall)
                     pygame.draw.rect(self.screen, wall_color, wall.rect)
 
         # Draw eevee
@@ -145,8 +145,7 @@ class Maze(object):
 
     def get_cell_coords_from_gps_coords(self, gps_coords):
         # gps_coords are measured in cm, [0,0] is initial robot position
-        # cell_coords is measured in cells (1 cell = 45cm),
-        #       [half_width, half_height] is initial robot position
+        # cell_coords are measured in cells (1 cell = 45cm), [half_width, half_height] is initial robot position
         return [gps_coords[0] / 45 + HALF_MAP_SIZE, gps_coords[1] / 45 + HALF_MAP_SIZE]
 
     def reset_debug_dots(self):
@@ -290,7 +289,7 @@ class Maze(object):
             # for index, dot in enumerate(sensor_positions):
             for cell in nearby_cells:
                 for wall in cell.walls:
-                    d = dist_to_line_segment(sensor_positions[0], wall.line[0], wall.line[1])
+                    d = Utils.dist_to_line_segment(sensor_positions[0], wall.line[0], wall.line[1])
                     if d < ray_dists:
                         ray_dists = d
                         ray_walls = wall
@@ -316,7 +315,7 @@ class Maze(object):
         # decrease all other wall intersections score
         for cell in nearby_cells:
             for wall in cell.walls:
-                if wall not in weighted_walls and intersects(wall.line[0], wall.line[1],
+                if wall not in weighted_walls and Utils.intersects(wall.line[0], wall.line[1],
                                                              sensor_pos_in_eevee, sensor_positions[0]):
                     wall.weigh(-TRUST_VALUE)
                     wall.get_adjacent_wall().weigh(-TRUST_VALUE)
