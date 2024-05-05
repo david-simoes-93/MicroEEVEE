@@ -182,6 +182,18 @@ def blink_panic(led0, led1, motors):
 
 
 def main():
+    global sim
+    if sim:
+        sim_maze = MazeSimulator()
+        arduino = EmptyArduino(sim_maze)
+    else:
+        sim_maze = None
+        try:
+            arduino = ArduinoHandler()
+        except SerialException:
+            print("Serial connection not found")
+            exit(1)
+            
     cam = CameraHandler()
 
     my_map = Maze()
@@ -193,28 +205,17 @@ def main():
     global m1, m2
     m1 = MotorActuator(36, 37, 33)  # IN1 IN2 ENA - Right Motor
     m2 = MotorActuator(40, 38, 32)  # IN3 IN4 ENB - Left Motor
-    motors = MovementHandler(m2, m1)
+    motors = MovementHandler(m2, m1, sim_maze)
 
     # LED
     led0 = LedActuator(26)
     led1 = LedActuator(29)
 
     # Arduino
-    try:
-        arduino = ArduinoHandler()
-    except SerialException:
-        print("Serial connection not found")
-        arduino = EmptyArduino()
     for _ in range(5):
         if arduino.get():
             continue
         blink_panic(led0, led1, motors)
-
-    global sim
-    if sim:
-        sim_maze = MazeSimulator()
-    else:
-        sim_maze = None
 
     global gui, gui_handler
     if gui:

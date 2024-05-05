@@ -5,7 +5,7 @@ from Utils import MEDIAN_SIZE
 
 
 class EmptyArduino(object):
-    def __init__(self):
+    def __init__(self, simulator):
         self.ir0 = 0
         self.ir1 = 0
         self.button0 = False
@@ -18,33 +18,26 @@ class EmptyArduino(object):
         self.m1_encoder = 0
         self.m2_encoder = 0
 
-    def get(self):
-        self.ir0 = random.random() * 4
-        self.ir1 = random.random() * 4
+        self.simulator = simulator
 
+    def get(self):
         self.button0 = random.random() > 0.5
         self.button1 = random.random() > 0.5
 
-        self.ground0 = random.random() > 0.5
-        self.ground1 = random.random() > 0.5
-        self.ground2 = random.random() > 0.5
-        self.ground3 = random.random() > 0.5
-        self.ground4 = random.random() > 0.5
+        [self.ground0, self.ground1, self.ground2, self.ground3, self.ground4] = self.simulator.get_ground()
 
-        self.m1_encoder = 3 + random.random() * 0.8
-        self.m2_encoder = self.m1_encoder + random.random() * 0.1
+        [self.m1_encoder, self.m2_encoder] = self.simulator.get_encoder()
 
         return True
 
     def get_ground_average(self):
-        return 0
+        ground_sensors = self.get_ground_sensors()
+        return sum(ground_sensors)/len(ground_sensors)
 
     def get_ground_sensors(self):
-        return [0, 1, 1, 1, 0]
+        return [self.ground0, self.ground1, self.ground2, self.ground3, self.ground4]
 
 # Arduino handler
-
-
 class ArduinoHandler:
     def __init__(self):
 
@@ -134,10 +127,9 @@ class ArduinoHandler:
         return aux[int(MEDIAN_SIZE / 2)]
 
     def get_ground_average(self):
-        # ground1 is broken, always true
-        ground_sensors = [self.ground0,
-                          self.ground2, self.ground3, self.ground4]
+        ground_sensors = self.get_ground_sensors()
         return sum(ground_sensors)/len(ground_sensors)
 
     def get_ground_sensors(self):
+        # ground1 is broken, always true
         return [self.ground0, self.ground1, self.ground2, self.ground3, self.ground4]

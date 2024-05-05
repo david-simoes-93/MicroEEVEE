@@ -55,8 +55,6 @@ class GuiHandler():
         pygame.quit()
 
     def render(self):
-        ir_left = self.arduino.ir0
-        ir_right = self.arduino.ir1
         ground_far_left = self.arduino.ground0
         ground_left = self.arduino.ground1
         ground_mid = self.arduino.ground2

@@ -62,7 +62,7 @@ class MotorActuator:
 
 
 class MovementHandler:
-    def __init__(self, motor_left, motor_right):
+    def __init__(self, motor_left, motor_right, simulator):
         self.motor_left = motor_left
         self.motor_right = motor_right
 
@@ -73,6 +73,13 @@ class MovementHandler:
 
         self.state = MotorState.STOPPED
         self.stopping_counter = 0
+
+        self.simulator = simulator
+
+    def update_sim(self, l_speed, r_speed):
+        if not self.simulator:
+            return
+        self.simulator.set_motor_pwm(l_speed, r_speed)
 
     def slow_adapt_speed(self, l_speed, r_speed):
         if l_speed - self.prev_left_speed > self.gradual_speed_increment:
@@ -95,6 +102,7 @@ class MovementHandler:
         self.motor_left.set(l_speed)
         self.motor_right.set(r_speed)
         # print("Moving: %4.2f %4.2f" % (l_speed, r_speed))
+        self.update_sim(l_speed,r_speed)
 
     def rotate_right(self, speed=45):
         l_speed = speed
@@ -163,6 +171,7 @@ class MovementHandler:
 
         self.prev_left_speed = 0
         self.prev_right_speed = 0
+        self.update_sim(0,0)
 
     def emergency_stop(self):
         # abrupt stop
@@ -183,12 +192,12 @@ class MovementHandler:
             self.prev_right_speed += 10
         else:
             self.prev_right_speed = 0
+        self.update_sim(0,0)
 
     @classmethod
     def odometry(cls, encLeft, encRight, xpos, ypos, theta):
         dLeft = (encLeft * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
         dRight = (encRight * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
-        print(f"{dLeft} {dRight}")
 
         dCenter = (dLeft + dRight) / 2.0
         phi = (dRight - dLeft) / WHEEL2WHEEL_DIST

@@ -1,4 +1,10 @@
-from enum import Enum
+import random
+import time
+import math
+
+import MotorHandler
+import Utils
+import MapHandler
 
 
 class Cell:
@@ -18,7 +24,8 @@ class Cell:
 
 MAP_SIZE = 20
 CM_PER_CELL = 12.5
-
+MAX_SPEED_CM_PER_SEC = 10
+NOISE_RATIO = 0.1
 
 class MazeSimulator:
     def __init__(self):
@@ -32,7 +39,101 @@ class MazeSimulator:
         self.maze = [[Cell(False, False, False, False)
                       for y in range(MAP_SIZE)] for x in range(MAP_SIZE)]
         self.starting_pos = [4, 0]
+        self.set_map()
 
+        self.eevee_coords = self.starting_pos
+        self.eevee_theta = 0
+
+        self.last_update = time.time()
+
+        self.l_pwm = 0
+        self.r_pwm = 0
+
+        self.encLeft = 0
+        self.encRight = 0
+
+    def set_motor_pwm(self, l_pwm, r_pwm):
+        if self.l_pwm == l_pwm and self.r_pwm == r_pwm:
+            return
+        self.update_loc()
+        # [-90, 90]
+        self.l_pwm = l_pwm
+        self.r_pwm = r_pwm
+
+    def get_ground(self):
+        self.update_loc()
+
+        # 40º left
+        far_left_sensor_coords = [self.eevee_coords[0] + MapHandler.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta - MapHandler.FAR_SENSOR_ANGLE) / CM_PER_CELL,
+                                      self.eevee_coords[1] + MapHandler.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta - MapHandler.FAR_SENSOR_ANGLE) / CM_PER_CELL]
+        # 10º left
+        left_sensor_coords = [self.eevee_coords[0] + MapHandler.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta - MapHandler.NEAR_SENSOR_ANGLE) / CM_PER_CELL,
+                                  self.eevee_coords[1] + MapHandler.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta - MapHandler.NEAR_SENSOR_ANGLE) / CM_PER_CELL]
+        # 0º front
+        front_sensor_coords = [self.eevee_coords[0] + MapHandler.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta) / CM_PER_CELL,
+                                   self.eevee_coords[1] + MapHandler.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta) / CM_PER_CELL]
+        # 10º right
+        right_sensor_coords = [self.eevee_coords[0] + MapHandler.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta + MapHandler.NEAR_SENSOR_ANGLE) / CM_PER_CELL,
+                                   self.eevee_coords[1] + MapHandler.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta + MapHandler.NEAR_SENSOR_ANGLE) / CM_PER_CELL]
+        # 40º right
+        far_right_sensor_coords = [self.eevee_coords[0] + MapHandler.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta + MapHandler.FAR_SENSOR_ANGLE) / CM_PER_CELL,
+                                       self.eevee_coords[1] + MapHandler.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta + MapHandler.FAR_SENSOR_ANGLE) / CM_PER_CELL]
+        
+        sensor_coords = [far_left_sensor_coords, left_sensor_coords, front_sensor_coords, right_sensor_coords, far_right_sensor_coords] # [ [1.1, 0.9], ... ]
+        sensor_cell_indices = [[round(coords[0]), round(coords[1])] for coords in sensor_coords]                                        # [   [1, 1],   ... ]
+        rel_sensor_coords = [[coords[0]-cell[0],coords[1]-cell[1]] for coords,cell in zip(sensor_coords, sensor_cell_indices)]          # [ [0.1,-0.1], ... ]
+        sensor_cells = [self.maze[x][y] for x,y in sensor_cell_indices]                                                                 # [  Cell_1_1 , ... ]
+
+        sensors = [self.is_sensor_over_a_line(cell, rel_coords) for cell, rel_coords in zip(sensor_cells, rel_sensor_coords)]
+        return sensors
+    
+    def is_sensor_over_a_line(self, cell, rel_coords):
+        if cell.up:
+            if -0.1 <= rel_coords[0] <= 0.1 and -0.5 <= rel_coords[1] <= 0:
+                return 1
+        if cell.down:
+            if -0.1 <= rel_coords[0] <= 0.1 and 0 <= rel_coords[1] <= 0.5:
+                return 1
+        if cell.left:
+            if -0.5 <= rel_coords[0] <= 0 and -0.1 <= rel_coords[1] <= 0.1:
+                return 1
+        if cell.right:
+            if 0 <= rel_coords[0] <= 0.5 and -0.1 <= rel_coords[1] <= 0.1:
+                return 1
+        return 0
+
+    def get_encoder(self):
+        self.update_loc()
+        encoders = [self.encLeft, self.encRight]
+        self.encLeft = 0
+        self.encRight = 0
+        return encoders
+    
+    def update_loc(self):
+        curr_time = time.time()
+        time_elapsed = curr_time - self.last_update
+        dLeft = MAX_SPEED_CM_PER_SEC * time_elapsed * (self.l_pwm/100)
+        dRight = MAX_SPEED_CM_PER_SEC * time_elapsed * (self.r_pwm/100)
+        dLeft *= (1 + random.random() * NOISE_RATIO * 2 - NOISE_RATIO)
+        dRight *= (1 + random.random() * NOISE_RATIO * 2 - NOISE_RATIO)
+        
+        dCenter = (dLeft + dRight) / 2.0
+        phi = (dRight - dLeft) / MotorHandler.WHEEL2WHEEL_DIST
+
+        x_delta_cm = dCenter * math.cos(self.eevee_theta)
+        y_delta_cm = dCenter * math.sin(self.eevee_theta)
+        self.eevee_coords = [self.eevee_coords[0]+x_delta_cm/CM_PER_CELL, self.eevee_coords[1]+y_delta_cm/CM_PER_CELL]
+        self.eevee_theta = Utils.normalize_radian_angle(self.eevee_theta + phi)
+
+        self.encLeft += dLeft * MotorHandler.GEAR_RATIO_times_ENCODER_PULSES / MotorHandler.WHEEL_PER
+        self.encRight += dRight * MotorHandler.GEAR_RATIO_times_ENCODER_PULSES / MotorHandler.WHEEL_PER
+
+        self.last_update = curr_time
+
+
+
+
+    def set_map(self):
         # example map from https://drive.google.com/file/d/1_pOQQkb6gatRcMIIKV23zb5OahAf3XqW/view
         self.maze[0][0].set(up=False, down=True, left=False, right=True)
         self.maze[1][0].set(up=False, down=False, left=True, right=True)
