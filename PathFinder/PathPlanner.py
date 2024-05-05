@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from heapq import heappush, heappop
+from typing import Optional, List
+
 from Utils import *
+import MapHandler
 
 Infinite = float('inf')
 
@@ -31,12 +34,12 @@ class AStar:
             self.__setitem__(k, v)
             return v
 
-    def heuristic_cost_estimate(self, current, goal):
+    def heuristic_cost_estimate(self, current: MapHandler.Cell, goal: MapHandler.Cell):
         """Computes the estimated (rough) distance between a node and the goal, this method must be implemented in a 
         subclass. The second parameter is always the goal."""
-        return dist_manhattan(current.coords, goal.coords)
+        return dist_manhattan(current.indices, goal.indices)
 
-    def distance_between(self, n0, n1, n2):
+    def distance_between(self, n0: MapHandler.Cell, n1: MapHandler.Cell, n2: MapHandler.Cell) -> float:
         """Gives the real distance between two adjacent nodes n1 and n2 (i.e n2 belongs to the list of n1's neighbors).
            n2 is guaranteed to belong to the list returned by the call to neighbors(n1).
            This method must be implemented in a subclass."""
@@ -45,30 +48,30 @@ class AStar:
             return 2
 
         # going in a straight line
-        if n0.coords[0] == n1.coords[0] == n2.coords[0] or n0.coords[1] == n1.coords[1] == n2.coords[1]:
+        if n0.indices[0] == n1.indices[0] == n2.indices[0] or n0.indices[1] == n1.indices[1] == n2.indices[1]:
             return 1
 
         # having to turn
         return 1.5
 
-    def neighbors(self, node):
+    def neighbors(self, node: MapHandler.Cell):
         """For a given node, returns (or yields) the list of its neighbors. this method must be implemented in a subclass"""
         neighbors = []
-        if not node.wall_north.wall and node.neighbor_north is not None:
-            neighbors.append(node.neighbor_north)
-        if not node.wall_south.wall and node.neighbor_south is not None:
-            neighbors.append(node.neighbor_south)
-        if not node.wall_west.wall and node.neighbor_west is not None:
-            neighbors.append(node.neighbor_west)
-        if not node.wall_east.wall and node.neighbor_east is not None:
-            neighbors.append(node.neighbor_east)
+        if not node.up_free and node.neighbor_up is not None:
+            neighbors.append(node.neighbor_up)
+        if not node.down_free and node.neighbor_down is not None:
+            neighbors.append(node.neighbor_down)
+        if not node.left_free and node.neighbor_left is not None:
+            neighbors.append(node.neighbor_left)
+        if not node.right_free and node.neighbor_right is not None:
+            neighbors.append(node.neighbor_right)
         return neighbors
 
-    def is_goal_reached(self, current, goal):
+    def is_goal_reached(self, current: MapHandler.Cell, goal: MapHandler.Cell):
         """ returns true when we can consider that 'current' is the goal"""
-        return current.coords == goal.coords
+        return current.indices == goal.indices
 
-    def reconstruct_path(self, last, reversePath=False):
+    def reconstruct_path(self, last, reversePath=False) -> List[MapHandler.Cell]:
         def _gen():
             current = last
             while current:
@@ -80,7 +83,8 @@ class AStar:
         else:
             return reversed(list(_gen()))
 
-    def astar(self, start, goal, reversePath=False, current=None):
+    def astar(self, start: MapHandler.Cell, goal: MapHandler.Cell, 
+              reversePath: bool=False, current: Optional[MapHandler.Cell]=None) -> List[MapHandler.Cell]:
         if self.is_goal_reached(start, goal):
             return [start]
         searchNodes = AStar.SearchNodeDict()
@@ -94,7 +98,7 @@ class AStar:
             previous = current
             current = heappop(openSet)
             if self.is_goal_reached(current.data, goal):
-                return self.reconstruct_path(current, reversePath)
+                return list(self.reconstruct_path(current, reversePath))
             current.out_openset = True
             current.closed = True
             for neighbor in [searchNodes[n] for n in self.neighbors(current.data)]:
@@ -111,4 +115,4 @@ class AStar:
                 if neighbor.out_openset:
                     neighbor.out_openset = False
                     heappush(openSet, neighbor)
-        return None
+        return []

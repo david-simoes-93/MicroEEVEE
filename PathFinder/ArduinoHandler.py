@@ -87,14 +87,10 @@ class ArduinoHandler:
             except:
                 return False
 
-        # self.ir0 = float(sensors[0])
-        self.ir0 = self.median(float(sensors[0]), 0)
-        # self.ir1 = float(sensors[1])
-        self.ir1 = self.median(float(sensors[1]), 1)
-
         self.button0 = sensors[2] == '1'
         self.button1 = sensors[3] == '1'
 
+        # true if line detected
         self.ground0 = sensors[4] == '1'
         self.ground1 = sensors[5] == '1'
         self.ground2 = sensors[6] == '1'

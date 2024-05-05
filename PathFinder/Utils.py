@@ -164,7 +164,7 @@ def get_radian_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]
     theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
-    return theta
+    return normalize_radian_angle(theta)
 
 
 """

@@ -28,7 +28,7 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 GREY = (128, 128, 128)
 
-CELL_RESOLUTION = 4
+CELL_RESOLUTION = 20
 HALF_CELL_RESOLUTION = int(CELL_RESOLUTION / 2)
 
 SIM_CELL_RESOLUTION = int(CELL_RESOLUTION * Simulator.CM_PER_CELL / MapHandler.CM_PER_CELL)
@@ -88,25 +88,6 @@ class GuiHandler():
         pygame.draw.line(self.screen, RED, [290, 150], [
                          290, 150 - int(motor_right)], 5)
 
-        for x in range(MapHandler.MAP_SIZE):
-            for y in range(MapHandler.MAP_SIZE):
-                cell = self.map.maze[x][y]
-                if cell.is_line:
-                    color = BLACK
-                elif cell.explored:
-                    color = WHITE
-                else:
-                    color = GREY
-                pygame.draw.rect(self.screen, color, [
-                    300 + CELL_RESOLUTION*x, CELL_RESOLUTION*y, CELL_RESOLUTION, CELL_RESOLUTION])
-        # draw robot
-        robot_x = 300 + CELL_RESOLUTION * \
-            self.map.my_cell_coords[0] + HALF_CELL_RESOLUTION
-        robot_y = CELL_RESOLUTION * \
-            self.map.my_cell_coords[1]+HALF_CELL_RESOLUTION
-        pygame.draw.circle(self.screen, BLACK, [robot_x, robot_y],
-                           ROBOT_RADIUS, 2)
-
         if self.simulator is not None:
             mod_x = 300 + MapHandler.MAP_SIZE*CELL_RESOLUTION / 2 - self.simulator.starting_pos[0]*SIM_CELL_RESOLUTION + HALF_CELL_RESOLUTION
             mod_y = MapHandler.MAP_SIZE*CELL_RESOLUTION / 2 - self.simulator.starting_pos[1]*SIM_CELL_RESOLUTION + HALF_CELL_RESOLUTION
@@ -116,26 +97,57 @@ class GuiHandler():
                     cell_pos_x = x*SIM_CELL_RESOLUTION + mod_x
                     cell_pos_y = y*SIM_CELL_RESOLUTION + mod_y
                     if cell.up:
-                        pygame.draw.line(self.screen, GREEN, [cell_pos_x, cell_pos_y], [
+                        pygame.draw.line(self.screen, GREY, [cell_pos_x, cell_pos_y], [
                             cell_pos_x, cell_pos_y-HALF_SIM_CELL_RESOLUTION], 2)
                     if cell.down:
-                        pygame.draw.line(self.screen, GREEN, [cell_pos_x, cell_pos_y], [
+                        pygame.draw.line(self.screen, GREY, [cell_pos_x, cell_pos_y], [
                             cell_pos_x, cell_pos_y+HALF_SIM_CELL_RESOLUTION], 2)
                     if cell.left:
-                        pygame.draw.line(self.screen, GREEN, [cell_pos_x, cell_pos_y], [
+                        pygame.draw.line(self.screen, GREY, [cell_pos_x, cell_pos_y], [
                             cell_pos_x-HALF_SIM_CELL_RESOLUTION, cell_pos_y], 2)
                     if cell.right:
-                        pygame.draw.line(self.screen, GREEN, [cell_pos_x, cell_pos_y], [
+                        pygame.draw.line(self.screen, GREY, [cell_pos_x, cell_pos_y], [
                             cell_pos_x+HALF_SIM_CELL_RESOLUTION, cell_pos_y], 2)
                     if cell.goal:
                         if cell.left or cell.right:
-                            pygame.draw.rect(self.screen, GREEN, [
+                            pygame.draw.rect(self.screen, GREY, [
                                 cell_pos_x-QUARTER_SIM_CELL_RESOLUTION, cell_pos_y-HALF_SIM_CELL_RESOLUTION, HALF_SIM_CELL_RESOLUTION, SIM_CELL_RESOLUTION])
                         elif cell.up or cell.down:
-                            pygame.draw.rect(self.screen, GREEN, [
+                            pygame.draw.rect(self.screen, GREY, [
                                 cell_pos_x-HALF_SIM_CELL_RESOLUTION, cell_pos_y-QUARTER_SIM_CELL_RESOLUTION, SIM_CELL_RESOLUTION, HALF_SIM_CELL_RESOLUTION])
-                    pygame.draw.circle(
-                        self.screen, BLACK, [cell_pos_x, cell_pos_y], 2)
+                    pygame.draw.circle(self.screen, BLACK, [cell_pos_x, cell_pos_y], 2)
+
+        for x in range(MapHandler.MAP_SIZE):
+            for y in range(MapHandler.MAP_SIZE):
+                cell = self.map.maze[x][y]
+                mod_x, mod_y = 300 + CELL_RESOLUTION*x + HALF_CELL_RESOLUTION, CELL_RESOLUTION*y + HALF_CELL_RESOLUTION
+                if cell.up_line:
+                    pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x, mod_y - HALF_CELL_RESOLUTION], 2)
+                elif cell.up_free:
+                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x, mod_y - HALF_CELL_RESOLUTION], 2)
+                if cell.down_line:
+                    pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x, mod_y + HALF_CELL_RESOLUTION], 2)
+                elif cell.down_free:
+                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x, mod_y + HALF_CELL_RESOLUTION], 2)
+                if cell.left_line:
+                    pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x - HALF_CELL_RESOLUTION, mod_y], 2)
+                elif cell.left_free:
+                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x - HALF_CELL_RESOLUTION, mod_y], 2)
+                if cell.right_line:
+                    pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
+                elif cell.right_free:
+                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
+
+        for cell in self.map.planned_path:
+            mod_x = 300 + CELL_RESOLUTION*cell.indices[0] + HALF_CELL_RESOLUTION
+            mod_y = CELL_RESOLUTION*cell.indices[1] + HALF_CELL_RESOLUTION
+            pygame.draw.circle(self.screen, RED, [mod_x, mod_y], 2)
+
+        # draw robot
+        robot_x = 300 + CELL_RESOLUTION * self.map.my_cell_coords[0] + HALF_CELL_RESOLUTION
+        robot_y = CELL_RESOLUTION * self.map.my_cell_coords[1] + HALF_CELL_RESOLUTION
+        pygame.draw.circle(self.screen, BLACK, [robot_x, robot_y], ROBOT_RADIUS, 2)
+
 
         pygame.display.flip()
         time.sleep(0.1)

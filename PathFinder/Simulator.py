@@ -25,7 +25,9 @@ class Cell:
 MAP_SIZE = 20
 CM_PER_CELL = 12.5
 MAX_SPEED_CM_PER_SEC = 10
-NOISE_RATIO = 0.1
+MOTOR_NOISE_RATIO = 0.1
+SENSOR_NOISE_RATIO = 0.05
+
 
 class MazeSimulator:
     def __init__(self):
@@ -60,6 +62,8 @@ class MazeSimulator:
         self.l_pwm = l_pwm
         self.r_pwm = r_pwm
 
+        # TODO: momentum is lost, but shouldn't be
+
     def get_ground(self):
         self.update_loc()
 
@@ -83,24 +87,23 @@ class MazeSimulator:
         sensor_cell_indices = [[round(coords[0]), round(coords[1])] for coords in sensor_coords]                                        # [   [1, 1],   ... ]
         rel_sensor_coords = [[coords[0]-cell[0],coords[1]-cell[1]] for coords,cell in zip(sensor_coords, sensor_cell_indices)]          # [ [0.1,-0.1], ... ]
         sensor_cells = [self.maze[x][y] for x,y in sensor_cell_indices]                                                                 # [  Cell_1_1 , ... ]
-
-        sensors = [self.is_sensor_over_a_line(cell, rel_coords) for cell, rel_coords in zip(sensor_cells, rel_sensor_coords)]
+        sensors = [self.is_sensor_over_a_line(cell, rel_coords) for cell, rel_coords in zip(sensor_cells, rel_sensor_coords)]           # [    1/0    , ... ]
         return sensors
     
     def is_sensor_over_a_line(self, cell, rel_coords):
         if cell.up:
             if -0.1 <= rel_coords[0] <= 0.1 and -0.5 <= rel_coords[1] <= 0:
-                return 1
+                return True if random.random() > SENSOR_NOISE_RATIO else False
         if cell.down:
             if -0.1 <= rel_coords[0] <= 0.1 and 0 <= rel_coords[1] <= 0.5:
-                return 1
+                return True if random.random() > SENSOR_NOISE_RATIO else False
         if cell.left:
             if -0.5 <= rel_coords[0] <= 0 and -0.1 <= rel_coords[1] <= 0.1:
-                return 1
+                return True if random.random() > SENSOR_NOISE_RATIO else False
         if cell.right:
             if 0 <= rel_coords[0] <= 0.5 and -0.1 <= rel_coords[1] <= 0.1:
-                return 1
-        return 0
+                return True if random.random() > SENSOR_NOISE_RATIO else False
+        return False if random.random() > SENSOR_NOISE_RATIO else True
 
     def get_encoder(self):
         self.update_loc()
@@ -114,8 +117,8 @@ class MazeSimulator:
         time_elapsed = curr_time - self.last_update
         dLeft = MAX_SPEED_CM_PER_SEC * time_elapsed * (self.l_pwm/100)
         dRight = MAX_SPEED_CM_PER_SEC * time_elapsed * (self.r_pwm/100)
-        dLeft *= (1 + random.random() * NOISE_RATIO * 2 - NOISE_RATIO)
-        dRight *= (1 + random.random() * NOISE_RATIO * 2 - NOISE_RATIO)
+        dLeft *= (1 + random.random() * MOTOR_NOISE_RATIO * 2 - MOTOR_NOISE_RATIO)
+        dRight *= (1 + random.random() * MOTOR_NOISE_RATIO * 2 - MOTOR_NOISE_RATIO)
         
         dCenter = (dLeft + dRight) / 2.0
         phi = (dRight - dLeft) / MotorHandler.WHEEL2WHEEL_DIST
@@ -129,9 +132,6 @@ class MazeSimulator:
         self.encRight += dRight * MotorHandler.GEAR_RATIO_times_ENCODER_PULSES / MotorHandler.WHEEL_PER
 
         self.last_update = curr_time
-
-
-
 
     def set_map(self):
         # example map from https://drive.google.com/file/d/1_pOQQkb6gatRcMIIKV23zb5OahAf3XqW/view

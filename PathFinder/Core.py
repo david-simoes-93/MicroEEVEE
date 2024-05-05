@@ -17,7 +17,7 @@ from CameraHandler import CameraHandler
 from MotorHandler import MotorActuator, MovementHandler, MotorState
 from LedHandler import LedActuator
 from ArduinoHandler import ArduinoHandler, EmptyArduino
-from PathFinder.MapHandler import Maze, Cell
+from PathFinder.MapHandler import Maze, MAP_SIZE, HALF_MAP_SIZE
 from PathFinder.PathPlanner import AStar
 from GuiHandler import GuiHandler, FakeGui
 from Simulator import MazeSimulator
@@ -34,11 +34,11 @@ sim = True
 
 
 def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui):
-    my_x, my_y, my_theta = 0, 0, 0
+    gps_x, gps_y, my_theta = 0, 0, 0
     path_planner = AStar()
     beacon_cell = None
 
-    target_theta, target_cell = 0, Cell(10, 10)
+    target_cell = my_map.maze[MAP_SIZE-1][HALF_MAP_SIZE]
 
     while True:
         # safety check
@@ -52,25 +52,30 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
             timeout = True
             return
 
-        my_x, my_y, my_theta = MovementHandler.odometry(
-            arduino.m2_encoder, arduino.m1_encoder, my_x, my_y, my_theta)
+        gps_x, gps_y, my_theta = MovementHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, gps_x, gps_y, my_theta, arduino.get_ground_sensors())
 
         # if not turning --> update map, else not worth it
         if motors.state != MotorState.TURNING_RIGHT and motors.state != MotorState.TURNING_LEFT:
-            my_map.update(my_x, my_y, my_theta, arduino.get_ground_sensors())
+            my_map.update(gps_x, gps_y, my_theta, arduino.get_ground_sensors())
         gui.render()
 
-        explore(my_theta, arduino, motors)
+        my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
+        if len(my_map.planned_path) == 0:
+            motors.stop()
+            # TODO should instead find a new target_cell
+            print("PATH NOT FOUND")
+            return
+        print(f"{[gps_x,gps_y]} {Maze.get_gps_coords_from_cell_coords(my_map.planned_path[1].indices)}")
+        target_theta = Utils.get_radian_between_points([gps_x, gps_y], Maze.get_gps_coords_from_cell_coords(my_map.planned_path[1].indices))
+
+        explore(my_theta, target_theta, arduino, motors)
 
 
-def explore(my_theta, arduino: ArduinoHandler, motors: MovementHandler):
+def explore(my_theta, target_theta: 0, arduino: ArduinoHandler, motors: MovementHandler):
     # turn 90º or whatever
-    target_theta = 0
     if motors.state == MotorState.TURNING_LEFT:
-        how_much_to_turn = Utils.normalize_radian_angle(
-            target_theta - my_theta)
-        print("turning LEFT", Utils.to_degree(my_theta), Utils.to_degree(
-            target_theta), Utils.to_degree(how_much_to_turn))
+        how_much_to_turn = Utils.normalize_radian_angle(target_theta - my_theta)
+        print("turning LEFT", Utils.to_degree(my_theta), Utils.to_degree(target_theta), Utils.to_degree(how_much_to_turn))
         # just wait until finish turning
         if -math.pi / 16 < how_much_to_turn:  # 10º
             motors.stop()
@@ -83,8 +88,7 @@ def explore(my_theta, arduino: ArduinoHandler, motors: MovementHandler):
     if motors.state == MotorState.TURNING_RIGHT:
         how_much_to_turn = Utils.normalize_radian_angle(
             target_theta - my_theta)
-        print("turning RIGHT", Utils.to_degree(my_theta), Utils.to_degree(
-            target_theta), Utils.to_degree(how_much_to_turn))
+        print("turning RIGHT", Utils.to_degree(my_theta), Utils.to_degree(target_theta), Utils.to_degree(how_much_to_turn))
         # just wait until finish turning
         if how_much_to_turn < math.pi / 16:
             motors.stop()

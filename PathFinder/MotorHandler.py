@@ -1,5 +1,6 @@
 import math
 from enum import Enum
+from typing import List
 
 try:
     import RPi.GPIO as GPIO
@@ -195,15 +196,19 @@ class MovementHandler:
         self.update_sim(0,0)
 
     @classmethod
-    def odometry(cls, encLeft, encRight, xpos, ypos, theta):
+    def odometry(cls, encLeft: int, encRight: int, gps_x: float, gps_y: float, theta: float, ground_sensors: List[bool]):
         dLeft = (encLeft * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
         dRight = (encRight * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
 
         dCenter = (dLeft + dRight) / 2.0
         phi = (dRight - dLeft) / WHEEL2WHEEL_DIST
 
-        ypos = ypos + dCenter * math.sin(theta)
-        xpos = xpos + dCenter * math.cos(theta)
+        gps_y = gps_y + dCenter * math.sin(theta)
+        gps_x = gps_x + dCenter * math.cos(theta)
         theta = normalize_radian_angle(theta + phi)
 
-        return xpos, ypos, theta
+        if ground_sensors[0] or ground_sensors[4]:
+            # TODO: can adjust X/Y because we are at an intersection
+            pass
+
+        return gps_x, gps_y, theta
