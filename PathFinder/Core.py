@@ -53,7 +53,6 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
             return
 
         gps_x, gps_y, my_theta = MovementHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, gps_x, gps_y, my_theta, arduino.get_ground_sensors())
-
         my_map.update(gps_x, gps_y, my_theta, arduino.get_ground_sensors())
         gui.render()
 

@@ -88,69 +88,7 @@ def normalize_angle(a):
         a -= 360
     return a
 
-
-"""
-# return a color scheme for each wall
-def get_wall_color(wall):
-    if wall.confirmed_no_wall:
-        return (255, 255, 255)
-    if wall.confirmed_wall:
-        return (125, 0, 0)
-    if wall.wall:
-        return (0, 0, 0)
-    if wall.no_wall:
-        return (225, 225, 225)
-    return (128, 128, 128)
-
-
-# returns new pose based on previous pose and odometry model
-def update_robot_pos(prev_left, prev_right, in_left, in_right, my_x, my_y, my_dir, colliding):
-    my_dir_rad = my_dir * np.pi / 180  # to radian
-    out_left = in_left * 0.5 + prev_left * 0.5
-    out_right = in_right * 0.5 + prev_right * 0.5
-
-    diam = 1.0
-    rot = (out_right - out_left) / diam
-    lin = (out_right + out_left) / 2.0
-
-    if not colliding:
-        new_my_x = my_x + lin * np.cos(my_dir_rad)
-        new_my_y = my_y + lin * np.sin(my_dir_rad)
-    else:
-        new_my_x = my_x
-        new_my_y = my_y
-    new_my_dir = my_dir + rot
-
-    #if compass is not None:
-    #    new_my_dir = 0.5 * new_my_dir + 0.5 * (compass * np.pi / 180)
-
-    return new_my_x, new_my_y, new_my_dir, out_left, out_right
-
-
-# returns new dir based on previous dir from 4 cycles ago and odometry model
-def update_delayed_compass(prev_left, prev_right, in_left, in_right, my_dir):
-    diam = 1.0
-
-    for i in range(4):
-        out_left = in_left[i] * 0.5 + prev_left[i] * 0.5
-        out_right = in_right[i] * 0.5 + prev_right[i] * 0.5
-        rot = (out_right - out_left) / diam
-        my_dir = my_dir + rot
-
-    return my_dir
-
-
-# returns new pose based on previous pose and odometry model
-def update_robot_pos_time_delay(prev_left, prev_right, in_lefts, in_rights, my_x, my_y, my_dir, collidings):
-    for i in range(4):
-        my_x, my_y, my_dir, prev_left, prev_right = update_robot_pos(
-            prev_left, prev_right, in_lefts[i], in_rights[i], my_x, my_y, my_dir, collidings[i])
-    return my_x, my_y, my_dir, prev_left, prev_right
-"""
-
 # returns angle between line [c,e] and x-axis in degrees
-
-
 def get_angle_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]
@@ -158,45 +96,34 @@ def get_angle_between_points(c, e):
     return theta * 180 / np.pi  # rads to degs
 
 # returns angle between line [c,e] and x-axis in degrees
-
-
 def get_radian_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]
     theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
     return normalize_radian_angle(theta)
 
+def radian_angle_between_vectors(vector1, vector2):
+    x1, y1 = vector1
+    x2, y2 = vector2
+    inner_product = x1*x2 + y1*y2
+    len1 = math.hypot(x1, y1)
+    len2 = math.hypot(x2, y2)
+    return math.acos(inner_product/(len1*len2))
 
-"""
-
-def filter_buffer(buffer, val):
-    if val < 0.4:
-        val = 0.4
-    val = 1 / val
-
-    buffer.pop(0)
-    buffer.append(val)
-    return sorted(buffer)[int(len(buffer) / 2)]  # median
-    # return np.mean(buffer)                  # average
-
-
-def stop_speed(prev_left, prev_right):
-    stop_speed_val = -0.5 * prev_left - 0.5 * prev_right
-    return stop_speed_val, stop_speed_val
-"""
+def radian_angle_between_line_segments(a1, a2, b1, b2):
+    vector1 = [a2[0]-a1[0], a2[1]-a1[1]]
+    vector2 = [b2[0]-b1[0], b2[1]-b1[1]]
+    return radian_angle_between_vectors(vector1, vector2)
 
 
+# aux func?
 def perp(a):
     b = np.empty_like(a)
     b[0] = -a[1]
     b[1] = a[0]
     return b
 
-# line segment a given by endpoints a1, a2
-# line segment b given by endpoints b1, b2
-# return
-
-
+# returns point of intersection between vectors [a1,a2] and [b1,b2]
 def seg_intersect(a1, a2, b1, b2):
     da = a2-a1
     db = b2-b1
