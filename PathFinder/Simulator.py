@@ -2,9 +2,8 @@ import random
 import time
 import math
 
-import MotorHandler
+import OdometryHandler
 import Utils
-import MapHandler
 
 
 class Cell:
@@ -26,7 +25,7 @@ MAP_SIZE = 20
 CM_PER_CELL = 12.5
 MAX_SPEED_CM_PER_SEC = 10
 MOTOR_NOISE_RATIO =  0.1
-SENSOR_NOISE_RATIO = 0#0.05
+SENSOR_NOISE_RATIO = 0.05
 
 
 class MazeSimulator:
@@ -122,15 +121,15 @@ class MazeSimulator:
         dRight *= (1 + random.random() * MOTOR_NOISE_RATIO * 2 - MOTOR_NOISE_RATIO)
         
         dCenter = (dLeft + dRight) / 2.0
-        phi = (dLeft - dRight) / MotorHandler.WHEEL2WHEEL_DIST
+        phi = (dLeft - dRight) / OdometryHandler.WHEEL2WHEEL_DIST
 
         x_delta_cm = dCenter * math.cos(self.eevee_theta)
         y_delta_cm = dCenter * math.sin(self.eevee_theta)
         self.eevee_coords = [self.eevee_coords[0]+x_delta_cm/CM_PER_CELL, self.eevee_coords[1]+y_delta_cm/CM_PER_CELL]
         self.eevee_theta = Utils.normalize_radian_angle(self.eevee_theta + phi)
 
-        self.encLeft += dLeft * MotorHandler.GEAR_RATIO_times_ENCODER_PULSES / MotorHandler.WHEEL_PER
-        self.encRight += dRight * MotorHandler.GEAR_RATIO_times_ENCODER_PULSES / MotorHandler.WHEEL_PER
+        self.encLeft += dLeft * OdometryHandler.GEAR_RATIO_times_ENCODER_PULSES / OdometryHandler.WHEEL_PER
+        self.encRight += dRight * OdometryHandler.GEAR_RATIO_times_ENCODER_PULSES / OdometryHandler.WHEEL_PER
 
         self.last_update = curr_time
 

@@ -42,7 +42,7 @@ class Maze(object):
         [x, y] = Maze.get_cell_indexes_from_cell_coords(self.my_cell_coords)
         return self.maze[x][y]
 
-    """
+    
     def pick_exploration_target(self, path_planner, radian_theta):
         degree_theta = Utils.to_degree(radian_theta)
         if -45 <= degree_theta <= 45:
@@ -53,35 +53,28 @@ class Maze(object):
             prev_cell = self.my_cell.neighbor_up
         else:
             prev_cell = self.my_cell.neighbor_right
-        is_my_cell_explored = self.my_cell.explored
-        self.my_cell.explored = True
         to_be_explored = [[prev_cell, self.my_cell, 0]]
         already_explored = []
 
-        while len(to_be_explored) > 0 and to_be_explored[0][1].explored:
+        while len(to_be_explored) > 0 and (to_be_explored[0][1].explored or to_be_explored[0][1] == self.my_cell):
             [prev_cell, curr_cell, curr_dist] = to_be_explored.pop(0)
             already_explored.append(curr_cell)
 
             neighbors = []
-            for neighbor in path_planner.neighbors(curr_cell):
+            for neighbor in curr_cell.neighbors:
                 if neighbor not in already_explored:
                     neighbors.append([curr_cell, neighbor, curr_dist +
                                       path_planner.distance_between(prev_cell, curr_cell, neighbor)])
 
             # sort to_be_explored by dist
-            to_be_explored = sorted(
-                to_be_explored + neighbors, key=lambda x: x[2])
-        self.my_cell.explored = is_my_cell_explored
+            to_be_explored = sorted(to_be_explored + neighbors, key=lambda x: x[2])
 
         if len(to_be_explored) > 0:
+            # closest unexplored cell
             return to_be_explored[0][1]
         else:
-            for x in range(0, MAP_SIZE):
-                for y in range(0, MAP_SIZE):
-                    self.maze[x][y].explored = False
-            self.my_cell.explored = True
-            return self.pick_exploration_target(path_planner, degree_theta)
-    """
+            return prev_cell
+    
 
     @classmethod
     def get_gps_coords_from_cell_coords(cls, cell_cords):
@@ -251,6 +244,10 @@ class Cell:
     @property
     def right_free(self):
         return self.w_right <= -THRESHOLD_WEIGHT
+    
+    @property
+    def explored(self):
+        return abs(self.w_up) >= THRESHOLD_WEIGHT and abs(self.w_down) >= THRESHOLD_WEIGHT and abs(self.w_left) >= THRESHOLD_WEIGHT and abs(self.w_right) >= THRESHOLD_WEIGHT
 
     def add_sensor_reading(self, rel_coords, sensor_val):
         # if sensor is positive, we try to find a wider line and add a weight to it
@@ -284,3 +281,16 @@ class Cell:
     
     def __str__(self) -> str:
         return f"{self.indices}"
+    
+    @property
+    def neighbors(self):
+        neighbors_arr = []
+        if not self.up_free and self.neighbor_up is not None:
+            neighbors_arr.append(self.neighbor_up)
+        if not self.down_free and self.neighbor_down is not None:
+            neighbors_arr.append(self.neighbor_down)
+        if not self.left_free and self.neighbor_left is not None:
+            neighbors_arr.append(self.neighbor_left)
+        if not self.right_free and self.neighbor_right is not None:
+            neighbors_arr.append(self.neighbor_right)
+        return neighbors_arr

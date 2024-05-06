@@ -10,16 +10,17 @@ try:
     import RPi.GPIO as GPIO
 except Exception as e:
     print(e)
-    from PathFinder.FakeGpio import GPIO
+    from FakeGpio import GPIO
 
 import Utils
 from CameraHandler import CameraHandler
 from MotorHandler import MotorActuator, MovementHandler, MotorState
 from LedHandler import LedActuator
 from ArduinoHandler import ArduinoHandler, EmptyArduino
-from PathFinder.MapHandler import Maze, MAP_SIZE, HALF_MAP_SIZE
-from PathFinder.PathPlanner import AStar
+from MapHandler import Maze
+from PathPlanner import AStar
 from GuiHandler import GuiHandler, FakeGui
+from OdometryHandler import OdometryHandler
 from Simulator import MazeSimulator
 
 SLOW_SPEED = 30
@@ -33,14 +34,14 @@ gui = True
 sim = True
 
 
-def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui):
+def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui, odom):
     gps_x, gps_y, my_theta = 0, 0, 0
     path_planner = AStar()
-    beacon_cell = None
-
-    target_cell = my_map.maze[MAP_SIZE-1][HALF_MAP_SIZE]
 
     while True:
+        #MovementHandler.adjust_sensors(8, 0, Utils.to_radian(-180), [0,0,0,0,1])
+        #continue
+
         # safety check
         if not arduino.get():
             blink_panic(led0, led1, motors)
@@ -52,7 +53,7 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
             timeout = True
             return
 
-        gps_x, gps_y, my_theta = MovementHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, gps_x, gps_y, my_theta, arduino.get_ground_sensors())
+        gps_x, gps_y, my_theta = odom.odometry(arduino.m2_encoder, arduino.m1_encoder, gps_x, gps_y, my_theta, arduino.get_ground_sensors())
         my_map.update(gps_x, gps_y, my_theta, arduino.get_ground_sensors())
         gui.render()
 
@@ -60,11 +61,12 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
         if len(my_map.planned_path) < 2 or Utils.dist(my_map.planned_path[1].indices, my_map.my_cell_coords) < 0.25:
             # with this enabled, by the time we find the next cell, it's too late?
             print("Planning new path")
+            target_cell = my_map.pick_exploration_target(path_planner, my_theta) # maze[MAP_SIZE-1][HALF_MAP_SIZE]
             my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
-            if len(my_map.planned_path) == 0:
+            if len(my_map.planned_path) < 2:
                 motors.stop()
                 # TODO should instead find a new target_cell
-                print("PATH NOT FOUND")
+                print(f"PATH NOT FOUND from cell {my_map.my_cell} to cell {target_cell}")
                 return
         target_theta = Utils.get_radian_between_points([gps_x, gps_y], Maze.get_gps_coords_from_cell_coords(my_map.planned_path[1].indices))
         
@@ -197,6 +199,7 @@ def main():
     cam = CameraHandler()
 
     my_map = Maze()
+    my_odom = OdometryHandler(my_map)
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BOARD)
@@ -229,7 +232,7 @@ def main():
     # Explore until timeout or until goal is found
     global start_time
     start_time = time.time()
-    explore_loop(arduino, led0, led1, motors, cam, my_map, gui_handler)
+    explore_loop(arduino, led0, led1, motors, cam, my_map, gui_handler, my_odom)
 
     # Wait forever
     blink_lights_forever(led0, led1)

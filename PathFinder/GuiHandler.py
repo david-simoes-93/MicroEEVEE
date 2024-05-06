@@ -27,6 +27,7 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 GREY = (128, 128, 128)
+LIGHT_BLUE = (128, 128, 255)
 
 CELL_RESOLUTION = 20
 HALF_CELL_RESOLUTION = int(CELL_RESOLUTION / 2)
@@ -132,19 +133,19 @@ class GuiHandler():
                 if cell.up_line:
                     pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x, mod_y - HALF_CELL_RESOLUTION], 2)
                 elif cell.up_free:
-                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x, mod_y - HALF_CELL_RESOLUTION], 2)
+                    pygame.draw.line(self.screen, LIGHT_BLUE, [mod_x, mod_y], [mod_x, mod_y - HALF_CELL_RESOLUTION], 2)
                 if cell.down_line:
                     pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x, mod_y + HALF_CELL_RESOLUTION], 2)
                 elif cell.down_free:
-                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x, mod_y + HALF_CELL_RESOLUTION], 2)
+                    pygame.draw.line(self.screen, LIGHT_BLUE, [mod_x, mod_y], [mod_x, mod_y + HALF_CELL_RESOLUTION], 2)
                 if cell.left_line:
                     pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x - HALF_CELL_RESOLUTION, mod_y], 2)
                 elif cell.left_free:
-                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x - HALF_CELL_RESOLUTION, mod_y], 2)
+                    pygame.draw.line(self.screen, LIGHT_BLUE, [mod_x, mod_y], [mod_x - HALF_CELL_RESOLUTION, mod_y], 2)
                 if cell.right_line:
                     pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
                 elif cell.right_free:
-                    pygame.draw.line(self.screen, WHITE, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
+                    pygame.draw.line(self.screen, LIGHT_BLUE, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
 
         for cell in self.map.planned_path:
             mod_x = 300 + CELL_RESOLUTION*cell.indices[0] + HALF_CELL_RESOLUTION

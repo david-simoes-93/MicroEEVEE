@@ -54,19 +54,6 @@ class AStar:
         # having to turn
         return 1.5
 
-    def neighbors(self, node: MapHandler.Cell):
-        """For a given node, returns (or yields) the list of its neighbors. this method must be implemented in a subclass"""
-        neighbors = []
-        if not node.up_free and node.neighbor_up is not None:
-            neighbors.append(node.neighbor_up)
-        if not node.down_free and node.neighbor_down is not None:
-            neighbors.append(node.neighbor_down)
-        if not node.left_free and node.neighbor_left is not None:
-            neighbors.append(node.neighbor_left)
-        if not node.right_free and node.neighbor_right is not None:
-            neighbors.append(node.neighbor_right)
-        return neighbors
-
     def is_goal_reached(self, current: MapHandler.Cell, goal: MapHandler.Cell):
         """ returns true when we can consider that 'current' is the goal"""
         return current.indices == goal.indices
@@ -101,7 +88,7 @@ class AStar:
                 return list(self.reconstruct_path(current, reversePath))
             current.out_openset = True
             current.closed = True
-            for neighbor in [searchNodes[n] for n in self.neighbors(current.data)]:
+            for neighbor in [searchNodes[n] for n in current.data.neighbors]:
                 if neighbor.closed:
                     continue
                 tentative_gscore = current.gscore + \
