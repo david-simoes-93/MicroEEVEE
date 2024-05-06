@@ -7,6 +7,9 @@ CM_PER_CELL = 12.5
 MAP_SIZE = 20 * 2 + 4  # amount of cells in map + 4 for safety
 HALF_MAP_SIZE = int(MAP_SIZE / 2)
 
+HALF_LINE_WIDTH_PER_CELL = 1.25 / CM_PER_CELL
+HALF_LINE_WIDTH_PER_CELL_THICK = HALF_LINE_WIDTH_PER_CELL * 1.5
+
 class Maze(object):
     # map is a group of cells, the center of which is an intersection
     # each cell can connect up, down, left, or right with a neighbor
@@ -175,29 +178,30 @@ class Maze(object):
             return
         self.my_cell_coords = my_cell_coords
 
-        left_sensor = ground_sensors[0]
-        front_sensor = ground_sensors[1] or ground_sensors[2] or ground_sensors[3]
-        right_sensor = ground_sensors[4]
-
         far_left_sensor_gps_coords = Utils.far_left_sensor_gps(gps_x, gps_y, compass)
+        left_sensor_gps_coords = Utils.far_left_sensor_gps(gps_x, gps_y, compass)
         front_sensor_gps_coords = Utils.front_sensor_gps(gps_x, gps_y, compass)
+        right_sensor_gps_coords = Utils.far_right_sensor_gps(gps_x, gps_y, compass)
         far_right_sensor_gps_coords = Utils.far_right_sensor_gps(gps_x, gps_y, compass)
         
         sensor_cell_coords = [Maze.get_cell_coords_from_gps_coords(far_left_sensor_gps_coords), 
+                              Maze.get_cell_coords_from_gps_coords(left_sensor_gps_coords), 
                               Maze.get_cell_coords_from_gps_coords(front_sensor_gps_coords), 
+                              Maze.get_cell_coords_from_gps_coords(right_sensor_gps_coords), 
                               Maze.get_cell_coords_from_gps_coords(far_right_sensor_gps_coords)]                                    # [ [1.1, 0.9], ... ]
         sensor_cell_indices = [Maze.get_cell_indexes_from_cell_coords(coords) for coords in sensor_cell_coords]                     # [   [1, 1],   ... ]
         rel_sensor_coords = [[coords[0]-cell[0],coords[1]-cell[1]] for coords,cell in zip(sensor_cell_coords, sensor_cell_indices)] # [ [0.1,-0.1], ... ]
         sensor_cells = [self.maze[x][y] for x,y in sensor_cell_indices]  
 
-        sensor_cells[0].add_sensor_reading(rel_sensor_coords[0], left_sensor)
-        sensor_cells[1].add_sensor_reading(rel_sensor_coords[1], front_sensor)
-        sensor_cells[2].add_sensor_reading(rel_sensor_coords[2], right_sensor)
+        for i in range(len(ground_sensors)):
+            sensor_cells[i].add_sensor_reading(rel_sensor_coords[i], ground_sensors[i])
 
 
-MAX_WEIGHT, MIN_WEIGHT = 150, -150
-THRESHOLD_WEIGHT = 75
-SENSOR_WEIGHT = 25
+
+MAX_WEIGHT= 350
+MIN_WEIGHT = -MAX_WEIGHT
+THRESHOLD_WEIGHT = 50
+SENSOR_WEIGHT = 10
 
 
 
@@ -251,30 +255,30 @@ class Cell:
     def add_sensor_reading(self, rel_coords, sensor_val):
         # if sensor is positive, we try to find a wider line and add a weight to it
         if sensor_val:
-            if -0.15 <= rel_coords[0] <= 0.15 and -0.5 <= rel_coords[1] <= -0.15:
+            if -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL_THICK and -0.5 <= rel_coords[1] <= -HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.w_up = min(self.w_up + SENSOR_WEIGHT, MAX_WEIGHT)
                 self.neighbor_up.w_down = self.w_up
-            if -0.15 <= rel_coords[0] <= 0.15 and 0.15 <= rel_coords[1] <= 0.5:
+            if -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL_THICK and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= 0.5:
                 self.w_down = min(self.w_down + SENSOR_WEIGHT, MAX_WEIGHT)
                 self.neighbor_down.w_up = self.w_down
-            if -0.5 <= rel_coords[0] <= -0.15 and -0.15 <= rel_coords[1] <= 0.15:
+            if -0.5 <= rel_coords[0] <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.w_left = min(self.w_left + SENSOR_WEIGHT, MAX_WEIGHT)
                 self.neighbor_left.w_right = self.w_left
-            if 0.15 <= rel_coords[0] <= 0.5 and -0.15 <= rel_coords[1] <= 0.15:
+            if HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= 0.5 and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.w_right = min(self.w_right + SENSOR_WEIGHT, MAX_WEIGHT)
                 self.neighbor_right.w_left = self.w_right
         # if sensor is negative, we try to find a narrower line and remove weight from it
         if not sensor_val:
-            if -0.10 <= rel_coords[0] <= 0.10 and -0.5 <= rel_coords[1] <= -0.10:
+            if -HALF_LINE_WIDTH_PER_CELL <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL and -0.5 <= rel_coords[1] <= -HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.w_up = max(self.w_up - SENSOR_WEIGHT, MIN_WEIGHT)
                 self.neighbor_up.w_down = self.w_up
-            if -0.10 <= rel_coords[0] <= 0.10 and 0.10 <= rel_coords[1] <= 0.5:
+            if -HALF_LINE_WIDTH_PER_CELL <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= 0.5:
                 self.w_down = max(self.w_down - SENSOR_WEIGHT, MIN_WEIGHT)
                 self.neighbor_down.w_up = self.w_down
-            if -0.5 <= rel_coords[0] <= -0.10 and -0.10 <= rel_coords[1] <= 0.10:
+            if -0.5 <= rel_coords[0] <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL:
                 self.w_left = max(self.w_left - SENSOR_WEIGHT, MIN_WEIGHT)
                 self.neighbor_left.w_right = self.w_left
-            if 0.10 <= rel_coords[0] <= 0.5 and -0.10 <= rel_coords[1] <= 0.10:
+            if HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= 0.5 and -HALF_LINE_WIDTH_PER_CELL <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL:
                 self.w_right = max(self.w_right - SENSOR_WEIGHT, MIN_WEIGHT)
                 self.neighbor_right.w_left = self.w_right
     

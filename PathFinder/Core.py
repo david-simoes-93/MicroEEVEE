@@ -54,20 +54,19 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
 
         gps_x, gps_y, my_theta = MovementHandler.odometry(arduino.m2_encoder, arduino.m1_encoder, gps_x, gps_y, my_theta, arduino.get_ground_sensors())
 
-        # if not turning --> update map, else not worth it
-        #if motors.state != MotorState.TURNING_RIGHT and motors.state != MotorState.TURNING_LEFT:
         my_map.update(gps_x, gps_y, my_theta, arduino.get_ground_sensors())
         gui.render()
 
-        #if len(my_map.planned_path) < 2 or my_map.my_cell.indices == my_map.planned_path[1].indices:
-        # with this enabled, by the time we find the next cell, it's too late?
-        print("Planning new path")
-        my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
-        if len(my_map.planned_path) == 0:
-            motors.stop()
-            # TODO should instead find a new target_cell
-            print("PATH NOT FOUND")
-            return
+        #print(f"curr dist is {Utils.dist(my_map.my_cell.indices, my_map.my_cell_coords)}")
+        if len(my_map.planned_path) < 2 or Utils.dist(my_map.planned_path[1].indices, my_map.my_cell_coords) < 0.25:
+            # with this enabled, by the time we find the next cell, it's too late?
+            print("Planning new path")
+            my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
+            if len(my_map.planned_path) == 0:
+                motors.stop()
+                # TODO should instead find a new target_cell
+                print("PATH NOT FOUND")
+                return
         target_theta = Utils.get_radian_between_points([gps_x, gps_y], Maze.get_gps_coords_from_cell_coords(my_map.planned_path[1].indices))
         
         explore(my_theta, target_theta, arduino, motors)

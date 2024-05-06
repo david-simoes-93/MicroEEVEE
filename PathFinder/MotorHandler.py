@@ -213,24 +213,6 @@ class MovementHandler:
         gps_y = gps_y + dCenter * math.sin(theta)
         gps_x = gps_x + dCenter * math.cos(theta)
         theta = Utils.normalize_radian_angle(theta + phi)
-
-        """
-        if (ground_sensors[0] or ground_sensors[4]) and abs(Utils.get_rigid_compass(theta)-theta) < RIGID_COMPASS_THRESHOLD:
-            # TODO: can adjust X/Y because we are at an intersection
-            pass
-
-        # ideally, we would find a near position in known map which matches our sensors perfectly
-        # then if != from our estimate, we approximate our estimate
-        # how about we try some stuff, maybe a rotation of 10º and then an adjustment of 2cm
-        for gran_x in ODOMETRY_GRANULARITY_ARR:
-            for gran_y in ODOMETRY_GRANULARITY_ARR:
-                for gran_theta in ODOMETRY_GRANULARITY_ARR:
-                    delta_x = gran_x * ODOMETRY_GPS_THRESHOLD / ODOMETRY_GRANULARITY
-                    delta_y = gran_y * ODOMETRY_GPS_THRESHOLD / ODOMETRY_GRANULARITY
-                    delta_theta = gran_theta * ODOMETRY_GPS_THRESHOLD / ODOMETRY_GRANULARITY
-                    #score = check_score(gps_x, gps_y, theta, ground_sensors)
-        """
-
         
         # how about instead we draw lines across our positive sensors
         # line across far ones must be rigid_angle
@@ -238,53 +220,22 @@ class MovementHandler:
         # other lines don't say much
         if (ground_sensors[0] and ground_sensors[4]) or (ground_sensors[1] and ground_sensors[3]):
             rigid_compass = Utils.get_rigid_compass(theta)
-            # if we are rotated more than we should be, but not TOO much (to avoid fucking rotations)
-            if ODOMETRY_THETA_THRESHOLD < abs(rigid_compass-theta) < 2 * ODOMETRY_THETA_THRESHOLD:
+            # if we are rotated more than we should be, but not TOO much (to avoid messing with turns)
+            if ODOMETRY_THETA_THRESHOLD < abs(rigid_compass-theta) < 3 * ODOMETRY_THETA_THRESHOLD:
                 if theta > rigid_compass:
                     new_theta = rigid_compass + ODOMETRY_THETA_THRESHOLD
                 else:
                     new_theta = rigid_compass - ODOMETRY_THETA_THRESHOLD
-                print(f"adjusting theta from {Utils.to_degree(theta):.2f} to {Utils.to_degree(new_theta):.2f}")
+                print(f"adjusting [theta] from {Utils.to_degree(theta):.2f} to {Utils.to_degree(new_theta):.2f}")
                 theta = new_theta
-
-        # and then after fixing theta, we just match
-        # either of the far ones
-        # either of the mids
-
-        """
-        if ground_sensors[0]:
-            # get sensor pos
-            sensor_coords = Utils.far_left_sensor_gps(gps_x, gps_y, theta)
-            sensor_delta_x = sensor_coords[0] - round(sensor_coords[0] / CM_PER_CELL)*CM_PER_CELL
-            sensor_delta_y = sensor_coords[1] - round(sensor_coords[1] / CM_PER_CELL)*CM_PER_CELL
-            # either sensor x or y must be a multiple of 12.5+-1.25, but not off by too far
-            if HALF_LINE_WIDTH < min(abs(sensor_delta_x), abs(sensor_delta_y)) < 2 * HALF_LINE_WIDTH:
-                if abs(sensor_delta_x) < abs(sensor_delta_y):
-                    # x is closer, so adjust x
-                    if sensor_delta_x > HALF_LINE_WIDTH:
-                        new_gps_x = gps_x - (sensor_delta_x-HALF_LINE_WIDTH)
-                    else:
-                        new_gps_x = gps_x - (sensor_delta_x+HALF_LINE_WIDTH)
-                    print(f"adjusting x from {gps_x} to {new_gps_x}: {sensor_delta_x}")
-                    gps_x = new_gps_x
-                else:
-                    # y is closer, so adjust y
-                    if sensor_delta_y > HALF_LINE_WIDTH:
-                        new_gps_y = gps_y - (sensor_delta_y-HALF_LINE_WIDTH)
-                    else:
-                        new_gps_y = gps_y - (sensor_delta_y+HALF_LINE_WIDTH)
-                    print(f"adjusting y from {gps_y} to {new_gps_y}: {sensor_delta_y}")
-                    gps_y = new_gps_y
-        else:
-            # neither sensor x or y must be a multiple of 12.5+-1.25
-            pass
-        """
+        # TODO this should be fixed
+        # we should find a way to fix rotations based on all lit up sensors
         
-        gps_deltas = [MovementHandler.get_sensor_adjustment(ground_sensors[0], Utils.far_left_sensor_gps(gps_x, gps_y, theta)),
-                      MovementHandler.get_sensor_adjustment(ground_sensors[1], Utils.left_sensor_gps(gps_x, gps_y, theta)),
-                      MovementHandler.get_sensor_adjustment(ground_sensors[2], Utils.front_sensor_gps(gps_x, gps_y, theta)),
-                      MovementHandler.get_sensor_adjustment(ground_sensors[3], Utils.right_sensor_gps(gps_x, gps_y, theta)),
-                      MovementHandler.get_sensor_adjustment(ground_sensors[4], Utils.far_right_sensor_gps(gps_x, gps_y, theta))]
+        gps_deltas = [MovementHandler.get_sensor_delta(ground_sensors[0], Utils.far_left_sensor_gps(gps_x, gps_y, theta)),
+                      MovementHandler.get_sensor_delta(ground_sensors[1], Utils.left_sensor_gps(gps_x, gps_y, theta)),
+                      MovementHandler.get_sensor_delta(ground_sensors[2], Utils.front_sensor_gps(gps_x, gps_y, theta)),
+                      MovementHandler.get_sensor_delta(ground_sensors[3], Utils.right_sensor_gps(gps_x, gps_y, theta)),
+                      MovementHandler.get_sensor_delta(ground_sensors[4], Utils.far_right_sensor_gps(gps_x, gps_y, theta))]
         avg_gps_delta_x, avg_gps_delta_y = 0, 0
         for gps_delta in gps_deltas:
             avg_gps_delta_x += gps_delta[0]
@@ -299,14 +250,14 @@ class MovementHandler:
         return gps_x, gps_y, theta
     
     @classmethod
-    def get_sensor_adjustment(cls, sensor_val, sensor_coords):
+    def get_sensor_delta(cls, sensor_val, sensor_coords):
         # get sensor pos
         sensor_delta_x = sensor_coords[0] - round(sensor_coords[0] / CM_PER_CELL)*CM_PER_CELL
         sensor_delta_y = sensor_coords[1] - round(sensor_coords[1] / CM_PER_CELL)*CM_PER_CELL
 
         if sensor_val:
             # either sensor x or y must be a multiple of 12.5+-1.25, but not off by too far
-            if HALF_LINE_WIDTH < min(abs(sensor_delta_x), abs(sensor_delta_y)) < 2 * HALF_LINE_WIDTH:
+            if HALF_LINE_WIDTH < min(abs(sensor_delta_x), abs(sensor_delta_y)) < 3 * HALF_LINE_WIDTH:
                 if abs(sensor_delta_x) < abs(sensor_delta_y):
                     # x is closer, so adjust x
                     if sensor_delta_x > HALF_LINE_WIDTH:
