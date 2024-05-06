@@ -15,12 +15,13 @@ const int button1pin = 10;
 bool button0, button1;
 
 const int m2enA = 2;
-const int m2enB = 11; 
+const int m2enB = 11;
 const int m1enA = 3;
 const int m1enB = 12;
 int m1, m2, counterM1, counterM2;
 
-void setup() {
+void setup()
+{
   digitalWrite(groundEnablePin, LOW);
   pinMode(groundEnablePin, OUTPUT);
 
@@ -30,12 +31,12 @@ void setup() {
   // https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
   attachInterrupt(digitalPinToInterrupt(m1enA), m1_enc, RISING);
   attachInterrupt(digitalPinToInterrupt(m2enA), m2_enc, RISING);
-  
+
   Serial.begin(9600);
 }
 
-
-void readLineSensors() {
+void readLineSensors()
+{
   // All 5 outputs set
   digitalWrite(ground0pin, HIGH);
   digitalWrite(ground1pin, HIGH);
@@ -49,20 +50,20 @@ void readLineSensors() {
   pinMode(ground4pin, OUTPUT);
 
   // Wait, discharging capacitors
-  delayMicroseconds(1000);         
+  delayMicroseconds(1000);
 
   // charge capacitors
-  pinMode(ground0pin, INPUT);  
+  pinMode(ground0pin, INPUT);
   pinMode(ground1pin, INPUT);
   pinMode(ground2pin, INPUT);
   pinMode(ground3pin, INPUT);
   pinMode(ground4pin, INPUT);
 
   // Enable line sensor
-  digitalWrite(groundEnablePin, HIGH);    
+  digitalWrite(groundEnablePin, HIGH);
 
   // wait 0.5 ms (for the default gain)
-  delayMicroseconds(400);           
+  delayMicroseconds(400);
   ground0 = digitalRead(ground0pin);
   ground1 = digitalRead(ground1pin);
   ground2 = digitalRead(ground2pin);
@@ -70,44 +71,49 @@ void readLineSensors() {
   ground4 = digitalRead(ground4pin);
 
   // Disable line sensor
-  digitalWrite(groundEnablePin, LOW);  
+  digitalWrite(groundEnablePin, LOW);
 }
 
-void readIrSensors(){
-  ir0=2547.8/((float)analogRead(ir0pin)*0.49-10.41)-0.42;
-  if(ir0<5)
-    ir0=5;
-  else if(ir0>80)
-    ir0=80;
+void readIrSensors()
+{
+  ir0 = 2547.8 / ((float)analogRead(ir0pin) * 0.49 - 10.41) - 0.42;
+  if (ir0 < 5)
+    ir0 = 5;
+  else if (ir0 > 80)
+    ir0 = 80;
 
-  ir1=2547.8/((float)analogRead(ir1pin)*0.49-10.41)-0.42;
-  if(ir1<5)
-    ir1=5;
-  else if(ir1>80)
-    ir1=80;
+  ir1 = 2547.8 / ((float)analogRead(ir1pin) * 0.49 - 10.41) - 0.42;
+  if (ir1 < 5)
+    ir1 = 5;
+  else if (ir1 > 80)
+    ir1 = 80;
 }
 
-void readButtons(){
+void readButtons()
+{
   button0 = digitalRead(button0pin);
   button1 = digitalRead(button1pin);
 }
 
-void m1_enc(){
-  if(digitalRead(m1enB))
+void m1_enc()
+{
+  if (digitalRead(m1enB))
     counterM1++;
   else
     counterM1--;
 }
 
-void m2_enc(){
-  
-  if(digitalRead(m2enB))
+void m2_enc()
+{
+
+  if (digitalRead(m2enB))
     counterM2++;
   else
     counterM2--;
 }
 
-void readMotors(){
+void readMotors()
+{
   noInterrupts();
   m1 = -counterM1;
   m2 = -counterM2;
@@ -116,21 +122,8 @@ void readMotors(){
   interrupts();
 }
 
-/*
-void updateLocalization(int encLeft, int encRight)
+void loop()
 {
-  static double dLeft, dRight, dCenter;
-  static double phi;
-  dLeft = (encLeft * WHEEL_PER) / (ENCODER_PULSES * GEAR_RATIO);
-  dRight = (encRight * WHEEL_PER) / (ENCODER_PULSES * GEAR_RATIO);
-  dCenter = (dLeft + dRight) / 2.0;
-  phi = (dRight - dLeft) / WHEEL2WHEEL_DIST;
-  ypos = ypos + dCenter * sin(theta);
-  xpos = xpos + dCenter * cos(theta);
-  theta = normalizeAngle(theta + phi);
-}*/
-
-void loop() {
   readLineSensors();
   readIrSensors();
   readButtons();
@@ -145,7 +138,7 @@ void loop() {
   Serial.print(";");
   Serial.print(button1);
   Serial.print(";");
-  
+
   Serial.print(ground0);
   Serial.print(";");
   Serial.print(ground1);
@@ -156,11 +149,11 @@ void loop() {
   Serial.print(";");
   Serial.print(ground4);
   Serial.print(";");
-  
+
   Serial.print(m1);
   Serial.print(";");
   Serial.print(m2);
   Serial.println(";");
-  
-  //delay(250);
+
+  // delay(250);
 }

@@ -205,3 +205,40 @@ def seg_intersect(a1, a2, b1, b2):
     denom = np.dot(dap, db)
     num = np.dot(dap, dp)
     return (num / denom.astype(float))*db + b1
+
+def get_rigid_compass(compass):
+    # convert compass from [0, 2pi] to [0, 4]
+    compass = compass * 2 / math.pi
+    # round to neared int and convert back to radian
+    compass = round(compass) * math.pi / 2
+    return compass
+
+GROUND_SENSOR_DISTANCE = 7.5  # cm from ground sensor to robot center
+FAR_SENSOR_ANGLE = to_radian(40)
+NEAR_SENSOR_ANGLE = to_radian(10)
+
+def far_left_sensor_gps(gps_x: float, gps_y: float, compass: float):
+    # 40º left
+    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass - FAR_SENSOR_ANGLE),
+            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass - FAR_SENSOR_ANGLE)]
+
+def left_sensor_gps(gps_x: float, gps_y: float, compass: float):
+    # 10º left
+    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass - NEAR_SENSOR_ANGLE),
+            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass - NEAR_SENSOR_ANGLE)]
+
+def front_sensor_gps(gps_x: float, gps_y: float, compass: float):
+    # 0º front
+    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass),
+            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass)]
+
+def right_sensor_gps(gps_x: float, gps_y: float, compass: float):
+    # 10º right
+    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass + NEAR_SENSOR_ANGLE),
+            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass + NEAR_SENSOR_ANGLE)]
+
+def far_right_sensor_gps(gps_x: float, gps_y: float, compass: float):
+    # 40º right
+    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass + FAR_SENSOR_ANGLE),
+            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass + FAR_SENSOR_ANGLE)]
+
