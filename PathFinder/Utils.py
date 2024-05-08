@@ -5,6 +5,7 @@ MEDIAN_SIZE = 5
 
 
 def normalize_radian_angle(angle):
+    # [-pi, pi]
     while angle < -math.pi:
         angle += 2.0 * math.pi
 
@@ -15,6 +16,7 @@ def normalize_radian_angle(angle):
 
 
 def normalize_degree_angle(angle):
+    # [-180, 180]
     while angle < -180:
         angle += 360
 
@@ -25,11 +27,11 @@ def normalize_degree_angle(angle):
 
 
 def to_degree(radian):
-    return radian*180/math.pi
+    return normalize_degree_angle(radian*180/math.pi)
 
 
 def to_radian(degree):
-    return degree*math.pi/180
+    return normalize_radian_angle(degree*math.pi/180)
 
 
 # ----------------cyberEEVEE------------------
@@ -140,8 +142,8 @@ def get_rigid_compass(compass):
     compass = round(compass) * math.pi / 2
     return compass
 
-GROUND_SENSOR_DISTANCE = 7.5  # cm from ground sensor to robot center
-FAR_SENSOR_ANGLE = to_radian(40)
+GROUND_SENSOR_DISTANCE = 7.45  # cm from ground sensor to robot center; should be 7.4, 7.42, 7.52
+FAR_SENSOR_ANGLE = to_radian(30)
 NEAR_SENSOR_ANGLE = to_radian(10)
 
 def far_left_sensor_gps(gps_x: float, gps_y: float, compass: float):

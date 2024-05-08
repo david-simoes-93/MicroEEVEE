@@ -52,6 +52,10 @@ class MotorActuator:
         self.pwm.ChangeDutyCycle(min(abs(pwm), 90))
 
 
+GRADUAL_SPEED_INCREMENT = 5
+SPEED_MAX_MODIFIER = 0.6
+SPEED_MAX_ANGLE = 45
+
 class MovementHandler:
     def __init__(self, motor_left, motor_right, simulator):
         self.motor_left = motor_left
@@ -59,8 +63,6 @@ class MovementHandler:
 
         self.prev_left_speed = 0
         self.prev_right_speed = 0
-
-        self.gradual_speed_increment = 5
 
         self.state = MotorState.STOPPED
         self.stopping_counter = 0
@@ -73,26 +75,23 @@ class MovementHandler:
         self.simulator.set_motor_pwm(l_speed, r_speed)
 
     def slow_adapt_speed(self, l_speed, r_speed):
-        if l_speed - self.prev_left_speed > self.gradual_speed_increment:
-            self.prev_left_speed += self.gradual_speed_increment
-        elif l_speed - self.prev_left_speed < -self.gradual_speed_increment:
-            self.prev_left_speed -= self.gradual_speed_increment
-        else:
-            self.prev_left_speed = l_speed
+        if l_speed - self.prev_left_speed > GRADUAL_SPEED_INCREMENT:
+            l_speed = self.prev_left_speed + GRADUAL_SPEED_INCREMENT
+        elif l_speed - self.prev_left_speed < -GRADUAL_SPEED_INCREMENT:
+            l_speed = self.prev_left_speed - GRADUAL_SPEED_INCREMENT
 
-        if r_speed - self.prev_right_speed > self.gradual_speed_increment:
-            self.prev_right_speed += self.gradual_speed_increment
-        elif r_speed - self.prev_right_speed < -self.gradual_speed_increment:
-            self.prev_right_speed -= self.gradual_speed_increment
-        else:
-            self.prev_right_speed = r_speed
+        if r_speed - self.prev_right_speed > GRADUAL_SPEED_INCREMENT:
+            r_speed = self.prev_right_speed + GRADUAL_SPEED_INCREMENT
+        elif r_speed - self.prev_right_speed < -GRADUAL_SPEED_INCREMENT:
+            r_speed = self.prev_right_speed - GRADUAL_SPEED_INCREMENT
 
-        # self.prev_left_speed = (self.prev_left_speed + l_speed) / 2
-        # self.prev_right_speed = (self.prev_right_speed + r_speed) / 2
 
         self.motor_left.set(l_speed)
         self.motor_right.set(r_speed)
         # print("Moving: %4.2f %4.2f" % (l_speed, r_speed))
+        self.prev_left_speed = l_speed
+        self.prev_right_speed = r_speed
+
         self.update_sim(l_speed,r_speed)
 
     def rotate_right(self, speed=45):
@@ -120,33 +119,28 @@ class MovementHandler:
         else:
             self.state = MotorState.BACK
 
-    def follow_direction(self, theta_target, my_theta, speed=40):
+    def follow_direction(self, theta_target, my_theta, speed):
         l_speed = speed
         r_speed = speed
 
-        # cap angle difference at 45º
-        theta_diff = min(max(Utils.normalize_radian_angle(theta_target - my_theta), -math.pi / 2), math.pi / 2)
+        # cap angle difference at 90º
+        theta_diff = Utils.to_degree(theta_target - my_theta)
         # print("theta_diff", to_degree(theta_diff))
-        if (theta_diff > math.pi / 4 and speed > 0) or (theta_diff < -math.pi / 4 and speed < 0):
-            l_speed *= 1.2
-            r_speed *= 0.8
-        elif (theta_diff > 0 and speed > 0) or (theta_diff < 0 and speed < 0):
-            l_speed *= 1.1
-            r_speed *= 0.9
-        elif (theta_diff < -math.pi / 4 and speed > 0) or (theta_diff > math.pi / 4 and speed < 0):
-            l_speed *= 0.8
-            r_speed *= 1.2
-        elif (theta_diff < 0 and speed > 0) or (theta_diff > 0 and speed < 0):
-            l_speed *= 0.9
-            r_speed *= 1.1
 
+        if theta_diff > SPEED_MAX_ANGLE:
+            l_speed *= 1+SPEED_MAX_MODIFIER
+            r_speed *= 1-SPEED_MAX_MODIFIER
+        elif theta_diff < -SPEED_MAX_ANGLE:
+            l_speed *= 1+SPEED_MAX_MODIFIER
+            r_speed *= 1-SPEED_MAX_MODIFIER
+        else:
+            modifier = theta_diff * SPEED_MAX_MODIFIER / SPEED_MAX_ANGLE # [-0.5, 0.5]
+            l_speed *= 1+modifier
+            r_speed *= 1-modifier
+        #print(f"speed of {l_speed:.1f},{r_speed:.1f} to angle {theta_diff}")
         self.slow_adapt_speed(l_speed, r_speed)
 
-        # not possible to have positive left and negative right, i think
-        if self.prev_left_speed > 0 or self.prev_right_speed > 0:
-            self.state = MotorState.FORWARD
-        else:
-            self.state = MotorState.BACK
+        self.state = MotorState.FORWARD
 
     def stop(self):
         self.motor_left.set(0)

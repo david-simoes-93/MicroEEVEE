@@ -56,6 +56,8 @@ class GuiHandler():
         pygame.quit()
 
     def render(self):
+        pygame.event.poll()
+        
         ground_far_left = self.arduino.ground0
         ground_left = self.arduino.ground1
         ground_mid = self.arduino.ground2

@@ -32,6 +32,7 @@ class Maze(object):
         self.my_theta = 0
         self.my_cell.w_left = MAX_WEIGHT
         self.my_cell.w_right = MAX_WEIGHT
+        print(self.my_cell)
         # self.my_cell = self.maze[HALF_MAP_SIZE][HALF_MAP_SIZE]
 
         self.planned_path = []
@@ -93,58 +94,6 @@ class Maze(object):
     @classmethod
     def get_cell_indexes_from_gps_coords(cls, gps_coords):
         return Maze.get_cell_indexes_from_cell_coords(Maze.get_cell_coords_from_gps_coords(gps_coords))
-
-    """
-    def get_ground_sensor_cells(self, gps_x, gps_y, compass):
-        # 40º left
-        far_left_sensor_gps_coords = [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass - FAR_SENSOR_ANGLE),
-                                      gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass - FAR_SENSOR_ANGLE)]
-        far_left_cell_x, far_left_cell_y = Maze.get_cell_indexes_from_gps_coords(far_left_sensor_gps_coords)
-        far_left_cell = self.maze[far_left_cell_x][far_left_cell_y]
-
-        # 10º left
-        left_sensor_gps_coords = [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass - NEAR_SENSOR_ANGLE),
-                                  gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass - NEAR_SENSOR_ANGLE)]
-        left_cell_x, left_cell_y = Maze.get_cell_indexes_from_gps_coords(left_sensor_gps_coords)
-        left_cell = self.maze[left_cell_x][left_cell_y]
-
-        # 0º front
-        front_sensor_gps_coords = [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass),
-                                   gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass)]
-        front_cell_x, front_cell_y = Maze.get_cell_indexes_from_gps_coords(front_sensor_gps_coords)
-        front_cell = self.maze[front_cell_x][front_cell_y]
-
-        # 10º right
-        right_sensor_gps_coords = [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass + NEAR_SENSOR_ANGLE),
-                                   gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass + NEAR_SENSOR_ANGLE)]
-        right_cell_x, right_cell_y = Maze.get_cell_indexes_from_gps_coords(right_sensor_gps_coords)
-        right_cell = self.maze[right_cell_x][right_cell_y]
-
-        # 40º right
-        far_right_sensor_gps_coords = [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass + FAR_SENSOR_ANGLE),
-                                       gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass + FAR_SENSOR_ANGLE)]
-        far_right_cell_x, far_right_cell_y = Maze.get_cell_indexes_from_gps_coords(far_right_sensor_gps_coords)
-        far_right_cell = self.maze[far_right_cell_x][far_right_cell_y]
-        
-        return [far_left_cell, left_cell, front_cell, right_cell, far_right_cell]
-
-    def update(self, gps_x, gps_y, compass, ground_sensors):
-        my_cell_x, my_cell_y = Maze.get_cell_indexes_from_gps_coords([
-                                                                     gps_x, gps_y])
-        if my_cell_x < 1 or my_cell_x >= MAP_SIZE - 1 or my_cell_y < 1 or my_cell_y >= MAP_SIZE - 1:
-            print("OUT OF BOUNDS!")
-            return
-        self.my_cell = self.maze[my_cell_x][my_cell_y]
-        self.my_cell_coords = Maze.get_cell_coords_from_gps_coords([gps_x, gps_y])
-
-        ground_sensor_cells = self.get_ground_sensor_cells(gps_x, gps_y, compass)
-
-        ground_sensor_cells[0].mark_as_line(ground_sensors[0])  # far left
-        ground_sensor_cells[1].mark_as_line(ground_sensors[1])  # mid left
-        ground_sensor_cells[2].mark_as_line(ground_sensors[2])  # mid
-        ground_sensor_cells[3].mark_as_line(ground_sensors[3])  # mid right
-        ground_sensor_cells[4].mark_as_line(ground_sensors[4])  # far right
-    """
 
     def update_rigid(self, gps_x, gps_y, compass, ground_sensors):
         # this method assumes robot is always at some 90º angle and that it is always centered on a line

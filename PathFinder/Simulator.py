@@ -56,7 +56,7 @@ class MazeSimulator:
     def set_motor_pwm(self, l_pwm, r_pwm):
         if self.l_pwm == l_pwm and self.r_pwm == r_pwm:
             return
-        self.update_loc()
+        #self.update_loc()
         # [-90, 90] Hz
         self.l_pwm = l_pwm
         self.r_pwm = r_pwm
@@ -64,23 +64,21 @@ class MazeSimulator:
         # TODO: momentum is lost, but shouldn't be
 
     def get_ground(self):
-        self.update_loc()
-
         # 40º left
         far_left_sensor_coords = [self.eevee_coords[0] + Utils.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta - Utils.FAR_SENSOR_ANGLE) / CM_PER_CELL,
-                                      self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta - Utils.FAR_SENSOR_ANGLE) / CM_PER_CELL]
+                                  self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta - Utils.FAR_SENSOR_ANGLE) / CM_PER_CELL]
         # 10º left
         left_sensor_coords = [self.eevee_coords[0] + Utils.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta - Utils.NEAR_SENSOR_ANGLE) / CM_PER_CELL,
-                                  self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta - Utils.NEAR_SENSOR_ANGLE) / CM_PER_CELL]
+                              self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta - Utils.NEAR_SENSOR_ANGLE) / CM_PER_CELL]
         # 0º front
         front_sensor_coords = [self.eevee_coords[0] + Utils.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta) / CM_PER_CELL,
-                                   self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta) / CM_PER_CELL]
+                               self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta) / CM_PER_CELL]
         # 10º right
         right_sensor_coords = [self.eevee_coords[0] + Utils.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta + Utils.NEAR_SENSOR_ANGLE) / CM_PER_CELL,
-                                   self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta + Utils.NEAR_SENSOR_ANGLE) / CM_PER_CELL]
+                               self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta + Utils.NEAR_SENSOR_ANGLE) / CM_PER_CELL]
         # 40º right
         far_right_sensor_coords = [self.eevee_coords[0] + Utils.GROUND_SENSOR_DISTANCE * math.cos(self.eevee_theta + Utils.FAR_SENSOR_ANGLE) / CM_PER_CELL,
-                                       self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta + Utils.FAR_SENSOR_ANGLE) / CM_PER_CELL]
+                                   self.eevee_coords[1] + Utils.GROUND_SENSOR_DISTANCE * math.sin(self.eevee_theta + Utils.FAR_SENSOR_ANGLE) / CM_PER_CELL]
         
 
         sensor_coords = [far_left_sensor_coords, left_sensor_coords, front_sensor_coords, right_sensor_coords, far_right_sensor_coords] # [ [1.1, 0.9], ... ]
@@ -106,7 +104,6 @@ class MazeSimulator:
         return False if random.random() > SENSOR_NOISE_RATIO else True
 
     def get_encoder(self):
-        self.update_loc()
         encoders = [self.encLeft, self.encRight]
         self.encLeft = 0
         self.encRight = 0
@@ -178,17 +175,7 @@ class MazeSimulator:
 
         self.maze[0][4].set(up=False, down=True, left=False, right=True)
         self.maze[1][4].set(up=False, down=False, left=True, right=True)
-        self.maze[2][4].set(up=True, down=True, left=True, right=True)
-        self.maze[3][4].set(up=False, down=False, left=True, right=True)
-        self.maze[4][4].set(up=False, down=False, left=True, right=False)
-        self.maze[5][4].set(up=True, down=True, left=False, right=False)
-        self.maze[6][4].set(up=False, down=False, left=False, right=True)
-        self.maze[7][4].set(up=False, down=False, left=True, right=True)
-        self.maze[8][4].set(up=True, down=True, left=True, right=False)
-
-        self.maze[0][4].set(up=False, down=True, left=False, right=True)
-        self.maze[1][4].set(up=False, down=False, left=True, right=True)
-        self.maze[2][4].set(up=True, down=True, left=True, right=True)
+        self.maze[2][4].set(up=True, down=False, left=True, right=True)
         self.maze[3][4].set(up=False, down=False, left=True, right=True)
         self.maze[4][4].set(up=False, down=False, left=True, right=False)
         self.maze[5][4].set(up=True, down=True, left=False, right=False)

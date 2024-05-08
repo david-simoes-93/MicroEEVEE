@@ -24,6 +24,8 @@ class EmptyArduino(object):
         self.button0 = random.random() > 0.5
         self.button1 = random.random() > 0.5
 
+        self.simulator.update_loc()
+
         [self.ground0, self.ground1, self.ground2, self.ground3, self.ground4] = self.simulator.get_ground()
 
         [self.m1_encoder, self.m2_encoder] = self.simulator.get_encoder()

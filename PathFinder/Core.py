@@ -33,14 +33,15 @@ timeout = False
 gui = True
 sim = True
 
-
 def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui, odom):
     gps_x, gps_y, my_theta = 0, 0, 0
     path_planner = AStar()
+    target_cell = None
+    my_cell = None
 
     while True:
-        #MovementHandler.adjust_sensors(8, 0, Utils.to_radian(-180), [0,0,0,0,1])
-        #continue
+        odom.adjust_sensors(0, 0.01, Utils.to_radian(0), [0,0,0,0,0])
+        return
 
         # safety check
         if not arduino.get():
@@ -58,10 +59,14 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
         gui.render()
 
         #print(f"curr dist is {Utils.dist(my_map.my_cell.indices, my_map.my_cell_coords)}")
-        if len(my_map.planned_path) < 2 or Utils.dist(my_map.planned_path[1].indices, my_map.my_cell_coords) < 0.25:
-            # with this enabled, by the time we find the next cell, it's too late?
-            print("Planning new path")
-            target_cell = my_map.pick_exploration_target(path_planner, my_theta) # maze[MAP_SIZE-1][HALF_MAP_SIZE]
+        #if len(my_map.planned_path) < 2 or Utils.dist(my_map.planned_path[1].indices, my_map.my_cell_coords) < 0.25:
+        #    # with this enabled, by the time we find the next cell, it's too late?
+        #    print("Planning new path")
+        new_target_cell = my_map.pick_exploration_target(path_planner, my_theta) # maze[MAP_SIZE-1][HALF_MAP_SIZE]
+        #print(f"{my_map.my_cell} -> {new_target_cell}")
+        if new_target_cell != target_cell or my_cell != my_map.my_cell:
+            target_cell = new_target_cell
+            my_cell = my_map.my_cell
             my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
             if len(my_map.planned_path) < 2:
                 motors.stop()
@@ -79,9 +84,9 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
     if motors.state == MotorState.TURNING_LEFT:
         print(f"turning LEFT from {Utils.to_degree(my_theta):.2f}º by {Utils.to_degree(how_much_to_turn):.2f}")
         # just wait until finish turning
-        if -math.pi / 16 < how_much_to_turn:  # 10º
+        if -Utils.to_radian(10) < how_much_to_turn:  # 10º
             motors.stop()
-        elif -math.pi / 3 < how_much_to_turn:
+        elif -Utils.to_radian(60) < how_much_to_turn:
             motors.rotate_left(SLOW_SPEED)
         else:
             motors.rotate_left(FAST_SPEED)
@@ -90,9 +95,9 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
     if motors.state == MotorState.TURNING_RIGHT:
         print(f"turning RIGHT from {Utils.to_degree(my_theta):.2f}º by {Utils.to_degree(how_much_to_turn):.2f}")
         # just wait until finish turning
-        if how_much_to_turn < math.pi / 16:
+        if how_much_to_turn < Utils.to_radian(10):
             motors.stop()
-        elif how_much_to_turn < math.pi / 3:
+        elif how_much_to_turn < Utils.to_radian(60):
             motors.rotate_right(SLOW_SPEED)
         else:
             motors.rotate_right(FAST_SPEED)
@@ -100,20 +105,16 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
 
     if motors.state == MotorState.FORWARD:
         # start rotating if needed
-        if how_much_to_turn > math.pi / 4:
+        if how_much_to_turn > Utils.to_radian(45):
             motors.rotate_right()
             return
-        elif how_much_to_turn < -math.pi / 4:
+        elif how_much_to_turn < -Utils.to_radian(45):
             motors.rotate_left()
             return
 
-        # just wait until no more line is found
-        too_far: bool = False  # arduino.get_ground_average() < 0.6
-
-        if too_far:
-            motors.stop()  # in next versions podemos por a ir logo para o proximo state em vez de parar
-        # elif us_handler.front() < 25:
-        #    motors.follow_direction(target_theta, my_theta, SLOW_SPEED)
+        # slow down if no more line is found
+        if arduino.get_ground_average() == 0:
+            motors.follow_direction(target_theta, my_theta, SLOW_SPEED)
         else:
             motors.follow_direction(target_theta, my_theta, FAST_SPEED)
         return
@@ -199,7 +200,7 @@ def main():
     cam = CameraHandler()
 
     my_map = Maze()
-    my_odom = OdometryHandler(my_map)
+    my_odom = OdometryHandler(my_map, sim_maze)
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BOARD)
