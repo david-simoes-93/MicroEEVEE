@@ -4,6 +4,10 @@ import numpy as np
 MEDIAN_SIZE = 5
 
 
+class Location(object):
+    x: float
+    y: float
+
 def normalize_radian_angle(angle):
     # [-pi, pi]
     while angle < -math.pi:

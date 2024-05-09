@@ -45,6 +45,39 @@ class Maze(object):
         return self.maze[x][y]
 
     
+    def pick_exploration_target_with_turns(self, path_planner, radian_theta):
+        degree_theta = Utils.to_degree(radian_theta)
+        if -45 <= degree_theta <= 45:
+            prev_cell = self.my_cell.neighbor_left
+        elif -135 <= degree_theta < -45:
+            prev_cell = self.my_cell.neighbor_down
+        elif 45 < degree_theta <= 135:
+            prev_cell = self.my_cell.neighbor_up
+        else:
+            prev_cell = self.my_cell.neighbor_right
+        to_be_explored = [[prev_cell, self.my_cell, 0]]
+        already_explored = []
+
+        while len(to_be_explored) > 0 and (to_be_explored[0][1].explored or to_be_explored[0][1] == self.my_cell):
+            [prev_cell, curr_cell, curr_dist] = to_be_explored.pop(0)
+            already_explored.append(curr_cell)
+
+            neighbors = []
+            for neighbor in curr_cell.neighbors:
+                if neighbor not in already_explored:
+                    neighbors.append([curr_cell, neighbor, curr_dist +
+                                      path_planner.distance_between_favoring_turns(prev_cell, curr_cell, neighbor)])
+
+            # sort to_be_explored by dist
+            to_be_explored = sorted(to_be_explored + neighbors, key=lambda x: x[2])
+
+        if len(to_be_explored) > 0:
+            # closest unexplored cell
+            return to_be_explored[0][1]
+        else:
+            return prev_cell
+
+
     def pick_exploration_target(self, path_planner, radian_theta):
         degree_theta = Utils.to_degree(radian_theta)
         if -45 <= degree_theta <= 45:
@@ -164,6 +197,7 @@ TRAVERSED_WEIGHT = MAX_WEIGHT * 1000
 class Cell:
     def __init__(self, x, y):
         self.indices = [x,y]
+        self.coords = Maze.get_gps_coords_from_cell_coords(self.indices)
 
         self.w_up = 0 if y != 0 else MIN_WEIGHT
         self.w_down = 0 if y != MAP_SIZE - 1 else MIN_WEIGHT

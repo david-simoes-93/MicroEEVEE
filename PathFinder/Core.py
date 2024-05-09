@@ -75,11 +75,7 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
         my_map.update(gps_x, gps_y, my_theta, arduino.get_ground_sensors())
         gui.render()
 
-        #print(f"curr dist is {Utils.dist(my_map.my_cell.indices, my_map.my_cell_coords)}")
-        #if len(my_map.planned_path) < 2 or Utils.dist(my_map.planned_path[1].indices, my_map.my_cell_coords) < 0.25:
-        #    # with this enabled, by the time we find the next cell, it's too late?
-        #    print("Planning new path")
-        new_target_cell = my_map.pick_exploration_target(path_planner, my_theta) # maze[MAP_SIZE-1][HALF_MAP_SIZE]
+        new_target_cell = my_map.pick_exploration_target_with_turns(path_planner, my_theta)
         #print(f"{my_map.my_cell} -> {new_target_cell}")
         if new_target_cell != target_cell or my_cell != my_map.my_cell:
             target_cell = new_target_cell
@@ -90,7 +86,11 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
                 print(f"PATH NOT FOUND from cell {my_map.my_cell} to cell {target_cell}")
                 # TODO should clear map or rotate upon itself for a while or smt
                 return
-        target_theta = Utils.get_radian_between_points([gps_x, gps_y], Maze.get_gps_coords_from_cell_coords(my_map.planned_path[1].indices))
+        if Utils.dist([gps_x, gps_y], my_map.planned_path[0].coords) > 3.5 and Utils.dist([gps_x, gps_y], my_map.planned_path[1].coords) > 9.5:
+            next_cell = my_map.planned_path[0]
+        else:
+            next_cell = my_map.planned_path[1]
+        target_theta = Utils.get_radian_between_points([gps_x, gps_y], next_cell.coords)
         
         explore(my_theta, target_theta, arduino, motors)
 
@@ -99,7 +99,7 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
     how_much_to_turn = Utils.normalize_radian_angle(target_theta - my_theta)
     # turn 90º or whatever
     if motors.state == MotorState.TURNING_LEFT:
-        print(f"turning LEFT from {Utils.to_degree(my_theta):.2f}º by {Utils.to_degree(how_much_to_turn):.2f}")
+        #print(f"turning LEFT from {Utils.to_degree(my_theta):.2f}º by {Utils.to_degree(how_much_to_turn):.2f}")
         # just wait until finish turning
         if -Utils.to_radian(10) < how_much_to_turn:  # 10º
             motors.stop()
@@ -110,7 +110,7 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
         return
 
     if motors.state == MotorState.TURNING_RIGHT:
-        print(f"turning RIGHT from {Utils.to_degree(my_theta):.2f}º by {Utils.to_degree(how_much_to_turn):.2f}")
+        #print(f"turning RIGHT from {Utils.to_degree(my_theta):.2f}º by {Utils.to_degree(how_much_to_turn):.2f}")
         # just wait until finish turning
         if how_much_to_turn < Utils.to_radian(10):
             motors.stop()
@@ -132,20 +132,22 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
         # slow down if no more line is found
         if sum(arduino.get_ground_sensors()[1:4]) == 0:
             motors.follow_direction(target_theta, my_theta, SLOW_SPEED)
+        elif far_sensor_positions inside lines and lines unexplored:
+            motors.follow_direction(target_theta, my_theta, SLOW_SPEED)
         else:
             motors.follow_direction(target_theta, my_theta, FAST_SPEED)
         return
 
     if motors.state == MotorState.STOPPED:
         motors.follow_direction(target_theta, my_theta, SLOW_SPEED)
-        print("stopped, start moving")
+        #print("stopped, start moving")
         return
 
     if motors.state == MotorState.BACK:
-        print("back")
+        #print("back")
         return
     if motors.state == MotorState.STOPPING:
-        print("stopping")
+        #print("stopping")
         motors.stop()
         return
 
