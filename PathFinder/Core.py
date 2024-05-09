@@ -26,7 +26,7 @@ from Simulator import MazeSimulator
 SLOW_SPEED = 30
 FAST_SPEED = 45
 
-TIME = 180  # seconds
+TIME = 1800  # seconds
 start_time = time.time()
 timeout = False
 
@@ -40,9 +40,26 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
     my_cell = None
 
     while True:
-        odom.adjust_sensors(0, 0.01, Utils.to_radian(0), [0,0,0,0,0])
-        return
-
+        # positive angle = to the right
+        if False:  # test gps adjustments on h-lines
+            pass
+        if False: # test theta adjustments on h-lines
+            odom.adjust_sensors(0, -3.8-2, Utils.to_radian(0), [0,0,0,0,1]) # should give positive delta
+            odom.adjust_sensors(0, 3.8+2, Utils.to_radian(0), [1,0,0,0,0]) # should give negative delta
+            odom.adjust_sensors(0, -3.8-0.01, Utils.to_radian(0), [0,0,0,0,0]) # should give negative delta
+            odom.adjust_sensors(0, 3.8+0.01, Utils.to_radian(0), [0,0,0,0,0]) # should give positive delta
+            return
+        if False: # test theta adjustments on v-lines
+            odom.adjust_sensors(-3.8-2, 0, Utils.to_radian(-90), [0,0,0,0,1]) # should give positive delta
+            odom.adjust_sensors(3.8+2, 0, Utils.to_radian(-90), [1,0,0,0,0]) # should give negative delta
+            my_map.my_cell.w_up = 1000
+            my_map.my_cell.neighbor_up.w_down = 1000
+            my_map.my_cell.w_down = 1000
+            my_map.my_cell.neighbor_down.w_up = 1000
+            odom.adjust_sensors(-3.8-0.01, 0, Utils.to_radian(-90), [0,0,0,0,0]) # should give negative delta
+            odom.adjust_sensors(3.8+0.01, 0, Utils.to_radian(-90), [0,0,0,0,0]) # should give positive delta
+            return
+        
         # safety check
         if not arduino.get():
             blink_panic(led0, led1, motors)
@@ -70,8 +87,8 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
             my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
             if len(my_map.planned_path) < 2:
                 motors.stop()
-                # TODO should instead find a new target_cell
                 print(f"PATH NOT FOUND from cell {my_map.my_cell} to cell {target_cell}")
+                # TODO should clear map or rotate upon itself for a while or smt
                 return
         target_theta = Utils.get_radian_between_points([gps_x, gps_y], Maze.get_gps_coords_from_cell_coords(my_map.planned_path[1].indices))
         
@@ -113,7 +130,7 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
             return
 
         # slow down if no more line is found
-        if arduino.get_ground_average() == 0:
+        if sum(arduino.get_ground_sensors()[1:4]) == 0:
             motors.follow_direction(target_theta, my_theta, SLOW_SPEED)
         else:
             motors.follow_direction(target_theta, my_theta, FAST_SPEED)

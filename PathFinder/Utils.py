@@ -95,9 +95,9 @@ def get_angle_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]
     theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
-    return theta * 180 / np.pi  # rads to degs
+    return to_degree(theta)  # rads to degs
 
-# returns angle between line [c,e] and x-axis in degrees
+# returns angle between line [c,e] and x-axis in radians
 def get_radian_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]

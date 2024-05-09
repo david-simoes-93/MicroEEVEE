@@ -31,8 +31,9 @@ class Maze(object):
         self.my_cell_coords = Maze.get_cell_coords_from_gps_coords([0, 0])
         self.my_theta = 0
         self.my_cell.w_left = MAX_WEIGHT
+        self.my_cell.neighbor_left.w_right = MAX_WEIGHT
         self.my_cell.w_right = MAX_WEIGHT
-        print(self.my_cell)
+        self.my_cell.neighbor_right.w_left = MAX_WEIGHT
         # self.my_cell = self.maze[HALF_MAP_SIZE][HALF_MAP_SIZE]
 
         self.planned_path = []
@@ -95,6 +96,7 @@ class Maze(object):
     def get_cell_indexes_from_gps_coords(cls, gps_coords):
         return Maze.get_cell_indexes_from_cell_coords(Maze.get_cell_coords_from_gps_coords(gps_coords))
 
+    """
     def update_rigid(self, gps_x, gps_y, compass, ground_sensors):
         # this method assumes robot is always at some 90º angle and that it is always centered on a line
         compass = Utils.get_rigid_compass(compass)
@@ -109,7 +111,18 @@ class Maze(object):
         
         [gps_x, gps_y] = Maze.get_gps_coords_from_cell_coords(my_cell_coords)
         self.update(gps_x, gps_y, compass, ground_sensors)
-        
+    """  
+
+    def set_traversal_weights(self, new_cell_indices):
+        prev_cell = self.my_cell
+        if new_cell_indices[0] < prev_cell.indices[0]:
+            prev_cell.set_left_weight(TRAVERSED_WEIGHT)
+        elif new_cell_indices[0] > prev_cell.indices[0]:
+            prev_cell.set_right_weight(TRAVERSED_WEIGHT)
+        elif new_cell_indices[1] < prev_cell.indices[1]:
+            prev_cell.set_up_weight(TRAVERSED_WEIGHT)
+        elif new_cell_indices[1] > prev_cell.indices[1]:
+            prev_cell.set_down_weight(TRAVERSED_WEIGHT)
 
     def update(self, gps_x, gps_y, compass, ground_sensors):
         self.my_theta = compass
@@ -118,6 +131,7 @@ class Maze(object):
         if my_cell_indices[0] < 1 or my_cell_indices[0] >= MAP_SIZE - 1 or my_cell_indices[1] < 1 or my_cell_indices[1] >= MAP_SIZE - 1:
             print("OUT OF BOUNDS!")
             return
+        self.set_traversal_weights(my_cell_indices)
         self.my_cell_coords = my_cell_coords
 
         far_left_sensor_gps_coords = Utils.far_left_sensor_gps(gps_x, gps_y, compass)
@@ -144,7 +158,7 @@ MAX_WEIGHT= 350
 MIN_WEIGHT = -MAX_WEIGHT
 THRESHOLD_WEIGHT = 50
 SENSOR_WEIGHT = 10
-
+TRAVERSED_WEIGHT = MAX_WEIGHT * 1000
 
 
 class Cell:
@@ -198,35 +212,51 @@ class Cell:
     def explored(self):
         return abs(self.w_up) >= THRESHOLD_WEIGHT and abs(self.w_down) >= THRESHOLD_WEIGHT and abs(self.w_left) >= THRESHOLD_WEIGHT and abs(self.w_right) >= THRESHOLD_WEIGHT
 
+    def set_up_weight(self, w):
+        if self.w_up == TRAVERSED_WEIGHT:
+            return
+        self.w_up = w
+        self.neighbor_up.w_down = w
+
+    def set_down_weight(self, w):
+        if self.w_down == TRAVERSED_WEIGHT:
+            return
+        self.w_down = w
+        self.neighbor_down.w_up = w
+
+    def set_left_weight(self, w):
+        if self.w_left == TRAVERSED_WEIGHT:
+            return
+        self.w_left = w
+        self.neighbor_left.w_right = w
+
+    def set_right_weight(self, w):
+        if self.w_right == TRAVERSED_WEIGHT:
+            return
+        self.w_right = w
+        self.neighbor_right.w_left = w
+
     def add_sensor_reading(self, rel_coords, sensor_val):
         # if sensor is positive, we try to find a wider line and add a weight to it
         if sensor_val:
             if -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL_THICK and -0.5 <= rel_coords[1] <= -HALF_LINE_WIDTH_PER_CELL_THICK:
-                self.w_up = min(self.w_up + SENSOR_WEIGHT, MAX_WEIGHT)
-                self.neighbor_up.w_down = self.w_up
+                self.set_up_weight(min(self.w_up + SENSOR_WEIGHT, MAX_WEIGHT))
             if -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL_THICK and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= 0.5:
-                self.w_down = min(self.w_down + SENSOR_WEIGHT, MAX_WEIGHT)
-                self.neighbor_down.w_up = self.w_down
+                self.set_down_weight(min(self.w_down + SENSOR_WEIGHT, MAX_WEIGHT))
             if -0.5 <= rel_coords[0] <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL_THICK:
-                self.w_left = min(self.w_left + SENSOR_WEIGHT, MAX_WEIGHT)
-                self.neighbor_left.w_right = self.w_left
+                self.set_left_weight(min(self.w_left + SENSOR_WEIGHT, MAX_WEIGHT))
             if HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= 0.5 and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL_THICK:
-                self.w_right = min(self.w_right + SENSOR_WEIGHT, MAX_WEIGHT)
-                self.neighbor_right.w_left = self.w_right
+                self.set_right_weight(min(self.w_right + SENSOR_WEIGHT, MAX_WEIGHT))
         # if sensor is negative, we try to find a narrower line and remove weight from it
         if not sensor_val:
             if -HALF_LINE_WIDTH_PER_CELL <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL and -0.5 <= rel_coords[1] <= -HALF_LINE_WIDTH_PER_CELL_THICK:
-                self.w_up = max(self.w_up - SENSOR_WEIGHT, MIN_WEIGHT)
-                self.neighbor_up.w_down = self.w_up
+                self.set_up_weight(max(self.w_up - SENSOR_WEIGHT, MIN_WEIGHT))
             if -HALF_LINE_WIDTH_PER_CELL <= rel_coords[0] <= HALF_LINE_WIDTH_PER_CELL and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[1] <= 0.5:
-                self.w_down = max(self.w_down - SENSOR_WEIGHT, MIN_WEIGHT)
-                self.neighbor_down.w_up = self.w_down
+                self.set_down_weight(max(self.w_down - SENSOR_WEIGHT, MIN_WEIGHT))
             if -0.5 <= rel_coords[0] <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL:
-                self.w_left = max(self.w_left - SENSOR_WEIGHT, MIN_WEIGHT)
-                self.neighbor_left.w_right = self.w_left
+                self.set_left_weight(max(self.w_left - SENSOR_WEIGHT, MIN_WEIGHT))
             if HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords[0] <= 0.5 and -HALF_LINE_WIDTH_PER_CELL <= rel_coords[1] <= HALF_LINE_WIDTH_PER_CELL:
-                self.w_right = max(self.w_right - SENSOR_WEIGHT, MIN_WEIGHT)
-                self.neighbor_right.w_left = self.w_right
+                self.set_right_weight(max(self.w_right - SENSOR_WEIGHT, MIN_WEIGHT))
     
     def __str__(self) -> str:
         return f"{self.indices}"
