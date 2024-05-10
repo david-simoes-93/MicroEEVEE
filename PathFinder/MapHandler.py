@@ -158,9 +158,9 @@ class Maze(object):
         elif new_cell_indices.y > prev_cell.indices.y:
             prev_cell.set_down_weight(TRAVERSED_WEIGHT)
 
-    def update(self, gps, compass, ground_sensors):
-        self.my_theta = compass
-        my_cell_coords = Maze.get_cell_coords_from_gps_coords(gps)
+    def update(self, eevee, ground_sensors):
+        self.my_theta = eevee.theta
+        my_cell_coords = Maze.get_cell_coords_from_gps_coords(eevee.gps)
         my_cell_indices = Maze.get_cell_indexes_from_cell_coords(my_cell_coords)
         if my_cell_indices.x < 1 or my_cell_indices.x >= MAP_SIZE - 1 or my_cell_indices.y < 1 or my_cell_indices.y >= MAP_SIZE - 1:
             print("OUT OF BOUNDS!")
@@ -168,17 +168,7 @@ class Maze(object):
         self.set_traversal_weights(my_cell_indices)
         self.my_cell_coords = my_cell_coords
 
-        far_left_sensor_gps_coords = Utils.far_left_sensor_gps(gps, compass)
-        left_sensor_gps_coords = Utils.far_left_sensor_gps(gps, compass)
-        front_sensor_gps_coords = Utils.front_sensor_gps(gps, compass)
-        right_sensor_gps_coords = Utils.far_right_sensor_gps(gps, compass)
-        far_right_sensor_gps_coords = Utils.far_right_sensor_gps(gps, compass)
-        
-        sensor_cell_coords = [Maze.get_cell_coords_from_gps_coords(far_left_sensor_gps_coords), 
-                              Maze.get_cell_coords_from_gps_coords(left_sensor_gps_coords), 
-                              Maze.get_cell_coords_from_gps_coords(front_sensor_gps_coords), 
-                              Maze.get_cell_coords_from_gps_coords(right_sensor_gps_coords), 
-                              Maze.get_cell_coords_from_gps_coords(far_right_sensor_gps_coords)]                                    # [ [1.1, 0.9], ... ]
+        sensor_cell_coords = [Maze.get_cell_coords_from_gps_coords(sensor_gps) for sensor_gps in eevee.sensor_positions]                                    # [ [1.1, 0.9], ... ]
         sensor_cell_indices = [Maze.get_cell_indexes_from_cell_coords(coords) for coords in sensor_cell_coords]                     # [   [1, 1],   ... ]
         rel_sensor_coords = [coords-cell for coords,cell in zip(sensor_cell_coords, sensor_cell_indices)] # [ [0.1,-0.1], ... ]
         sensor_cells = [self.maze[cell_index.x][cell_index.y] for cell_index in sensor_cell_indices]  

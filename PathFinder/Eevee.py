@@ -6,10 +6,11 @@ from Utils import Location
 
 
 class Eevee(object):
-    def __init__(self) -> None:
+    def __init__(self, odom) -> None:
         self.gps: Location = Location(0,0)
         self.cell_coords: Location = Maze.get_cell_coords_from_gps_coords(self.gps)
-        self.theta: float
+        self.theta: float = 0
+        self.my_odom = odom
 
         self.update_sensors()
     
@@ -24,4 +25,9 @@ class Eevee(object):
                        Utils.front_sensor_gps(self.gps, self.theta),
                        Utils.right_sensor_gps(self.gps, self.theta),
                        Utils.far_right_sensor_gps(self.gps, self.theta)]
+        
+    def odom(self, m2_encoder, m1_encoder, ground_sensors):
+        gps, theta = self.my_odom.odometry(m2_encoder, m1_encoder, self.gps, self.theta, self.sensor_positions, ground_sensors)
+        self.update(gps, theta)
+        
     

@@ -27,7 +27,7 @@ MAP_SIZE = 20
 CM_PER_CELL = 12.5
 MAX_SPEED_CM_PER_SEC = 10
 MOTOR_NOISE_RATIO =  0.1
-SENSOR_NOISE_RATIO = 0#.05
+SENSOR_NOISE_RATIO = 0.02
 
 
 class MazeSimulator:
@@ -121,12 +121,14 @@ class MazeSimulator:
         dCenter = (dLeft + dRight) / 2.0
         phi = (dLeft - dRight) / OdometryHandler.WHEEL2WHEEL_DIST
 
-        x_delta_cm = dCenter * math.cos(self.eevee_theta)
-        y_delta_cm = dCenter * math.sin(self.eevee_theta)
+        new_eevee_theta = Utils.normalize_radian_angle(self.eevee_theta + phi)
+        avg_theta = (self.eevee_theta + new_eevee_theta) / 2
+        x_delta_cm = dCenter * math.cos(avg_theta)
+        y_delta_cm = dCenter * math.sin(avg_theta)
         self.eevee_coords.x += x_delta_cm/CM_PER_CELL
         self.eevee_coords.y += y_delta_cm/CM_PER_CELL
-        self.eevee_theta = Utils.normalize_radian_angle(self.eevee_theta + phi)
-
+        self.eevee_theta = new_eevee_theta
+        
         self.encLeft += dLeft * OdometryHandler.GEAR_RATIO_times_ENCODER_PULSES / OdometryHandler.WHEEL_PER
         self.encRight += dRight * OdometryHandler.GEAR_RATIO_times_ENCODER_PULSES / OdometryHandler.WHEEL_PER
 

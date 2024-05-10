@@ -23,6 +23,7 @@ from GuiHandler import GuiHandler, FakeGui
 from OdometryHandler import OdometryHandler
 from Simulator import MazeSimulator
 from Utils import Location
+from Eevee import Eevee
 
 SLOW_SPEED = 30
 FAST_SPEED = 45
@@ -34,9 +35,7 @@ timeout = False
 gui = True
 sim = True
 
-def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui, odom):
-    gps = Location(0,0)
-    my_theta = 0
+def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui):
     path_planner = AStar()
     target_cell = None
     my_cell = None
@@ -73,11 +72,11 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
             timeout = True
             return
 
-        gps, my_theta = odom.odometry(arduino.m2_encoder, arduino.m1_encoder, gps, my_theta, arduino.get_ground_sensors())
-        my_map.update(gps, my_theta, arduino.get_ground_sensors())
+        eevee.odom(arduino.m2_encoder, arduino.m1_encoder, arduino.get_ground_sensors())
+        my_map.update(eevee, arduino.get_ground_sensors())
         gui.render()
 
-        new_target_cell = my_map.pick_exploration_target(path_planner, my_theta)
+        new_target_cell = my_map.pick_exploration_target(path_planner, eevee.theta)
         #print(f"{my_map.my_cell} -> {new_target_cell}")
         if new_target_cell != target_cell or my_cell != my_map.my_cell:
             target_cell = new_target_cell
@@ -88,13 +87,13 @@ def explore_loop(arduino: ArduinoHandler, led0, led1, motors: MovementHandler, c
                 print(f"PATH NOT FOUND from cell {my_map.my_cell} to cell {target_cell}")
                 # TODO should clear map or rotate upon itself for a while or smt
                 return
-        if Utils.dist(gps, my_map.planned_path[0].coords) > 3.5 and Utils.dist(gps, my_map.planned_path[1].coords) > 9.5:
+        if Utils.dist(eevee.gps, my_map.planned_path[0].coords) > 3.5 and Utils.dist(eevee.gps, my_map.planned_path[1].coords) > 9.5:
             next_cell = my_map.planned_path[0]
         else:
             next_cell = my_map.planned_path[1]
-        target_theta = Utils.get_radian_between_points(gps, next_cell.coords)
+        target_theta = Utils.get_radian_between_points(eevee.gps, next_cell.coords)
         
-        explore(my_theta, target_theta, arduino, motors)
+        explore(eevee.theta, target_theta, arduino, motors)
 
 
 def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motors: MovementHandler):
@@ -154,14 +153,14 @@ def explore(my_theta: float, target_theta: float, arduino: ArduinoHandler, motor
         return
 
 
-def wait_until_button(arduino, led0, led1, my_map, gui):
+def wait_until_button(eevee, arduino, led0, led1, my_map, gui):
     # LEDS out
     led1.set(True)
     print("Ready to go. Press a button...")
     while True:
         if not arduino.get():
             blink_panic(led0, led1, None)
-        my_map.update(Location(0, 0), 0, arduino.get_ground_sensors())
+        my_map.update(eevee, arduino.get_ground_sensors())
         gui.render()
         if arduino.button0 or arduino.button1:
             break
@@ -248,13 +247,15 @@ def main():
     else:
         gui_handler = FakeGui()
 
+    eevee = Eevee(my_odom)
+
     # Wait at start until a button is pushed
-    wait_until_button(arduino, led0, led1, my_map, gui_handler)
+    wait_until_button(eevee, arduino, led0, led1, my_map, gui_handler)
 
     # Explore until timeout or until goal is found
     global start_time
     start_time = time.time()
-    explore_loop(arduino, led0, led1, motors, cam, my_map, gui_handler, my_odom)
+    explore_loop(eevee, arduino, led0, led1, motors, cam, my_map, gui_handler)
 
     # Wait forever
     blink_lights_forever(led0, led1)

@@ -29,32 +29,27 @@ class OdometryHandler():
         self.map = map
         self.sim = sim
 
-    def odometry(self, encLeft: int, encRight: int, gps: Location, theta: float, ground_sensors: List[bool]):
+    def odometry(self, encLeft: int, encRight: int, gps: Location, theta: float, sensor_positions: List[Location], ground_sensors: List[bool]):
         dLeft = (encLeft * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
         dRight = (encRight * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
 
         dCenter = (dLeft + dRight) / 2.0
         phi = (dRight - dLeft) / WHEEL2WHEEL_DIST
 
-        new_gps = Location(gps.x + dCenter * math.cos(theta), gps.y + dCenter * math.sin(theta))
-        theta = Utils.normalize_radian_angle(theta + phi)
+        new_theta = Utils.normalize_radian_angle(theta + phi)
+        avg_theta = (theta + new_theta) / 2
+        new_gps = Location(gps.x + dCenter * math.cos(avg_theta), gps.y + dCenter * math.sin(avg_theta))
 
-        return self.adjust_sensors(new_gps, theta, ground_sensors)
+        return self.adjust_sensors(new_gps, new_theta, sensor_positions, ground_sensors)
 
     
-    def adjust_sensors(self, gps: Location, theta: float, ground_sensors):
-        sensors_gps = [Utils.far_left_sensor_gps(gps, theta),
-                       Utils.left_sensor_gps(gps, theta),
-                       Utils.front_sensor_gps(gps, theta),
-                       Utils.right_sensor_gps(gps, theta),
-                       Utils.far_right_sensor_gps(gps, theta)]
-        
+    def adjust_sensors(self, gps: Location, theta: float, sensors_gps, ground_sensors):
         theta_deltas = [self.get_sensor_theta_delta(ground_sensors[i], sensors_gps[i], gps) for i in range(len(ground_sensors))]
         avg_theta_delta = sum([max(min(t,ODOMETRY_THETA_THRESHOLD),-ODOMETRY_THETA_THRESHOLD) for t in theta_deltas if t is not None])
 
         gps_deltas = [self.get_sensor_gps_delta(ground_sensors[i], sensors_gps[i]) for i in range(len(ground_sensors))]
-        avg_gps_delta_x = sum([t.x for t in gps_deltas if t is not None])
-        avg_gps_delta_y = sum([t.y for t in gps_deltas if t is not None])
+        avg_gps_delta_x = sum([t[0] for t in gps_deltas if t is not None])
+        avg_gps_delta_y = sum([t[1] for t in gps_deltas if t is not None])
         if avg_gps_delta_x != 0 or avg_gps_delta_y != 0 or avg_theta_delta != 0:
             avg_gps_delta_x /= len(gps_deltas)
             avg_gps_delta_y /= len(gps_deltas)
@@ -170,12 +165,12 @@ class OdometryHandler():
                 intersection_x_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps.x
                 
                 # choose closest intersecting point
-                if Utils.dist2([intersection_x_pos, horizontal_line_edge_y], sensor_coords) < Utils.dist2([intersection_x_neg, horizontal_line_edge_y], sensor_coords):
+                if Utils.dist2(Location(intersection_x_pos, horizontal_line_edge_y), sensor_coords) < Utils.dist2(Location(intersection_x_neg, horizontal_line_edge_y), sensor_coords):
                     intersection_x = intersection_x_pos
                 else:
                     intersection_x = intersection_x_neg
 
-                angle = Utils.get_radian_between_points([gps], [intersection_x, horizontal_line_edge_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+                angle = Utils.get_radian_between_points(gps, Location(intersection_x, horizontal_line_edge_y)) - Utils.get_radian_between_points(gps, sensor_coords)
                 #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f} to get to intersection [{intersection_x:.2f},{horizontal_line_edge_y:.2f}]")
                 return angle
         else:
@@ -198,12 +193,12 @@ class OdometryHandler():
                 intersection_y_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps.y
                 
                 # choose closest intersecting point
-                if Utils.dist2([vertical_line_edge_x, intersection_y_pos], sensor_coords) < Utils.dist2([vertical_line_edge_x, intersection_y_neg], sensor_coords):
+                if Utils.dist2(Location(vertical_line_edge_x, intersection_y_pos), sensor_coords) < Utils.dist2(Location(vertical_line_edge_x, intersection_y_neg), sensor_coords):
                     intersection_y = intersection_y_pos
                 else:
                     intersection_y = intersection_y_neg
 
-                angle = Utils.get_radian_between_points([gps], [vertical_line_edge_x, intersection_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+                angle = Utils.get_radian_between_points(gps, Location(vertical_line_edge_x, intersection_y)) - Utils.get_radian_between_points(gps, sensor_coords)
                 #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{vertical_line_edge_x:.2f},{intersection_y:.2f}]")
                 return angle
         return None
@@ -242,12 +237,12 @@ class OdometryHandler():
             intersection_x_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps.x
             
             # choose closest intersecting point
-            if Utils.dist2([intersection_x_pos, horizontal_line_edge_y], sensor_coords) < Utils.dist2([intersection_x_neg, horizontal_line_edge_y], sensor_coords):
+            if Utils.dist2(Location(intersection_x_pos, horizontal_line_edge_y), sensor_coords) < Utils.dist2(Location(intersection_x_neg, horizontal_line_edge_y), sensor_coords):
                 intersection_x = intersection_x_pos
             else:
                 intersection_x = intersection_x_neg
 
-            angle = Utils.get_radian_between_points([gps], [intersection_x, horizontal_line_edge_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+            angle = Utils.get_radian_between_points(gps, Location(intersection_x, horizontal_line_edge_y)) - Utils.get_radian_between_points(gps, sensor_coords)
             #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{intersection_x:.2f},{horizontal_line_edge_y:.2f}]")
             return angle
         else:
@@ -269,12 +264,12 @@ class OdometryHandler():
             intersection_y_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps.y
             
             # choose closest intersecting point
-            if Utils.dist2([vertical_line_edge_x, intersection_y_pos], sensor_coords) < Utils.dist2([vertical_line_edge_x, intersection_y_neg], sensor_coords):
+            if Utils.dist2(Location(vertical_line_edge_x, intersection_y_pos), sensor_coords) < Utils.dist2(Location(vertical_line_edge_x, intersection_y_neg), sensor_coords):
                 intersection_y = intersection_y_pos
             else:
                 intersection_y = intersection_y_neg
 
-            angle = Utils.get_radian_between_points([gps], [vertical_line_edge_x, intersection_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+            angle = Utils.get_radian_between_points(gps, Location(vertical_line_edge_x, intersection_y)) - Utils.get_radian_between_points(gps, sensor_coords)
             #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{vertical_line_edge_x:.2f},{intersection_y:.2f}]")
             return angle
     
