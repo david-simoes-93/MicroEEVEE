@@ -53,21 +53,6 @@ class AStar:
 
         # having to turn
         return 1.5
-    
-    def distance_between_favoring_turns(self, n0: MapHandler.Cell, n1: MapHandler.Cell, n2: MapHandler.Cell) -> float:
-        """Gives the real distance between two adjacent nodes n1 and n2 (i.e n2 belongs to the list of n1's neighbors).
-           n2 is guaranteed to belong to the list returned by the call to neighbors(n1).
-           This method must be implemented in a subclass."""
-        # turning back
-        if n0 == n2:
-            return 2
-
-        # going in a straight line
-        if n0.indices.x == n1.indices.x == n2.indices.x or n0.indices.y == n1.indices.y == n2.indices.y:
-            return 1
-
-        # having to turn
-        return 1
 
     def is_goal_reached(self, current: MapHandler.Cell, goal: MapHandler.Cell):
         """ returns true when we can consider that 'current' is the goal"""

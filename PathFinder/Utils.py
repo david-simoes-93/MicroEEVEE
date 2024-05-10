@@ -14,6 +14,9 @@ class Location(object):
     
     def __add__(self, other):
         return Location(self.x + other.x, self.y + other.y)
+    
+    def __str__(self):
+        return f"[{self.x},{self.y}]"
 
 def normalize_radian_angle(angle):
     # [-pi, pi]

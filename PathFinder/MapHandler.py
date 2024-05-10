@@ -35,51 +35,25 @@ class Maze(object):
         self.my_cell.neighbor_left.w_right = MAX_WEIGHT
         self.my_cell.w_right = MAX_WEIGHT
         self.my_cell.neighbor_right.w_left = MAX_WEIGHT
-        # self.my_cell = self.maze[HALF_MAP_SIZE][HALF_MAP_SIZE]
+
+        self.max_explored_indices = Maze.get_cell_indexes_from_cell_coords(self.my_cell_coords)
+        self.min_explored_indices = Maze.get_cell_indexes_from_cell_coords(self.my_cell_coords)
 
         self.planned_path = []
-        # self.home = self.my_cell
 
     @property
     def my_cell(self):
         cell_indices = Maze.get_cell_indexes_from_cell_coords(self.my_cell_coords)
         return self.maze[cell_indices.x][cell_indices.y]
 
-    
-    def pick_exploration_target_with_turns(self, path_planner, radian_theta):
-        degree_theta = Utils.to_degree(radian_theta)
-        if -45 <= degree_theta <= 45:
-            prev_cell = self.my_cell.neighbor_left
-        elif -135 <= degree_theta < -45:
-            prev_cell = self.my_cell.neighbor_down
-        elif 45 < degree_theta <= 135:
-            prev_cell = self.my_cell.neighbor_up
-        else:
-            prev_cell = self.my_cell.neighbor_right
-        to_be_explored = [[prev_cell, self.my_cell, 0]]
-        already_explored = []
-
-        while len(to_be_explored) > 0 and (to_be_explored[0][1].explored or to_be_explored[0][1] == self.my_cell):
-            [prev_cell, curr_cell, curr_dist] = to_be_explored.pop(0)
-            already_explored.append(curr_cell)
-
-            neighbors = []
-            for neighbor in curr_cell.neighbors:
-                if neighbor not in already_explored:
-                    neighbors.append([curr_cell, neighbor, curr_dist +
-                                      path_planner.distance_between_favoring_turns(prev_cell, curr_cell, neighbor)])
-
-            # sort to_be_explored by dist
-            to_be_explored = sorted(to_be_explored + neighbors, key=lambda x: x[2])
-
-        if len(to_be_explored) > 0:
-            # closest unexplored cell
-            return to_be_explored[0][1]
-        else:
-            return prev_cell
-
 
     def pick_exploration_target(self, path_planner, radian_theta):
+        explored_area = self.max_explored_indices - self.min_explored_indices
+        if explored_area.x > 7 and explored_area.y > 7:
+            map_center_cell_estimate = self.maze[self.min_explored_indices.x + round(explored_area.x/2)][self.min_explored_indices.y + round(explored_area.y/2)]
+            print(f"map center estimate: {map_center_cell_estimate}")
+            return self.pick_closest_unexplored_cell(path_planner, radian_theta, map_center_cell_estimate, map_center_cell_estimate)
+        
         degree_theta = Utils.to_degree(radian_theta)
         if -45 <= degree_theta <= 45:
             prev_cell = self.my_cell.neighbor_left
@@ -89,10 +63,14 @@ class Maze(object):
             prev_cell = self.my_cell.neighbor_up
         else:
             prev_cell = self.my_cell.neighbor_right
-        to_be_explored = [[prev_cell, self.my_cell, 0]]
+        return self.pick_closest_unexplored_cell(path_planner, radian_theta, prev_cell, self.my_cell)
+
+    def pick_closest_unexplored_cell(self, path_planner, radian_theta, prev_cell, my_cell):
+        """ picks closest unexplored cell """
+        to_be_explored = [[prev_cell, my_cell, 0]]
         already_explored = []
 
-        while len(to_be_explored) > 0 and (to_be_explored[0][1].explored or to_be_explored[0][1] == self.my_cell):
+        while len(to_be_explored) > 0 and (to_be_explored[0][1].explored or to_be_explored[0][1] == my_cell):
             [prev_cell, curr_cell, curr_dist] = to_be_explored.pop(0)
             already_explored.append(curr_cell)
 
@@ -130,23 +108,6 @@ class Maze(object):
     def get_cell_indexes_from_gps_coords(cls, gps_coords):
         return Maze.get_cell_indexes_from_cell_coords(Maze.get_cell_coords_from_gps_coords(gps_coords))
 
-    """
-    def update_rigid(self, gps, compass, ground_sensors):
-        # this method assumes robot is always at some 90º angle and that it is always centered on a line
-        compass = Utils.get_rigid_compass(compass)
-        my_cell_coords = Maze.get_cell_coords_from_gps_coords(gps)
-        my_cell_indices = Maze.get_cell_indexes_from_cell_coords(my_cell_coords)
-
-        offset_from_cell_center = [my_cell_coords.x-my_cell_indices.x, my_cell_coords.y-my_cell_indices.y]
-        if abs(offset_from_cell_center.x) > abs(offset_from_cell_center.y):
-            my_cell_coords.y = my_cell_indices.y
-        else:
-            my_cell_coords.x = my_cell_indices.x
-        
-        gps = Maze.get_gps_coords_from_cell_coords(my_cell_coords)
-        self.update(gps, compass, ground_sensors)
-    """  
-
     def set_traversal_weights(self, new_cell_indices):
         prev_cell = self.my_cell
         if new_cell_indices.x < prev_cell.indices.x:
@@ -157,6 +118,11 @@ class Maze(object):
             prev_cell.set_up_weight(TRAVERSED_WEIGHT)
         elif new_cell_indices.y > prev_cell.indices.y:
             prev_cell.set_down_weight(TRAVERSED_WEIGHT)
+
+        self.max_explored_indices.x = max(self.max_explored_indices.x, new_cell_indices.x)
+        self.max_explored_indices.y = max(self.max_explored_indices.y, new_cell_indices.y)
+        self.min_explored_indices.x = min(self.min_explored_indices.x, new_cell_indices.x)
+        self.min_explored_indices.y = min(self.min_explored_indices.y, new_cell_indices.y)
 
     def update(self, eevee, ground_sensors):
         self.my_theta = eevee.theta
