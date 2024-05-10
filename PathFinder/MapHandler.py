@@ -158,10 +158,10 @@ class Cell:
         self.indices = Location(x,y)
         self.coords = Maze.get_gps_coords_from_cell_coords(self.indices)
 
-        self.w_up = 0 if y != 0 else MIN_WEIGHT
-        self.w_down = 0 if y != MAP_SIZE - 1 else MIN_WEIGHT
-        self.w_left = 0 if x != 0 else MIN_WEIGHT
-        self.w_right = 0 if x != MAP_SIZE - 1 else MIN_WEIGHT
+        self.w_up = 0 if y != 0 else -TRAVERSED_WEIGHT
+        self.w_down = 0 if y != MAP_SIZE - 1 else -TRAVERSED_WEIGHT
+        self.w_left = 0 if x != 0 else -TRAVERSED_WEIGHT
+        self.w_right = 0 if x != MAP_SIZE - 1 else -TRAVERSED_WEIGHT
         self.goal = False
 
         self.neighbor_up = None
@@ -202,32 +202,62 @@ class Cell:
         return self.w_right <= -THRESHOLD_WEIGHT
     
     @property
+    def is_intersection(self):
+        return (self.down_line or self.up_line) and (self.left_line or self.right_line)
+    
+    @property
     def explored(self):
         return abs(self.w_up) >= THRESHOLD_WEIGHT and abs(self.w_down) >= THRESHOLD_WEIGHT and abs(self.w_left) >= THRESHOLD_WEIGHT and abs(self.w_right) >= THRESHOLD_WEIGHT
 
     def set_up_weight(self, w):
-        if self.w_up == TRAVERSED_WEIGHT:
+        if abs(self.w_up) == TRAVERSED_WEIGHT:
             return
         self.w_up = w
         self.neighbor_up.w_down = w
+        self.update_intersection_neighbors()
 
     def set_down_weight(self, w):
-        if self.w_down == TRAVERSED_WEIGHT:
+        if abs(self.w_down) == TRAVERSED_WEIGHT:
             return
         self.w_down = w
         self.neighbor_down.w_up = w
+        self.update_intersection_neighbors()
 
     def set_left_weight(self, w):
-        if self.w_left == TRAVERSED_WEIGHT:
+        if abs(self.w_left) == TRAVERSED_WEIGHT:
             return
         self.w_left = w
         self.neighbor_left.w_right = w
+        self.update_intersection_neighbors()
 
     def set_right_weight(self, w):
-        if self.w_right == TRAVERSED_WEIGHT:
+        if abs(self.w_right) == TRAVERSED_WEIGHT:
             return
         self.w_right = w
         self.neighbor_right.w_left = w
+        self.update_intersection_neighbors()
+
+    def update_intersection_neighbors(self):
+        if not self.is_intersection:
+            return
+        #print(f"intersection at {self}")
+        if self.up_line and self.neighbor_up and not self.neighbor_up.is_intersection:
+            #print("up")
+            self.neighbor_up.set_left_weight(min(self.neighbor_up.w_left, -THRESHOLD_WEIGHT))
+            self.neighbor_up.set_right_weight(min(self.neighbor_up.w_right, -THRESHOLD_WEIGHT))
+        if self.down_line and self.neighbor_down and not self.neighbor_down.is_intersection:
+            #print("down")
+            self.neighbor_down.set_left_weight(min(self.neighbor_down.w_left, -THRESHOLD_WEIGHT))
+            self.neighbor_down.set_right_weight(min(self.neighbor_down.w_right, -THRESHOLD_WEIGHT))
+        if self.left_line and self.neighbor_left and not self.neighbor_left.is_intersection:
+            #print("left")
+            self.neighbor_left.set_up_weight(min(self.neighbor_left.w_up, -THRESHOLD_WEIGHT))
+            self.neighbor_left.set_down_weight(min(self.neighbor_left.w_down, -THRESHOLD_WEIGHT))
+        if self.right_line and self.neighbor_right and not self.neighbor_right.is_intersection:
+            #print("right")
+            self.neighbor_right.set_up_weight(min(self.neighbor_right.w_up, -THRESHOLD_WEIGHT))
+            self.neighbor_right.set_down_weight(min(self.neighbor_right.w_down, -THRESHOLD_WEIGHT))
+
 
     def add_sensor_reading(self, rel_coords, sensor_val):
         # if sensor is positive, we try to find a wider line and add a weight to it

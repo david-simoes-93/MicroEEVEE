@@ -24,9 +24,10 @@ SQUARED_GROUND_SENSOR_DIST = Utils.GROUND_SENSOR_DISTANCE*Utils.GROUND_SENSOR_DI
 GPS_ADJUSTMENT_WEIGHT = 0.5
 THETA_ADJUSTMENT_WEIGHT = 0.5
 
-# TODO: map intersection
+# TODO: map intersections só a cada 2 cells
 # TODO: evitar escolher uma target cell inacessivel
 # TODO: goal detection
+# TODO: really avoid going over blank lines, fuck that
 
 class OdometryHandler():
     def __init__(self, map: Maze, sim):
