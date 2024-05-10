@@ -92,8 +92,8 @@ class GuiHandler():
                          290, 150 - int(motor_right)], 5)
 
         if self.simulator is not None:
-            mod_x = 300 + MapHandler.MAP_SIZE*CELL_RESOLUTION / 2 - self.simulator.starting_pos[0]*SIM_CELL_RESOLUTION + HALF_CELL_RESOLUTION
-            mod_y = MapHandler.MAP_SIZE*CELL_RESOLUTION / 2 - self.simulator.starting_pos[1]*SIM_CELL_RESOLUTION + HALF_CELL_RESOLUTION
+            mod_x = 300 + MapHandler.MAP_SIZE*CELL_RESOLUTION / 2 - self.simulator.starting_pos.x*SIM_CELL_RESOLUTION + HALF_CELL_RESOLUTION
+            mod_y = MapHandler.MAP_SIZE*CELL_RESOLUTION / 2 - self.simulator.starting_pos.y*SIM_CELL_RESOLUTION + HALF_CELL_RESOLUTION
             for x in range(Simulator.MAP_SIZE):
                 for y in range(Simulator.MAP_SIZE):
                     cell = self.simulator.maze[x][y]
@@ -121,8 +121,8 @@ class GuiHandler():
                     pygame.draw.circle(self.screen, BLACK, [cell_pos_x, cell_pos_y], 2)
 
             # draw SIM robot
-            robot_x = CELL_RESOLUTION * self.simulator.eevee_coords[0] + mod_x
-            robot_y = CELL_RESOLUTION * self.simulator.eevee_coords[1] + mod_y
+            robot_x = CELL_RESOLUTION * self.simulator.eevee_coords.x + mod_x
+            robot_y = CELL_RESOLUTION * self.simulator.eevee_coords.y + mod_y
             pygame.draw.circle(self.screen, GREY, [robot_x, robot_y], ROBOT_RADIUS-1, 2)
             pygame.draw.circle(self.screen, GREY, 
                             [robot_x + HALF_CELL_RESOLUTION * math.cos(self.simulator.eevee_theta),
@@ -150,15 +150,15 @@ class GuiHandler():
                     pygame.draw.line(self.screen, LIGHT_BLUE, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
 
         for cell in self.map.planned_path:
-            mod_x = 300 + CELL_RESOLUTION*cell.indices[0] + HALF_CELL_RESOLUTION
-            mod_y = CELL_RESOLUTION*cell.indices[1] + HALF_CELL_RESOLUTION
+            mod_x = 300 + CELL_RESOLUTION*cell.indices.x + HALF_CELL_RESOLUTION
+            mod_y = CELL_RESOLUTION*cell.indices.y + HALF_CELL_RESOLUTION
             pygame.draw.circle(self.screen, RED, [mod_x, mod_y], 2)
 
 
         
         # draw robot
-        robot_x = 300 + CELL_RESOLUTION * self.map.my_cell_coords[0] + HALF_CELL_RESOLUTION
-        robot_y = CELL_RESOLUTION * self.map.my_cell_coords[1] + HALF_CELL_RESOLUTION
+        robot_x = 300 + CELL_RESOLUTION * self.map.my_cell_coords.x + HALF_CELL_RESOLUTION
+        robot_y = CELL_RESOLUTION * self.map.my_cell_coords.y + HALF_CELL_RESOLUTION
         pygame.draw.circle(self.screen, BLACK, [robot_x, robot_y], ROBOT_RADIUS, 2)
         pygame.draw.circle(self.screen, BLACK, 
                            [robot_x + HALF_CELL_RESOLUTION * math.cos(self.map.my_theta),

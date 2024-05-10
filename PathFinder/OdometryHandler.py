@@ -2,6 +2,7 @@ import math
 from typing import List
 
 import Utils
+from Utils import Location
 from MapHandler import Maze
 
 
@@ -28,45 +29,45 @@ class OdometryHandler():
         self.map = map
         self.sim = sim
 
-    def odometry(self, encLeft: int, encRight: int, gps_x: float, gps_y: float, theta: float, ground_sensors: List[bool]):
+    def odometry(self, encLeft: int, encRight: int, gps: Location, theta: float, ground_sensors: List[bool]):
         dLeft = (encLeft * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
         dRight = (encRight * WHEEL_PER) / GEAR_RATIO_times_ENCODER_PULSES
 
         dCenter = (dLeft + dRight) / 2.0
         phi = (dRight - dLeft) / WHEEL2WHEEL_DIST
 
-        gps_y = gps_y + dCenter * math.sin(theta)
-        gps_x = gps_x + dCenter * math.cos(theta)
+        new_gps = Location(gps.x + dCenter * math.cos(theta), gps.y + dCenter * math.sin(theta))
         theta = Utils.normalize_radian_angle(theta + phi)
 
-        return self.adjust_sensors(gps_x, gps_y, theta, ground_sensors)
+        return self.adjust_sensors(new_gps, theta, ground_sensors)
 
     
-    def adjust_sensors(self, gps_x: float, gps_y: float, theta: float, ground_sensors):
-        sensors_gps = [Utils.far_left_sensor_gps(gps_x, gps_y, theta),
-                       Utils.left_sensor_gps(gps_x, gps_y, theta),
-                       Utils.front_sensor_gps(gps_x, gps_y, theta),
-                       Utils.right_sensor_gps(gps_x, gps_y, theta),
-                       Utils.far_right_sensor_gps(gps_x, gps_y, theta)]
+    def adjust_sensors(self, gps: Location, theta: float, ground_sensors):
+        sensors_gps = [Utils.far_left_sensor_gps(gps, theta),
+                       Utils.left_sensor_gps(gps, theta),
+                       Utils.front_sensor_gps(gps, theta),
+                       Utils.right_sensor_gps(gps, theta),
+                       Utils.far_right_sensor_gps(gps, theta)]
         
-        theta_deltas = [self.get_sensor_theta_delta(ground_sensors[i], sensors_gps[i], gps_x, gps_y) for i in range(len(ground_sensors))]
+        theta_deltas = [self.get_sensor_theta_delta(ground_sensors[i], sensors_gps[i], gps) for i in range(len(ground_sensors))]
         avg_theta_delta = sum([max(min(t,ODOMETRY_THETA_THRESHOLD),-ODOMETRY_THETA_THRESHOLD) for t in theta_deltas if t is not None])
 
         gps_deltas = [self.get_sensor_gps_delta(ground_sensors[i], sensors_gps[i]) for i in range(len(ground_sensors))]
-        avg_gps_delta_x = sum([t[0] for t in gps_deltas if t is not None])
-        avg_gps_delta_y = sum([t[1] for t in gps_deltas if t is not None])
+        avg_gps_delta_x = sum([t.x for t in gps_deltas if t is not None])
+        avg_gps_delta_y = sum([t.y for t in gps_deltas if t is not None])
         if avg_gps_delta_x != 0 or avg_gps_delta_y != 0 or avg_theta_delta != 0:
             avg_gps_delta_x /= len(gps_deltas)
             avg_gps_delta_y /= len(gps_deltas)
             avg_theta_delta /= len(theta_deltas)
-            #print(f"adjusting [x,y,theta] from [{gps_x:.2f},{gps_y:.2f},{Utils.to_degree(theta):.2f}º] with sensors {[int(s) for s in ground_sensors]} by [{avg_gps_delta_x:.2f},{avg_gps_delta_y:.2f},{Utils.to_degree(avg_theta_delta):.2f}º]")
+            #print(f"adjusting [x,y,theta] from [{gps.x:.2f},{gps.y:.2f},{Utils.to_degree(theta):.2f}º] with sensors {[int(s) for s in ground_sensors]} by [{avg_gps_delta_x:.2f},{avg_gps_delta_y:.2f},{Utils.to_degree(avg_theta_delta):.2f}º]")
             #if self.sim:
-            #    print(f"    actual ground truth is [{(self.sim.eevee_coords[0]-self.sim.starting_pos[0])*CM_PER_CELL:.2f},{(self.sim.eevee_coords[1]-self.sim.starting_pos[1])*CM_PER_CELL:.2f},{Utils.to_degree(self.sim.eevee_theta):.2f}º]")
-            gps_x = gps_x + avg_gps_delta_x*GPS_ADJUSTMENT_WEIGHT
-            gps_y = gps_y + avg_gps_delta_y*GPS_ADJUSTMENT_WEIGHT
+            #    print(f"    actual ground truth is [{(self.sim.eevee_coords.x-self.sim.starting_pos.x)*CM_PER_CELL:.2f},{(self.sim.eevee_coords.y-self.sim.starting_pos.y)*CM_PER_CELL:.2f},{Utils.to_degree(self.sim.eevee_theta):.2f}º]")
+            new_gps = Location(gps.x + avg_gps_delta_x*GPS_ADJUSTMENT_WEIGHT, gps.y + avg_gps_delta_y*GPS_ADJUSTMENT_WEIGHT)
             theta = theta + avg_theta_delta*THETA_ADJUSTMENT_WEIGHT
+        else:
+            new_gps = gps
         
-        return gps_x, gps_y, theta
+        return new_gps, theta
     
     
     def get_sensor_gps_delta(self, sensor_val, sensor_coords):
@@ -76,10 +77,10 @@ class OdometryHandler():
             return self.get_missing_sensor_gps_delta(sensor_coords)
 
         # get sensor pos in relation to nearest lines' X and Y
-        closest_vertical_line_x = round(sensor_coords[0] / CM_PER_CELL)*CM_PER_CELL
-        closest_horizontal_line_y = round(sensor_coords[1] / CM_PER_CELL)*CM_PER_CELL
-        sensor_dist_to_vertical_line = sensor_coords[0] - closest_vertical_line_x
-        sensor_dist_to_horizontal_line = sensor_coords[1] - closest_horizontal_line_y
+        closest_vertical_line_x = round(sensor_coords.x / CM_PER_CELL)*CM_PER_CELL
+        closest_horizontal_line_y = round(sensor_coords.y / CM_PER_CELL)*CM_PER_CELL
+        sensor_dist_to_vertical_line = sensor_coords.x - closest_vertical_line_x
+        sensor_dist_to_horizontal_line = sensor_coords.y - closest_horizontal_line_y
         # for example, [0.5, -0.1] means sensor is 0.5cm to the right of a v-line, and 0.1cm above an h-line
 
         # either sensor x or y must be a multiple of 12.5+-1.25, but not off by too far
@@ -110,10 +111,10 @@ class OdometryHandler():
             return None
         
         # get sensor pos in relation to nearest lines' X and Y
-        closest_vertical_line_x = round(sensor_coords[0] / CM_PER_CELL)*CM_PER_CELL
-        closest_horizontal_line_y = round(sensor_coords[1] / CM_PER_CELL)*CM_PER_CELL
-        sensor_dist_to_vertical_line = sensor_coords[0] - closest_vertical_line_x
-        sensor_dist_to_horizontal_line = sensor_coords[1] - closest_horizontal_line_y
+        closest_vertical_line_x = round(sensor_coords.x / CM_PER_CELL)*CM_PER_CELL
+        closest_horizontal_line_y = round(sensor_coords.y / CM_PER_CELL)*CM_PER_CELL
+        sensor_dist_to_vertical_line = sensor_coords.x - closest_vertical_line_x
+        sensor_dist_to_horizontal_line = sensor_coords.y - closest_horizontal_line_y
         # for example, [0.5, -0.1] means sensor is 0.5cm to the right of a v-line, and 0.1cm above an h-line
 
         # sensor x or y must both not be a multiple of 12.5+-1.25
@@ -134,25 +135,25 @@ class OdometryHandler():
         return None
     
     
-    def get_sensor_theta_delta(self, sensor_val, sensor_coords, gps_x, gps_y):
+    def get_sensor_theta_delta(self, sensor_val, sensor_coords, gps):
         if not sensor_val:
-            return self.get_missing_sensor_theta_delta(sensor_coords, gps_x, gps_y)
+            return self.get_missing_sensor_theta_delta(sensor_coords, gps)
         
         # circle is given by (x - h)2 + (y - k)2 = r2
-        # (x-gps_x)*(x-gps_x) + (y-gps_y)*(y-gps_y) = SQUARED_GROUND_SENSOR_DIST
+        # (x-gps.x)*(x-gps.x) + (y-gps.y)*(y-gps.y) = SQUARED_GROUND_SENSOR_DIST
         
         # get sensor pos in relation to nearest lines' X and Y
-        closest_vertical_line_x = round(sensor_coords[0] / CM_PER_CELL)*CM_PER_CELL
-        closest_horizontal_line_y = round(sensor_coords[1] / CM_PER_CELL)*CM_PER_CELL
-        sensor_dist_to_vertical_line = abs(sensor_coords[0]-closest_vertical_line_x)
-        sensor_dist_to_horizontal_line = abs(sensor_coords[1]-closest_horizontal_line_y)
+        closest_vertical_line_x = round(sensor_coords.x / CM_PER_CELL)*CM_PER_CELL
+        closest_horizontal_line_y = round(sensor_coords.y / CM_PER_CELL)*CM_PER_CELL
+        sensor_dist_to_vertical_line = abs(sensor_coords.x-closest_vertical_line_x)
+        sensor_dist_to_horizontal_line = abs(sensor_coords.y-closest_horizontal_line_y)
         # for example, [0.5, 0.1] means sensor is 0.5cm to the left/right of a v-line, and 0.1cm above/below an h-line
         
         # sensor coords must be a multiple of 12.5+-1.25, but not off by too far
         if sensor_dist_to_horizontal_line < sensor_dist_to_vertical_line:
             # x is closer, so adjust x
             if HALF_LINE_WIDTH < sensor_dist_to_horizontal_line < 3 * HALF_LINE_WIDTH:
-                if sensor_coords[1] > closest_horizontal_line_y:
+                if sensor_coords.y > closest_horizontal_line_y:
                     # sensor below line
                     horizontal_line_edge_y = closest_horizontal_line_y + HALF_LINE_WIDTH
                 else:
@@ -160,13 +161,13 @@ class OdometryHandler():
                     horizontal_line_edge_y = closest_horizontal_line_y - HALF_LINE_WIDTH
                 
                 # solve circle equation, find intersecting X
-                y_minus_gps_y = horizontal_line_edge_y-gps_y
+                y_minus_gps_y = horizontal_line_edge_y-gps.y
                 r2_minus_delta_y = SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y
                 if r2_minus_delta_y < 0:
                     # no contact with line? something is massively wrong
                     return None
-                intersection_x_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps_x
-                intersection_x_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps_x
+                intersection_x_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps.x
+                intersection_x_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps.x
                 
                 # choose closest intersecting point
                 if Utils.dist2([intersection_x_pos, horizontal_line_edge_y], sensor_coords) < Utils.dist2([intersection_x_neg, horizontal_line_edge_y], sensor_coords):
@@ -174,13 +175,13 @@ class OdometryHandler():
                 else:
                     intersection_x = intersection_x_neg
 
-                angle = Utils.get_radian_between_points([gps_x, gps_y], [intersection_x, horizontal_line_edge_y]) - Utils.get_radian_between_points([gps_x, gps_y], sensor_coords)
-                #print(f"robot at [{gps_x:.2f},{gps_y:.2f}], sensor at [{sensor_coords[0]:.2f},{sensor_coords[1]:.2f}], should rotate {Utils.to_degree(angle):.2f} to get to intersection [{intersection_x:.2f},{horizontal_line_edge_y:.2f}]")
+                angle = Utils.get_radian_between_points([gps], [intersection_x, horizontal_line_edge_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+                #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f} to get to intersection [{intersection_x:.2f},{horizontal_line_edge_y:.2f}]")
                 return angle
         else:
             # y is closer, so adjust y
             if HALF_LINE_WIDTH < sensor_dist_to_vertical_line < 3 * HALF_LINE_WIDTH:
-                if sensor_coords[0] > closest_vertical_line_x:
+                if sensor_coords.x > closest_vertical_line_x:
                     # sensor to right of line
                     vertical_line_edge_x = closest_vertical_line_x + HALF_LINE_WIDTH
                 else:
@@ -188,13 +189,13 @@ class OdometryHandler():
                     vertical_line_edge_x = closest_vertical_line_x - HALF_LINE_WIDTH
                 
                 # solve circle equation, find intersecting X
-                x_minus_gps_x = vertical_line_edge_x-gps_x
+                x_minus_gps_x = vertical_line_edge_x-gps.x
                 r2_minus_delta_x = SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x
                 if r2_minus_delta_x < 0:
                     # no contact with line? something is massively wrong
                     return None
-                intersection_y_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps_y
-                intersection_y_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps_y
+                intersection_y_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps.y
+                intersection_y_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps.y
                 
                 # choose closest intersecting point
                 if Utils.dist2([vertical_line_edge_x, intersection_y_pos], sensor_coords) < Utils.dist2([vertical_line_edge_x, intersection_y_neg], sensor_coords):
@@ -202,29 +203,29 @@ class OdometryHandler():
                 else:
                     intersection_y = intersection_y_neg
 
-                angle = Utils.get_radian_between_points([gps_x, gps_y], [vertical_line_edge_x, intersection_y]) - Utils.get_radian_between_points([gps_x, gps_y], sensor_coords)
-                #print(f"robot at [{gps_x:.2f},{gps_y:.2f}], sensor at [{sensor_coords[0]:.2f},{sensor_coords[1]:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{vertical_line_edge_x:.2f},{intersection_y:.2f}]")
+                angle = Utils.get_radian_between_points([gps], [vertical_line_edge_x, intersection_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+                #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{vertical_line_edge_x:.2f},{intersection_y:.2f}]")
                 return angle
         return None
             
-    def get_missing_sensor_theta_delta(self, sensor_coords, gps_x, gps_y):
+    def get_missing_sensor_theta_delta(self, sensor_coords, gps):
         if not self.should_sensor_see_black(sensor_coords):
             return None
 
         # circle is given by (x - h)2 + (y - k)2 = r2
-        # (x-gps_x)*(x-gps_x) + (y-gps_y)*(y-gps_y) = SQUARED_GROUND_SENSOR_DIST
+        # (x-gps.x)*(x-gps.x) + (y-gps.y)*(y-gps.y) = SQUARED_GROUND_SENSOR_DIST
         
         # get sensor pos in relation to nearest lines' X and Y
-        closest_vertical_line_x = round(sensor_coords[0] / CM_PER_CELL)*CM_PER_CELL
-        closest_horizontal_line_y = round(sensor_coords[1] / CM_PER_CELL)*CM_PER_CELL
-        sensor_dist_to_vertical_line = abs(sensor_coords[0]-closest_vertical_line_x)
-        sensor_dist_to_horizontal_line = abs(sensor_coords[1]-closest_horizontal_line_y)
+        closest_vertical_line_x = round(sensor_coords.x / CM_PER_CELL)*CM_PER_CELL
+        closest_horizontal_line_y = round(sensor_coords.y / CM_PER_CELL)*CM_PER_CELL
+        sensor_dist_to_vertical_line = abs(sensor_coords.x-closest_vertical_line_x)
+        sensor_dist_to_horizontal_line = abs(sensor_coords.y-closest_horizontal_line_y)
         # for example, [0.5, 0.1] means sensor is 0.5cm to the left/right of a v-line, and 0.1cm above/below an h-line
         
         # sensor coords must be a multiple of 12.5+-1.25, but not off by too far
         if sensor_dist_to_horizontal_line < sensor_dist_to_vertical_line:
             # x is closer, so adjust x
-            if sensor_coords[1] > closest_horizontal_line_y:
+            if sensor_coords.y > closest_horizontal_line_y:
                 # sensor below line
                 horizontal_line_edge_y = closest_horizontal_line_y + HALF_LINE_WIDTH
             else:
@@ -232,13 +233,13 @@ class OdometryHandler():
                 horizontal_line_edge_y = closest_horizontal_line_y - HALF_LINE_WIDTH
             
             # solve circle equation, find intersecting X
-            y_minus_gps_y = horizontal_line_edge_y-gps_y
+            y_minus_gps_y = horizontal_line_edge_y-gps.y
             r2_minus_delta_y = SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y
             if r2_minus_delta_y < 0:
                 # no contact with line? something is massively wrong
                 return None
-            intersection_x_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps_x
-            intersection_x_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps_x
+            intersection_x_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps.x
+            intersection_x_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - y_minus_gps_y*y_minus_gps_y) + gps.x
             
             # choose closest intersecting point
             if Utils.dist2([intersection_x_pos, horizontal_line_edge_y], sensor_coords) < Utils.dist2([intersection_x_neg, horizontal_line_edge_y], sensor_coords):
@@ -246,12 +247,12 @@ class OdometryHandler():
             else:
                 intersection_x = intersection_x_neg
 
-            angle = Utils.get_radian_between_points([gps_x, gps_y], [intersection_x, horizontal_line_edge_y]) - Utils.get_radian_between_points([gps_x, gps_y], sensor_coords)
-            #print(f"robot at [{gps_x:.2f},{gps_y:.2f}], sensor at [{sensor_coords[0]:.2f},{sensor_coords[1]:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{intersection_x:.2f},{horizontal_line_edge_y:.2f}]")
+            angle = Utils.get_radian_between_points([gps], [intersection_x, horizontal_line_edge_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+            #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{intersection_x:.2f},{horizontal_line_edge_y:.2f}]")
             return angle
         else:
             # y is closer, so adjust y
-            if sensor_coords[0] > closest_vertical_line_x:
+            if sensor_coords.x > closest_vertical_line_x:
                 # sensor to right of line
                 vertical_line_edge_x = closest_vertical_line_x + HALF_LINE_WIDTH
             else:
@@ -259,13 +260,13 @@ class OdometryHandler():
                 vertical_line_edge_x = closest_vertical_line_x - HALF_LINE_WIDTH
             
             # solve circle equation, find intersecting X
-            x_minus_gps_x = vertical_line_edge_x-gps_x
+            x_minus_gps_x = vertical_line_edge_x-gps.x
             r2_minus_delta_x = SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x
             if r2_minus_delta_x < 0:
                 # no contact with line? something is massively wrong
                 return None
-            intersection_y_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps_y
-            intersection_y_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps_y
+            intersection_y_pos = math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps.y
+            intersection_y_neg = -math.sqrt(SQUARED_GROUND_SENSOR_DIST - x_minus_gps_x*x_minus_gps_x) + gps.y
             
             # choose closest intersecting point
             if Utils.dist2([vertical_line_edge_x, intersection_y_pos], sensor_coords) < Utils.dist2([vertical_line_edge_x, intersection_y_neg], sensor_coords):
@@ -273,26 +274,26 @@ class OdometryHandler():
             else:
                 intersection_y = intersection_y_neg
 
-            angle = Utils.get_radian_between_points([gps_x, gps_y], [vertical_line_edge_x, intersection_y]) - Utils.get_radian_between_points([gps_x, gps_y], sensor_coords)
-            #print(f"robot at [{gps_x:.2f},{gps_y:.2f}], sensor at [{sensor_coords[0]:.2f},{sensor_coords[1]:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{vertical_line_edge_x:.2f},{intersection_y:.2f}]")
+            angle = Utils.get_radian_between_points([gps], [vertical_line_edge_x, intersection_y]) - Utils.get_radian_between_points([gps], sensor_coords)
+            #print(f"robot at [{gps.x:.2f},{gps.y:.2f}], sensor at [{sensor_coords.x:.2f},{sensor_coords.y:.2f}], should rotate {Utils.to_degree(angle):.2f}º to get to intersection [{vertical_line_edge_x:.2f},{intersection_y:.2f}]")
             return angle
     
         return None
         
     def should_sensor_see_black(self, sensor_coords):
-        cell_coords_x, cell_coords_y = Maze.get_cell_coords_from_gps_coords(sensor_coords)                        # [5.1, 2.3]
-        cell_index_x, cell_index_y = Maze.get_cell_indexes_from_cell_coords([cell_coords_x, cell_coords_y])       # [ 5 ,  2 ]
-        sensor_cell_coords_rel_to_center = [cell_coords_x-cell_index_x, cell_coords_y-cell_index_y]               # [0.1, 0.3]
-        sensor_cell = self.map.maze[cell_index_x][cell_index_y]
+        cell_coords = Maze.get_cell_coords_from_gps_coords(sensor_coords)                # [5.1, 2.3]
+        cell_index = Maze.get_cell_indexes_from_cell_coords(cell_coords)                 # [ 5 ,  2 ]
+        sensor_cell_coords_rel_to_center = cell_coords - cell_index                      # [0.1, 0.3]
+        sensor_cell = self.map.maze[cell_index.x][cell_index.y]
 
         # find closest line in cell to sensor, check if we think it should be painted black
         # use sensor_cell_coords_rel_to_center to find if sensor is on top of some line and check if that line is black!
-        if abs(sensor_cell_coords_rel_to_center[0]) < HALF_LINE_WIDTH_CELL and sensor_cell_coords_rel_to_center[1] > 0:
+        if abs(sensor_cell_coords_rel_to_center.x) < HALF_LINE_WIDTH_CELL and sensor_cell_coords_rel_to_center.y > 0:
             return sensor_cell.down_line
-        elif abs(sensor_cell_coords_rel_to_center[0]) < HALF_LINE_WIDTH_CELL and sensor_cell_coords_rel_to_center[1] < 0:
+        elif abs(sensor_cell_coords_rel_to_center.x) < HALF_LINE_WIDTH_CELL and sensor_cell_coords_rel_to_center.y < 0:
             return sensor_cell.up_line
-        elif sensor_cell_coords_rel_to_center[0] > 0 and abs(sensor_cell_coords_rel_to_center[1]) < HALF_LINE_WIDTH_CELL:
+        elif sensor_cell_coords_rel_to_center.x > 0 and abs(sensor_cell_coords_rel_to_center.y) < HALF_LINE_WIDTH_CELL:
             return sensor_cell.right_line
-        elif sensor_cell_coords_rel_to_center[0] < 0 and abs(sensor_cell_coords_rel_to_center[1]) < HALF_LINE_WIDTH_CELL:
+        elif sensor_cell_coords_rel_to_center.x < 0 and abs(sensor_cell_coords_rel_to_center.y) < HALF_LINE_WIDTH_CELL:
             return sensor_cell.left_line
         return False

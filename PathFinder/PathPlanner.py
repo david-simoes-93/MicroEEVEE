@@ -48,7 +48,7 @@ class AStar:
             return 2
 
         # going in a straight line
-        if n0.indices[0] == n1.indices[0] == n2.indices[0] or n0.indices[1] == n1.indices[1] == n2.indices[1]:
+        if n0.indices.x == n1.indices.x == n2.indices.x or n0.indices.y == n1.indices.y == n2.indices.y:
             return 1
 
         # having to turn
@@ -63,7 +63,7 @@ class AStar:
             return 2
 
         # going in a straight line
-        if n0.indices[0] == n1.indices[0] == n2.indices[0] or n0.indices[1] == n1.indices[1] == n2.indices[1]:
+        if n0.indices.x == n1.indices.x == n2.indices.x or n0.indices.y == n1.indices.y == n2.indices.y:
             return 1
 
         # having to turn

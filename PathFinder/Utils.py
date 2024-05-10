@@ -5,8 +5,15 @@ MEDIAN_SIZE = 5
 
 
 class Location(object):
-    x: float
-    y: float
+    def __init__(self, x, y) -> None:
+        self.x: float = x
+        self.y: float = y
+
+    def __sub__(self, other):
+        return Location(self.x - other.x, self.y - other.y)
+    
+    def __add__(self, other):
+        return Location(self.x + other.x, self.y + other.y)
 
 def normalize_radian_angle(angle):
     # [-pi, pi]
@@ -42,7 +49,7 @@ def to_radian(degree):
 
 # returns dot product of "v" and "w"
 def dist2(v, w):
-    return (v[0] - w[0]) ** 2 + (v[1] - w[1]) ** 2
+    return (v.x - w.x) ** 2 + (v.y - w.y) ** 2
 
 
 # returns euclidian distance between "v" and "w"
@@ -52,7 +59,7 @@ def dist(v, w):
 
 # returns manhattan distance between "v" and "w"
 def dist_manhattan(v, w):
-    return np.abs(v[0] - w[0]) + np.abs(v[1] - w[1])
+    return np.abs(v.x - w.x) + np.abs(v.y - w.y)
 
 
 # returns the square of the distance of point "p" to line segment between "v" and "w"
@@ -61,10 +68,10 @@ def dist_to_segment_squared(p, v, w):
     if l2 == 0:
         return dist2(p, v)
 
-    t = ((p[0] - v[0]) * (w[0] - v[0]) + (p[1] - v[1]) * (w[1] - v[1])) / l2
+    t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2
     t = np.max([0, np.min([1, t])])
 
-    return dist2(p, [v[0] + t * (w[0] - v[0]), v[1] + t * (w[1] - v[1])])
+    return dist2(p, [v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)])
 
 
 # returns distance of point "p" to line segment between "v" and "w"
@@ -74,14 +81,14 @@ def dist_to_line_segment(p, v, w):
 
 # returns true iff the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
 def intersects(AB, CD, PQ, RS):
-    det = (CD[0] - AB[0]) * (RS[1] - PQ[1]) - (RS[0] - PQ[0]) * (CD[1] - AB[1])
+    det = (CD.x - AB.x) * (RS.y - PQ.y) - (RS.x - PQ.x) * (CD.y - AB.y)
     if det == 0:
         return False
 
-    lambda_ = ((RS[1] - PQ[1]) * (RS[0] - AB[0]) +
-               (PQ[0] - RS[0]) * (RS[1] - AB[1])) / det
-    gamma = ((AB[1] - CD[1]) * (RS[0] - AB[0]) +
-             (CD[0] - AB[0]) * (RS[1] - AB[1])) / det
+    lambda_ = ((RS.y - PQ.y) * (RS.x - AB.x) +
+               (PQ.x - RS.x) * (RS.y - AB.y)) / det
+    gamma = ((AB.y - CD.y) * (RS.x - AB.x) +
+             (CD.x - AB.x) * (RS.y - AB.y)) / det
 
     return 0 < lambda_ < 1 and 0 < gamma < 1
 
@@ -96,37 +103,33 @@ def normalize_angle(a):
 
 # returns angle between line [c,e] and x-axis in degrees
 def get_angle_between_points(c, e):
-    # dy = e[1] - c[1]
-    # dx = e[0] - c[0]
-    theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
+    # dy = e.y - c.y
+    # dx = e.x - c.x
+    theta = np.arctan2(e.y - c.y, e.x - c.x)  # np.arctan(dy / dx)
     return to_degree(theta)  # rads to degs
 
 # returns angle between line [c,e] and x-axis in radians
 def get_radian_between_points(c, e):
-    # dy = e[1] - c[1]
-    # dx = e[0] - c[0]
-    theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
+    # dy = e.y - c.y
+    # dx = e.x - c.x
+    theta = np.arctan2(e.y - c.y, e.x - c.x)  # np.arctan(dy / dx)
     return normalize_radian_angle(theta)
 
 def radian_angle_between_vectors(vector1, vector2):
-    x1, y1 = vector1
-    x2, y2 = vector2
-    inner_product = x1*x2 + y1*y2
-    len1 = math.hypot(x1, y1)
-    len2 = math.hypot(x2, y2)
+    inner_product = vector1.x*vector2.x + vector1.y*vector2.y
+    len1 = math.hypot(vector1.x, vector1.y)
+    len2 = math.hypot(vector2.x, vector2.y)
     return math.acos(inner_product/(len1*len2))
 
 def radian_angle_between_line_segments(a1, a2, b1, b2):
-    vector1 = [a2[0]-a1[0], a2[1]-a1[1]]
-    vector2 = [b2[0]-b1[0], b2[1]-b1[1]]
-    return radian_angle_between_vectors(vector1, vector2)
+    return radian_angle_between_vectors(a2-a1, b2-b1)
 
 
 # aux func?
 def perp(a):
     b = np.empty_like(a)
-    b[0] = -a[1]
-    b[1] = a[0]
+    b.x = -a.y
+    b.y = a.x
     return b
 
 # returns point of intersection between vectors [a1,a2] and [b1,b2]
@@ -150,28 +153,28 @@ GROUND_SENSOR_DISTANCE = 7.45  # cm from ground sensor to robot center; should b
 FAR_SENSOR_ANGLE = to_radian(30)
 NEAR_SENSOR_ANGLE = to_radian(10)
 
-def far_left_sensor_gps(gps_x: float, gps_y: float, compass: float):
+def far_left_sensor_gps(gps, compass: float):
     # 40º left
-    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass - FAR_SENSOR_ANGLE),
-            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass - FAR_SENSOR_ANGLE)]
+    return Location(gps.x + GROUND_SENSOR_DISTANCE * math.cos(compass - FAR_SENSOR_ANGLE),
+            gps.y + GROUND_SENSOR_DISTANCE * math.sin(compass - FAR_SENSOR_ANGLE))
 
-def left_sensor_gps(gps_x: float, gps_y: float, compass: float):
+def left_sensor_gps(gps, compass: float):
     # 10º left
-    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass - NEAR_SENSOR_ANGLE),
-            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass - NEAR_SENSOR_ANGLE)]
+    return Location(gps.x + GROUND_SENSOR_DISTANCE * math.cos(compass - NEAR_SENSOR_ANGLE),
+            gps.y + GROUND_SENSOR_DISTANCE * math.sin(compass - NEAR_SENSOR_ANGLE))
 
-def front_sensor_gps(gps_x: float, gps_y: float, compass: float):
+def front_sensor_gps(gps, compass: float):
     # 0º front
-    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass),
-            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass)]
+    return Location(gps.x + GROUND_SENSOR_DISTANCE * math.cos(compass),
+            gps.y + GROUND_SENSOR_DISTANCE * math.sin(compass))
 
-def right_sensor_gps(gps_x: float, gps_y: float, compass: float):
+def right_sensor_gps(gps, compass: float):
     # 10º right
-    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass + NEAR_SENSOR_ANGLE),
-            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass + NEAR_SENSOR_ANGLE)]
+    return Location(gps.x + GROUND_SENSOR_DISTANCE * math.cos(compass + NEAR_SENSOR_ANGLE),
+            gps.y + GROUND_SENSOR_DISTANCE * math.sin(compass + NEAR_SENSOR_ANGLE))
 
-def far_right_sensor_gps(gps_x: float, gps_y: float, compass: float):
+def far_right_sensor_gps(gps, compass: float):
     # 40º right
-    return [gps_x + GROUND_SENSOR_DISTANCE * math.cos(compass + FAR_SENSOR_ANGLE),
-            gps_y + GROUND_SENSOR_DISTANCE * math.sin(compass + FAR_SENSOR_ANGLE)]
+    return Location(gps.x + GROUND_SENSOR_DISTANCE * math.cos(compass + FAR_SENSOR_ANGLE),
+            gps.y + GROUND_SENSOR_DISTANCE * math.sin(compass + FAR_SENSOR_ANGLE))
 
