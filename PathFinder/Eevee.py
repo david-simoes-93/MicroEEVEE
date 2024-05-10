@@ -15,6 +15,7 @@ class Eevee(object):
         self.update_sensors()
     
     def update(self, new_gps, new_theta):
+        #print(f"from pos {self.gps} {self.theta} to {new_gps} {new_theta}")
         self.gps = new_gps
         self.theta = new_theta
         self.update_sensors()

@@ -28,6 +28,14 @@ def normalize_radian_angle(angle):
 
     return angle
 
+def avg_between_radian_angles(a, b):
+    if abs(a - b) > math.pi:
+        if a < b:
+            a += math.pi * 2
+        else:
+            b += math.pi * 2
+    return normalize_radian_angle((b + a) / 2)
+
 
 def normalize_degree_angle(angle):
     # [-180, 180]

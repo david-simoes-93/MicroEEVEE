@@ -122,7 +122,7 @@ class MazeSimulator:
         phi = (dLeft - dRight) / OdometryHandler.WHEEL2WHEEL_DIST
 
         new_eevee_theta = Utils.normalize_radian_angle(self.eevee_theta + phi)
-        avg_theta = (self.eevee_theta + new_eevee_theta) / 2
+        avg_theta = Utils.avg_between_radian_angles(self.eevee_theta, new_eevee_theta)
         x_delta_cm = dCenter * math.cos(avg_theta)
         y_delta_cm = dCenter * math.sin(avg_theta)
         self.eevee_coords.x += x_delta_cm/CM_PER_CELL

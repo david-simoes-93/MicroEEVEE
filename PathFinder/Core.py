@@ -1,6 +1,7 @@
 import time
 import multiprocessing
 import math
+import copy
 from serial import SerialException
 import time
 import sys
@@ -43,7 +44,9 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
     while True:
         # positive angle = to the right
         if False:  # test gps adjustments on h-lines
-            pass
+            eevee.update(Location(-9.80,0.15), Utils.to_radian(-179.17))
+            eevee.my_odom.adjust_sensors(Location(-9.80,0.15), Utils.to_radian(-179.17), eevee.sensor_positions, [1, 0, 1, 1, 0]) # ?
+            return
         if False: # test theta adjustments on h-lines
             odom.adjust_sensors(0, -3.8-2, Utils.to_radian(0), [0,0,0,0,1]) # should give positive delta
             odom.adjust_sensors(0, 3.8+2, Utils.to_radian(0), [1,0,0,0,0]) # should give negative delta
@@ -80,7 +83,7 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
         #print(f"{my_map.my_cell} -> {new_target_cell}")
         if new_target_cell != target_cell or my_cell != my_map.my_cell:
             target_cell = new_target_cell
-            my_cell = my_map.my_cell
+            my_cell = copy.copy(my_map.my_cell) # keep copy so that if lines change, we retry the path
             my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
             if len(my_map.planned_path) < 2:
                 motors.stop()

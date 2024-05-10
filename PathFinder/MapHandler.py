@@ -11,6 +11,8 @@ HALF_MAP_SIZE = int(MAP_SIZE / 2)
 HALF_LINE_WIDTH_PER_CELL = 1.25 / CM_PER_CELL
 HALF_LINE_WIDTH_PER_CELL_THICK = HALF_LINE_WIDTH_PER_CELL * 1.5
 
+EXPLORED_AREA_THRESHOLD = 5
+
 class Maze(object):
     # map is a group of cells, the center of which is an intersection
     # each cell can connect up, down, left, or right with a neighbor
@@ -49,7 +51,7 @@ class Maze(object):
 
     def pick_exploration_target(self, path_planner, radian_theta):
         explored_area = self.max_explored_indices - self.min_explored_indices
-        if explored_area.x > 7 and explored_area.y > 7:
+        if explored_area.x >= EXPLORED_AREA_THRESHOLD and explored_area.y >= EXPLORED_AREA_THRESHOLD:
             map_center_cell_estimate = self.maze[self.min_explored_indices.x + round(explored_area.x/2)][self.min_explored_indices.y + round(explored_area.y/2)]
             print(f"map center estimate: {map_center_cell_estimate}")
             return self.pick_closest_unexplored_cell(path_planner, radian_theta, map_center_cell_estimate, map_center_cell_estimate)

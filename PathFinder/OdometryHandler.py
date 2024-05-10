@@ -1,4 +1,5 @@
 import math
+import copy
 from typing import List
 
 import Utils
@@ -23,6 +24,9 @@ SQUARED_GROUND_SENSOR_DIST = Utils.GROUND_SENSOR_DISTANCE*Utils.GROUND_SENSOR_DI
 GPS_ADJUSTMENT_WEIGHT = 0.5
 THETA_ADJUSTMENT_WEIGHT = 0.5
 
+# TODO: map intersection
+# TODO: evitar escolher uma target cell inacessivel
+# TODO: goal detection
 
 class OdometryHandler():
     def __init__(self, map: Maze, sim):
@@ -37,8 +41,11 @@ class OdometryHandler():
         phi = (dRight - dLeft) / WHEEL2WHEEL_DIST
 
         new_theta = Utils.normalize_radian_angle(theta + phi)
-        avg_theta = (theta + new_theta) / 2
+        avg_theta = Utils.avg_between_radian_angles(theta, new_theta)
         new_gps = Location(gps.x + dCenter * math.cos(avg_theta), gps.y + dCenter * math.sin(avg_theta))
+
+        #if self.sim:
+        #    print(f"    actual ground truth is  [{(self.sim.eevee_coords.x-self.sim.starting_pos.x)*CM_PER_CELL:.2f},{(self.sim.eevee_coords.y-self.sim.starting_pos.y)*CM_PER_CELL:.2f},{Utils.to_degree(self.sim.eevee_theta):.2f}º]")
 
         return self.adjust_sensors(new_gps, new_theta, sensor_positions, ground_sensors)
 
@@ -50,13 +57,12 @@ class OdometryHandler():
         gps_deltas = [self.get_sensor_gps_delta(ground_sensors[i], sensors_gps[i]) for i in range(len(ground_sensors))]
         avg_gps_delta_x = sum([t[0] for t in gps_deltas if t is not None])
         avg_gps_delta_y = sum([t[1] for t in gps_deltas if t is not None])
+
         if avg_gps_delta_x != 0 or avg_gps_delta_y != 0 or avg_theta_delta != 0:
             avg_gps_delta_x /= len(gps_deltas)
             avg_gps_delta_y /= len(gps_deltas)
             avg_theta_delta /= len(theta_deltas)
-            #print(f"adjusting [x,y,theta] from [{gps.x:.2f},{gps.y:.2f},{Utils.to_degree(theta):.2f}º] with sensors {[int(s) for s in ground_sensors]} by [{avg_gps_delta_x:.2f},{avg_gps_delta_y:.2f},{Utils.to_degree(avg_theta_delta):.2f}º]")
-            #if self.sim:
-            #    print(f"    actual ground truth is [{(self.sim.eevee_coords.x-self.sim.starting_pos.x)*CM_PER_CELL:.2f},{(self.sim.eevee_coords.y-self.sim.starting_pos.y)*CM_PER_CELL:.2f},{Utils.to_degree(self.sim.eevee_theta):.2f}º]")
+            print(f"adjusting [x,y,theta] from [{gps.x:.2f},{gps.y:.2f},{Utils.to_degree(theta):.2f}º] with sensors {[int(s) for s in ground_sensors]} by [{avg_gps_delta_x:.2f},{avg_gps_delta_y:.2f},{Utils.to_degree(avg_theta_delta):.2f}º]")
             new_gps = Location(gps.x + avg_gps_delta_x*GPS_ADJUSTMENT_WEIGHT, gps.y + avg_gps_delta_y*GPS_ADJUSTMENT_WEIGHT)
             theta = theta + avg_theta_delta*THETA_ADJUSTMENT_WEIGHT
         else:
@@ -101,7 +107,6 @@ class OdometryHandler():
     
     
     def get_missing_sensor_gps_delta(self, sensor_coords):
-        # TODO test
         if not self.should_sensor_see_black(sensor_coords):
             return None
         
@@ -117,15 +122,27 @@ class OdometryHandler():
             if abs(sensor_dist_to_vertical_line) < abs(sensor_dist_to_horizontal_line):
                 # x is closer, so adjust x
                 if sensor_dist_to_vertical_line > 0:
-                    return [HALF_LINE_WIDTH, 0]
+                    #  |  .  |  X
+                    #  |  0  2  5
+                    return [-sensor_dist_to_vertical_line+HALF_LINE_WIDTH, 0]
                 else:
-                    return [-HALF_LINE_WIDTH, 0]
+                    #  X  |  .  |
+                    # -5 -2  0
+                    return [-sensor_dist_to_vertical_line-HALF_LINE_WIDTH, 0]
             else:
                 # y is closer, so adjust y
                 if sensor_dist_to_horizontal_line > 0:
-                    return [0, HALF_LINE_WIDTH]
+                    # ---
+                    #  .   0
+                    # ---  2
+                    #  X   5
+                    return [0, -sensor_dist_to_horizontal_line+HALF_LINE_WIDTH]
                 else:
-                    return [0, -HALF_LINE_WIDTH]
+                    #  X   -5
+                    # ---  -2
+                    #  .    0
+                    # --- 
+                    return [0, -sensor_dist_to_horizontal_line-HALF_LINE_WIDTH]
     
         return None
     
