@@ -49,13 +49,20 @@ class Maze(object):
         return self.maze[cell_indices.x][cell_indices.y]
 
 
-    def pick_exploration_target(self, path_planner, radian_theta):
+    def pick_exploration_target(self, path_planner, prev_cell):
+        """
         explored_area = self.max_explored_indices - self.min_explored_indices
         if explored_area.x >= EXPLORED_AREA_THRESHOLD and explored_area.y >= EXPLORED_AREA_THRESHOLD:
             map_center_cell_estimate = self.maze[self.min_explored_indices.x + round(explored_area.x/2)][self.min_explored_indices.y + round(explored_area.y/2)]
             print(f"map center estimate: {map_center_cell_estimate}")
-            return self.pick_closest_unexplored_cell(path_planner, radian_theta, map_center_cell_estimate, map_center_cell_estimate)
-        
+            # how do we prevent this cell from being an exploration target if one cant get to it
+            map_center_unexplored_cell = self.pick_closest_unexplored_cell(path_planner, map_center_cell_estimate, map_center_cell_estimate)
+            if map_center_unexplored_cell != self.my_cell:
+                return map_center_unexplored_cell
+            else:
+                print("map_center_unexplored_cell would be same cell as robot, so defaulting to typical cell exploration")
+        """
+        """
         degree_theta = Utils.to_degree(radian_theta)
         if -45 <= degree_theta <= 45:
             prev_cell = self.my_cell.neighbor_left
@@ -65,9 +72,10 @@ class Maze(object):
             prev_cell = self.my_cell.neighbor_up
         else:
             prev_cell = self.my_cell.neighbor_right
-        return self.pick_closest_unexplored_cell(path_planner, radian_theta, prev_cell, self.my_cell)
+        """
+        return self.pick_closest_unexplored_cell(path_planner, prev_cell, self.my_cell)
 
-    def pick_closest_unexplored_cell(self, path_planner, radian_theta, prev_cell, my_cell):
+    def pick_closest_unexplored_cell(self, path_planner, prev_cell, my_cell):
         """ picks closest unexplored cell """
         to_be_explored = [[prev_cell, my_cell, 0]]
         already_explored = []
@@ -80,7 +88,7 @@ class Maze(object):
             for neighbor in curr_cell.neighbors:
                 if neighbor not in already_explored:
                     neighbors.append([curr_cell, neighbor, curr_dist +
-                                      path_planner.distance_between(prev_cell, curr_cell, neighbor)])
+                                      path_planner.distance_between_favor_turn(prev_cell, curr_cell, neighbor)])
 
             # sort to_be_explored by dist
             to_be_explored = sorted(to_be_explored + neighbors, key=lambda x: x[2])
@@ -136,9 +144,9 @@ class Maze(object):
         self.set_traversal_weights(my_cell_indices)
         self.my_cell_coords = my_cell_coords
 
-        sensor_cell_coords = [Maze.get_cell_coords_from_gps_coords(sensor_gps) for sensor_gps in eevee.sensor_positions]                                    # [ [1.1, 0.9], ... ]
-        sensor_cell_indices = [Maze.get_cell_indexes_from_cell_coords(coords) for coords in sensor_cell_coords]                     # [   [1, 1],   ... ]
-        rel_sensor_coords = [coords-cell for coords,cell in zip(sensor_cell_coords, sensor_cell_indices)] # [ [0.1,-0.1], ... ]
+        sensor_cell_coords = [Maze.get_cell_coords_from_gps_coords(sensor_gps) for sensor_gps in eevee.sensor_positions]    # [ [1.1, 0.9], ... ]
+        sensor_cell_indices = [Maze.get_cell_indexes_from_cell_coords(coords) for coords in sensor_cell_coords]             # [   [1, 1],   ... ]
+        rel_sensor_coords = [coords-cell for coords,cell in zip(sensor_cell_coords, sensor_cell_indices)]                   # [ [0.1,-0.1], ... ]
         sensor_cells = [self.maze[cell_index.x][cell_index.y] for cell_index in sensor_cell_indices]  
 
         for i in range(len(ground_sensors)):
@@ -162,7 +170,7 @@ class Cell:
         self.w_down = 0 if y != MAP_SIZE - 1 else -TRAVERSED_WEIGHT
         self.w_left = 0 if x != 0 else -TRAVERSED_WEIGHT
         self.w_right = 0 if x != MAP_SIZE - 1 else -TRAVERSED_WEIGHT
-        self.goal = False
+        self.w_goal = 0
 
         self.neighbor_up = None
         self.neighbor_down = None
@@ -207,7 +215,10 @@ class Cell:
     
     @property
     def explored(self):
-        return abs(self.w_up) >= THRESHOLD_WEIGHT and abs(self.w_down) >= THRESHOLD_WEIGHT and abs(self.w_left) >= THRESHOLD_WEIGHT and abs(self.w_right) >= THRESHOLD_WEIGHT
+        return abs(self.w_up) >= THRESHOLD_WEIGHT and \
+                abs(self.w_down) >= THRESHOLD_WEIGHT and \
+                abs(self.w_left) >= THRESHOLD_WEIGHT and \
+                abs(self.w_right) >= THRESHOLD_WEIGHT # and abs(self.w_goal) >= THRESHOLD_WEIGHT
 
     def set_up_weight(self, w):
         if abs(self.w_up) == TRAVERSED_WEIGHT:
@@ -243,18 +254,22 @@ class Cell:
         #print(f"intersection at {self}")
         if self.up_line and self.neighbor_up and not self.neighbor_up.is_intersection:
             #print("up")
+            self.neighbor_up.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_up.set_left_weight(min(self.neighbor_up.w_left, -THRESHOLD_WEIGHT))
             self.neighbor_up.set_right_weight(min(self.neighbor_up.w_right, -THRESHOLD_WEIGHT))
         if self.down_line and self.neighbor_down and not self.neighbor_down.is_intersection:
             #print("down")
+            self.neighbor_down.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_down.set_left_weight(min(self.neighbor_down.w_left, -THRESHOLD_WEIGHT))
             self.neighbor_down.set_right_weight(min(self.neighbor_down.w_right, -THRESHOLD_WEIGHT))
         if self.left_line and self.neighbor_left and not self.neighbor_left.is_intersection:
             #print("left")
+            self.neighbor_left.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_left.set_up_weight(min(self.neighbor_left.w_up, -THRESHOLD_WEIGHT))
             self.neighbor_left.set_down_weight(min(self.neighbor_left.w_down, -THRESHOLD_WEIGHT))
         if self.right_line and self.neighbor_right and not self.neighbor_right.is_intersection:
             #print("right")
+            self.neighbor_right.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_right.set_up_weight(min(self.neighbor_right.w_up, -THRESHOLD_WEIGHT))
             self.neighbor_right.set_down_weight(min(self.neighbor_right.w_down, -THRESHOLD_WEIGHT))
 
@@ -280,6 +295,9 @@ class Cell:
                 self.set_left_weight(max(self.w_left - SENSOR_WEIGHT, MIN_WEIGHT))
             if HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= 0.5 and -HALF_LINE_WIDTH_PER_CELL <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL:
                 self.set_right_weight(max(self.w_right - SENSOR_WEIGHT, MIN_WEIGHT))
+
+        # TODO if sensor val in corners of goal but not on lines, add/subtract goal weight
+        pass
     
     def __str__(self) -> str:
         return f"{self.indices}"

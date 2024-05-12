@@ -36,10 +36,18 @@ timeout = False
 gui = True
 sim = True
 
+# TODO: a cell cant be explored until goal is not there
+# TODO: goal detection
+# TODO: really avoid going over blank lines, fuck that
+# TODO: save map and reload it if within 10m or if we press special button?
+
 def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui):
     path_planner = AStar()
     target_cell = None
     my_cell = None
+
+    path_curr_cell = my_map.my_cell
+    path_prev_cell = path_curr_cell
 
     while True:
         # positive angle = to the right
@@ -79,17 +87,20 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
         my_map.update(eevee, arduino.get_ground_sensors())
         gui.render()
 
-        new_target_cell = my_map.pick_exploration_target(path_planner, eevee.theta)
+        if my_map.my_cell != path_curr_cell:
+            path_prev_cell = path_curr_cell
+            path_curr_cell = my_map.my_cell
+
+        new_target_cell = my_map.pick_exploration_target(path_planner, path_prev_cell)
         #print(f"{my_map.my_cell} -> {new_target_cell}")
         if new_target_cell != target_cell or my_cell != my_map.my_cell:
             target_cell = new_target_cell
             my_cell = copy.copy(my_map.my_cell) # keep copy so that if lines change, we retry the path
             my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
             if len(my_map.planned_path) < 2:
-                motors.stop()
+                # motors.stop()
                 print(f"PATH NOT FOUND from cell {my_map.my_cell} to cell {target_cell}")
-                # TODO should clear map or rotate upon itself for a while or smt
-                return
+                my_map.planned_path = [my_cell, my_cell]
         if Utils.dist(eevee.gps, my_map.planned_path[0].coords) > 3.5 and Utils.dist(eevee.gps, my_map.planned_path[1].coords) > 9.5:
             next_cell = my_map.planned_path[0]
         else:
