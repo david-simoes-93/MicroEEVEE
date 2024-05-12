@@ -49,6 +49,8 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
     path_curr_cell = my_map.my_cell
     path_prev_cell = path_curr_cell
 
+    goal_detected_at = None
+
     while True:
         # positive angle = to the right
         if False:  # test gps adjustments on h-lines
@@ -91,6 +93,20 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
             path_prev_cell = path_curr_cell
             path_curr_cell = my_map.my_cell
 
+        if arduino.get_ground_average() >= 0.8:
+            if goal_detected_at is None:
+                print(f"Is this goal? {eevee.gps}")
+                goal_detected_at = eevee.gps
+            motors.follow_direction(eevee.theta, eevee.theta, SLOW_SPEED)
+            if Utils.dist(goal_detected_at, eevee.gps) > 2.5:
+                print("GOAL DETECTED")
+                motors.stop()
+                my_map.my_cell.w_goal = 1000
+                gui.render()
+                return
+            continue
+        goal_detected_at = None
+        
         new_target_cell = my_map.pick_exploration_target(path_planner, path_prev_cell)
         #print(f"{my_map.my_cell} -> {new_target_cell}")
         if new_target_cell != target_cell or my_cell != my_map.my_cell:

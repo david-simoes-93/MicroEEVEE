@@ -41,7 +41,7 @@ class MazeSimulator:
 
         self.maze = [[Cell(False, False, False, False)
                       for y in range(MAP_SIZE)] for x in range(MAP_SIZE)]
-        self.starting_pos = Location(2, 0)
+        self.starting_pos = Location(6, 0)
         self.set_map()
 
         self.eevee_coords = copy.copy(self.starting_pos)
@@ -101,6 +101,12 @@ class MazeSimulator:
                 return True if random.random() > SENSOR_NOISE_RATIO else False
         if cell.right:
             if 0 <= rel_coords.x <= 0.5 and -0.1 <= rel_coords.y <= 0.1:
+                return True if random.random() > SENSOR_NOISE_RATIO else False
+        if cell.goal and (cell.right or cell.left):
+            if -0.22 <= rel_coords.x <= 0.22 and -0.5 <= rel_coords.y <= 0.5:
+                return True if random.random() > SENSOR_NOISE_RATIO else False
+        if cell.goal and (cell.up or cell.down):
+            if -0.5 <= rel_coords.x <= 0.5 and -0.22 <= rel_coords.y <= 0.22:
                 return True if random.random() > SENSOR_NOISE_RATIO else False
         return False if random.random() > SENSOR_NOISE_RATIO else True
 

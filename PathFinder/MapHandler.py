@@ -10,6 +10,7 @@ HALF_MAP_SIZE = int(MAP_SIZE / 2)
 
 HALF_LINE_WIDTH_PER_CELL = 1.25 / CM_PER_CELL
 HALF_LINE_WIDTH_PER_CELL_THICK = HALF_LINE_WIDTH_PER_CELL * 1.5
+GOAL_CELL_THICK = 2.75 / CM_PER_CELL
 
 EXPLORED_AREA_THRESHOLD = 5
 
@@ -214,11 +215,16 @@ class Cell:
         return (self.down_line or self.up_line) and (self.left_line or self.right_line)
     
     @property
+    def is_goal(self):
+        return self.w_goal >= THRESHOLD_WEIGHT
+    
+    @property
     def explored(self):
         return abs(self.w_up) >= THRESHOLD_WEIGHT and \
                 abs(self.w_down) >= THRESHOLD_WEIGHT and \
                 abs(self.w_left) >= THRESHOLD_WEIGHT and \
-                abs(self.w_right) >= THRESHOLD_WEIGHT # and abs(self.w_goal) >= THRESHOLD_WEIGHT
+                abs(self.w_right) >= THRESHOLD_WEIGHT and \
+                abs(self.w_goal) >= THRESHOLD_WEIGHT
 
     def set_up_weight(self, w):
         if abs(self.w_up) == TRAVERSED_WEIGHT:
@@ -248,28 +254,27 @@ class Cell:
         self.neighbor_right.w_left = w
         self.update_intersection_neighbors()
 
+    def add_goal_weight(self, w):
+        #print(f"add_goal_weight {w} at {self}")
+        if w > 0:
+            self.w_goal = min(self.w_goal + SENSOR_WEIGHT, MAX_WEIGHT)
+        else:
+            self.w_goal = max(self.w_goal - SENSOR_WEIGHT, MIN_WEIGHT)
+
     def update_intersection_neighbors(self):
         if not self.is_intersection:
             return
         #print(f"intersection at {self}")
         if self.up_line and self.neighbor_up and not self.neighbor_up.is_intersection:
-            #print("up")
-            self.neighbor_up.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_up.set_left_weight(min(self.neighbor_up.w_left, -THRESHOLD_WEIGHT))
             self.neighbor_up.set_right_weight(min(self.neighbor_up.w_right, -THRESHOLD_WEIGHT))
         if self.down_line and self.neighbor_down and not self.neighbor_down.is_intersection:
-            #print("down")
-            self.neighbor_down.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_down.set_left_weight(min(self.neighbor_down.w_left, -THRESHOLD_WEIGHT))
             self.neighbor_down.set_right_weight(min(self.neighbor_down.w_right, -THRESHOLD_WEIGHT))
         if self.left_line and self.neighbor_left and not self.neighbor_left.is_intersection:
-            #print("left")
-            self.neighbor_left.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_left.set_up_weight(min(self.neighbor_left.w_up, -THRESHOLD_WEIGHT))
             self.neighbor_left.set_down_weight(min(self.neighbor_left.w_down, -THRESHOLD_WEIGHT))
         if self.right_line and self.neighbor_right and not self.neighbor_right.is_intersection:
-            #print("right")
-            self.neighbor_right.w_goal = -THRESHOLD_WEIGHT
             self.neighbor_right.set_up_weight(min(self.neighbor_right.w_up, -THRESHOLD_WEIGHT))
             self.neighbor_right.set_down_weight(min(self.neighbor_right.w_down, -THRESHOLD_WEIGHT))
 
@@ -279,25 +284,55 @@ class Cell:
         if sensor_val:
             if -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= HALF_LINE_WIDTH_PER_CELL_THICK and -0.5 <= rel_coords.y <= -HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.set_up_weight(min(self.w_up + SENSOR_WEIGHT, MAX_WEIGHT))
-            if -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= HALF_LINE_WIDTH_PER_CELL_THICK and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= 0.5:
+            elif -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= HALF_LINE_WIDTH_PER_CELL_THICK and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= 0.5:
                 self.set_down_weight(min(self.w_down + SENSOR_WEIGHT, MAX_WEIGHT))
-            if -0.5 <= rel_coords.x <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL_THICK:
+            elif -0.5 <= rel_coords.x <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.set_left_weight(min(self.w_left + SENSOR_WEIGHT, MAX_WEIGHT))
-            if HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= 0.5 and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL_THICK:
+            elif HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= 0.5 and -HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.set_right_weight(min(self.w_right + SENSOR_WEIGHT, MAX_WEIGHT))
         # if sensor is negative, we try to find a narrower line and remove weight from it
         if not sensor_val:
             if -HALF_LINE_WIDTH_PER_CELL <= rel_coords.x <= HALF_LINE_WIDTH_PER_CELL and -0.5 <= rel_coords.y <= -HALF_LINE_WIDTH_PER_CELL_THICK:
                 self.set_up_weight(max(self.w_up - SENSOR_WEIGHT, MIN_WEIGHT))
-            if -HALF_LINE_WIDTH_PER_CELL <= rel_coords.x <= HALF_LINE_WIDTH_PER_CELL and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= 0.5:
+            elif -HALF_LINE_WIDTH_PER_CELL <= rel_coords.x <= HALF_LINE_WIDTH_PER_CELL and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= 0.5:
                 self.set_down_weight(max(self.w_down - SENSOR_WEIGHT, MIN_WEIGHT))
-            if -0.5 <= rel_coords.x <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL:
+            elif -0.5 <= rel_coords.x <= -HALF_LINE_WIDTH_PER_CELL_THICK and -HALF_LINE_WIDTH_PER_CELL <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL:
                 self.set_left_weight(max(self.w_left - SENSOR_WEIGHT, MIN_WEIGHT))
-            if HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= 0.5 and -HALF_LINE_WIDTH_PER_CELL <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL:
+            elif HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= 0.5 and -HALF_LINE_WIDTH_PER_CELL <= rel_coords.y <= HALF_LINE_WIDTH_PER_CELL:
                 self.set_right_weight(max(self.w_right - SENSOR_WEIGHT, MIN_WEIGHT))
 
-        # TODO if sensor val in corners of goal but not on lines, add/subtract goal weight
-        pass
+        self.add_sensor_goal_reading(rel_coords, sensor_val)
+
+    def add_sensor_goal_reading(self, rel_coords, sensor_val):
+        # intersections can't be goal
+        if self.is_intersection:
+            self.w_goal = min(self.w_goal, -THRESHOLD_WEIGHT)
+            return
+        
+        # if sensor val in corners of goal but not on lines, add/subtract SENSOR_WEIGHT
+        """
+        if sensor_val:
+            if -0.5 <= rel_coords.x <= 0.5 and -GOAL_CELL_THICK <= rel_coords.y <= -HALF_LINE_WIDTH_PER_CELL_THICK:
+                self.add_goal_weight(SENSOR_WEIGHT)
+            elif -0.5 <= rel_coords.x <= 0.5 and HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.y <= GOAL_CELL_THICK:
+                self.add_goal_weight(SENSOR_WEIGHT)
+            elif -GOAL_CELL_THICK <= rel_coords.x <= -HALF_LINE_WIDTH_PER_CELL_THICK and -0.5 <= rel_coords.y <= 0.5:
+                self.add_goal_weight(SENSOR_WEIGHT)
+            elif HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= GOAL_CELL_THICK and -0.5 <= rel_coords.y <= 0.5:
+                self.add_goal_weight(SENSOR_WEIGHT)
+        """
+        # this doesnt work well, so we just eliminate GOAL cells (so that they're marked as explored)
+        if not sensor_val:
+            if -0.5 <= rel_coords.x <= 0.5 and -GOAL_CELL_THICK <= rel_coords.y <= -HALF_LINE_WIDTH_PER_CELL:
+                self.add_goal_weight(-SENSOR_WEIGHT)
+            elif -0.5 <= rel_coords.x <= 0.5 and HALF_LINE_WIDTH_PER_CELL <= rel_coords.y <= GOAL_CELL_THICK:
+                self.add_goal_weight(-SENSOR_WEIGHT)
+            elif -GOAL_CELL_THICK <= rel_coords.x <= -HALF_LINE_WIDTH_PER_CELL and -0.5 <= rel_coords.y <= 0.5:
+                self.add_goal_weight(-SENSOR_WEIGHT)
+            elif HALF_LINE_WIDTH_PER_CELL <= rel_coords.x <= GOAL_CELL_THICK and -0.5 <= rel_coords.y <= 0.5:
+                self.add_goal_weight(-SENSOR_WEIGHT)
+
+
     
     def __str__(self) -> str:
         return f"{self.indices}"

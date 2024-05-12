@@ -148,6 +148,8 @@ class GuiHandler():
                     pygame.draw.line(self.screen, BLACK, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
                 elif cell.right_free:
                     pygame.draw.line(self.screen, LIGHT_BLUE, [mod_x, mod_y], [mod_x + HALF_CELL_RESOLUTION, mod_y], 2)
+                if cell.is_goal:
+                    pygame.draw.circle(self.screen, GREEN, [mod_x, mod_y], ROBOT_RADIUS+1)
 
         for cell in self.map.planned_path:
             mod_x = 300 + CELL_RESOLUTION*cell.indices.x + HALF_CELL_RESOLUTION
