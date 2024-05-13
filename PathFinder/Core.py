@@ -6,6 +6,7 @@ from serial import SerialException
 import time
 import sys
 import signal
+import pickle
 
 try:
     import RPi.GPIO as GPIO
@@ -26,20 +27,18 @@ from Simulator import MazeSimulator
 from Utils import Location
 from Eevee import Eevee
 
+SLOWEST_SPEED = 15
 SLOW_SPEED = 30
 FAST_SPEED = 45
 
-TIME = 1800  # seconds
+TIME = 180  # seconds
 start_time = time.time()
 timeout = False
 
 gui = True
 sim = True
 
-# TODO: a cell cant be explored until goal is not there
-# TODO: goal detection
 # TODO: really avoid going over blank lines, fuck that
-# TODO: save map and reload it if within 10m or if we press special button?
 
 def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui):
     path_planner = AStar()
@@ -101,7 +100,9 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
             if Utils.dist(goal_detected_at, eevee.gps) > 2.5:
                 print("GOAL DETECTED")
                 motors.stop()
-                my_map.my_cell.w_goal = 1000
+                goal_indices = Maze.get_cell_indexes_from_gps_coords(eevee.sensor_positions[2])
+                my_map.maze[goal_indices.x][goal_indices.y].w_goal = 1000
+                my_map.goal = my_map.maze[goal_indices.x][goal_indices.y]
                 gui.render()
                 return
             continue
@@ -198,6 +199,23 @@ def wait_until_button(eevee, arduino, led0, led1, my_map, gui):
     led1.set(False)
 
 
+def load_map_based_on_button(led0, led1, arduino):
+    # load previous map or start fresh depending on button we pressed
+    while not arduino.button0 and not arduino.button1:
+        if not arduino.get():
+            blink_panic(led0, led1, None)
+    my_map = Maze()
+    if arduino.button0:
+        try:
+            with open('map.pickle', 'rb') as handle:
+                my_map.load_from_pickle(pickle.load(handle))
+        except:
+            print("Failed to load map")
+
+    # otherwise if button1    
+    return my_map
+
+
 def blink_lights_forever(led0, led1):
     last_time = time.time()
     led0_state, led1_state = False, True
@@ -249,7 +267,11 @@ def main():
             
     cam = CameraHandler()
 
-    my_map = Maze()
+    # LED
+    led0 = LedActuator(26)
+    led1 = LedActuator(29)
+
+    my_map = load_map_based_on_button(led0, led1, arduino)
     my_odom = OdometryHandler(my_map, sim_maze)
 
     GPIO.setwarnings(False)
@@ -260,11 +282,7 @@ def main():
     m1 = MotorActuator(36, 37, 33)  # IN1 IN2 ENA - Right Motor
     m2 = MotorActuator(40, 38, 32)  # IN3 IN4 ENB - Left Motor
     motors = MovementHandler(m2, m1, sim_maze)
-
-    # LED
-    led0 = LedActuator(26)
-    led1 = LedActuator(29)
-
+    
     # Arduino
     for _ in range(5):
         if arduino.get():
@@ -286,6 +304,9 @@ def main():
     global start_time
     start_time = time.time()
     explore_loop(eevee, arduino, led0, led1, motors, cam, my_map, gui_handler)
+
+    with open('map.pickle', 'wb') as handle:
+        pickle.dump(my_map.store_to_pickle(), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # Wait forever
     blink_lights_forever(led0, led1)

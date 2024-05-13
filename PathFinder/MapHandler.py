@@ -44,6 +44,32 @@ class Maze(object):
 
         self.planned_path = []
 
+        self.goal = None
+
+    def load_from_pickle(self, set_of_weights):
+        for x in range(0, MAP_SIZE):
+            for y in range(0, MAP_SIZE):
+                self.maze[x][y].w_up = set_of_weights[x][y][0]
+                self.maze[x][y].w_down = set_of_weights[x][y][1]
+                self.maze[x][y].w_left = set_of_weights[x][y][2]
+                self.maze[x][y].w_right = set_of_weights[x][y][3]
+                self.maze[x][y].w_goal = set_of_weights[x][y][4]
+
+                if self.maze[x][y].w_goal > 0:
+                    self.goal = self.maze[x][y]
+
+    def store_to_pickle(self):
+        set_of_weights = [[[0,0,0,0,0] for y in range(MAP_SIZE)]
+                     for x in range(MAP_SIZE)]
+        for x in range(0, MAP_SIZE):
+            for y in range(0, MAP_SIZE):
+                set_of_weights[x][y][0] = self.maze[x][y].w_up
+                set_of_weights[x][y][1] = self.maze[x][y].w_down 
+                set_of_weights[x][y][2] = self.maze[x][y].w_left 
+                set_of_weights[x][y][3] = self.maze[x][y].w_right
+                set_of_weights[x][y][4] = self.maze[x][y].w_goal
+        return set_of_weights
+
     @property
     def my_cell(self):
         cell_indices = Maze.get_cell_indexes_from_cell_coords(self.my_cell_coords)
@@ -51,29 +77,9 @@ class Maze(object):
 
 
     def pick_exploration_target(self, path_planner, prev_cell):
-        """
-        explored_area = self.max_explored_indices - self.min_explored_indices
-        if explored_area.x >= EXPLORED_AREA_THRESHOLD and explored_area.y >= EXPLORED_AREA_THRESHOLD:
-            map_center_cell_estimate = self.maze[self.min_explored_indices.x + round(explored_area.x/2)][self.min_explored_indices.y + round(explored_area.y/2)]
-            print(f"map center estimate: {map_center_cell_estimate}")
-            # how do we prevent this cell from being an exploration target if one cant get to it
-            map_center_unexplored_cell = self.pick_closest_unexplored_cell(path_planner, map_center_cell_estimate, map_center_cell_estimate)
-            if map_center_unexplored_cell != self.my_cell:
-                return map_center_unexplored_cell
-            else:
-                print("map_center_unexplored_cell would be same cell as robot, so defaulting to typical cell exploration")
-        """
-        """
-        degree_theta = Utils.to_degree(radian_theta)
-        if -45 <= degree_theta <= 45:
-            prev_cell = self.my_cell.neighbor_left
-        elif -135 <= degree_theta < -45:
-            prev_cell = self.my_cell.neighbor_down
-        elif 45 < degree_theta <= 135:
-            prev_cell = self.my_cell.neighbor_up
-        else:
-            prev_cell = self.my_cell.neighbor_right
-        """
+        if self.goal:
+            return self.goal
+
         return self.pick_closest_unexplored_cell(path_planner, prev_cell, self.my_cell)
 
     def pick_closest_unexplored_cell(self, path_planner, prev_cell, my_cell):
@@ -98,6 +104,7 @@ class Maze(object):
             # closest unexplored cell
             return to_be_explored[0][1]
         else:
+            print("COULDNT FIND CLOSEST UNEXPLORED CELL")
             return prev_cell
     
 

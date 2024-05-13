@@ -41,7 +41,7 @@ class MazeSimulator:
 
         self.maze = [[Cell(False, False, False, False)
                       for y in range(MAP_SIZE)] for x in range(MAP_SIZE)]
-        self.starting_pos = Location(6, 0)
+        self.starting_pos = Location(4, 0)
         self.set_map()
 
         self.eevee_coords = copy.copy(self.starting_pos)
