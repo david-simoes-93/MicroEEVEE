@@ -86,7 +86,7 @@ class AStar:
             return reversed(list(_gen()))
 
     def astar(self, start: MapHandler.Cell, goal: MapHandler.Cell, 
-              reversePath: bool=False, current: Optional[MapHandler.Cell]=None) -> List[MapHandler.Cell]:
+              reversePath: bool=False, current: Optional[MapHandler.Cell]=None, only_sure_neighbors=False) -> List[MapHandler.Cell]:
         if self.is_goal_reached(start, goal):
             return [start]
         searchNodes = AStar.SearchNodeDict()
@@ -103,7 +103,8 @@ class AStar:
                 return list(self.reconstruct_path(current, reversePath))
             current.out_openset = True
             current.closed = True
-            for neighbor in [searchNodes[n] for n in current.data.neighbors]:
+            neighbors = current.data.sure_neighbors if only_sure_neighbors else current.data.neighbors
+            for neighbor in [searchNodes[n] for n in neighbors]:
                 if neighbor.closed:
                     continue
                 tentative_gscore = current.gscore + \

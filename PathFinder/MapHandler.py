@@ -159,6 +159,9 @@ class Maze(object):
 
         for i in range(len(ground_sensors)):
             sensor_cells[i].add_sensor_reading(rel_sensor_coords[i], ground_sensors[i])
+        if self.goal and not self.goal.is_goal:
+            print("GOAL has been reset")
+            self.goal = None
 
 
 
@@ -264,9 +267,9 @@ class Cell:
     def add_goal_weight(self, w):
         #print(f"add_goal_weight {w} at {self}")
         if w > 0:
-            self.w_goal = min(self.w_goal + SENSOR_WEIGHT, MAX_WEIGHT)
+            self.w_goal = min(self.w_goal + w, MAX_WEIGHT)
         else:
-            self.w_goal = max(self.w_goal - SENSOR_WEIGHT, MIN_WEIGHT)
+            self.w_goal = max(self.w_goal + w, MIN_WEIGHT)
 
     def update_intersection_neighbors(self):
         if not self.is_intersection:
@@ -313,7 +316,7 @@ class Cell:
     def add_sensor_goal_reading(self, rel_coords, sensor_val):
         # intersections can't be goal
         if self.is_intersection:
-            self.w_goal = min(self.w_goal, -THRESHOLD_WEIGHT)
+            self.add_goal_weight(-self.w_goal-THRESHOLD_WEIGHT)
             return
         
         # if sensor val in corners of goal but not on lines, add/subtract SENSOR_WEIGHT
@@ -327,8 +330,8 @@ class Cell:
                 self.add_goal_weight(SENSOR_WEIGHT)
             elif HALF_LINE_WIDTH_PER_CELL_THICK <= rel_coords.x <= GOAL_CELL_THICK and -0.5 <= rel_coords.y <= 0.5:
                 self.add_goal_weight(SENSOR_WEIGHT)
-        """
         # this doesnt work well, so we just eliminate GOAL cells (so that they're marked as explored)
+        """
         if not sensor_val:
             if -0.5 <= rel_coords.x <= 0.5 and -GOAL_CELL_THICK <= rel_coords.y <= -HALF_LINE_WIDTH_PER_CELL:
                 self.add_goal_weight(-SENSOR_WEIGHT)
@@ -354,5 +357,18 @@ class Cell:
         if not self.left_free and self.neighbor_left is not None:
             neighbors_arr.append(self.neighbor_left)
         if not self.right_free and self.neighbor_right is not None:
+            neighbors_arr.append(self.neighbor_right)
+        return neighbors_arr
+    
+    @property
+    def sure_neighbors(self):
+        neighbors_arr = []
+        if self.up_line and self.neighbor_up is not None:
+            neighbors_arr.append(self.neighbor_up)
+        if self.down_line and self.neighbor_down is not None:
+            neighbors_arr.append(self.neighbor_down)
+        if self.left_line and self.neighbor_left is not None:
+            neighbors_arr.append(self.neighbor_left)
+        if self.right_line and self.neighbor_right is not None:
             neighbors_arr.append(self.neighbor_right)
         return neighbors_arr

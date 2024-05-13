@@ -26,6 +26,7 @@ from OdometryHandler import OdometryHandler
 from Simulator import MazeSimulator
 from Utils import Location
 from Eevee import Eevee
+import MapHandler
 
 SLOWEST_SPEED = 15
 SLOW_SPEED = 30
@@ -39,6 +40,7 @@ gui = True
 sim = True
 
 # TODO: really avoid going over blank lines, fuck that
+# TODO: if going to goal, only way is explored way, ignore unknown paths
 
 def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: MovementHandler, cam, my_map, gui):
     path_planner = AStar()
@@ -97,11 +99,11 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
                 print(f"Is this goal? {eevee.gps}")
                 goal_detected_at = eevee.gps
             motors.follow_direction(eevee.theta, eevee.theta, SLOW_SPEED)
-            if Utils.dist(goal_detected_at, eevee.gps) > 2.5:
+            if Utils.dist(goal_detected_at, eevee.gps) > 3:
                 print("GOAL DETECTED")
                 motors.stop()
                 goal_indices = Maze.get_cell_indexes_from_gps_coords(eevee.sensor_positions[2])
-                my_map.maze[goal_indices.x][goal_indices.y].w_goal = 1000
+                my_map.maze[goal_indices.x][goal_indices.y].w_goal = MapHandler.MAX_WEIGHT
                 my_map.goal = my_map.maze[goal_indices.x][goal_indices.y]
                 gui.render()
                 return
@@ -113,7 +115,7 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
         if new_target_cell != target_cell or my_cell != my_map.my_cell:
             target_cell = new_target_cell
             my_cell = copy.copy(my_map.my_cell) # keep copy so that if lines change, we retry the path
-            my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell)
+            my_map.planned_path = path_planner.astar(my_map.my_cell, target_cell, only_sure_neighbors=my_map.goal is not None)
             if len(my_map.planned_path) < 2:
                 # motors.stop()
                 print(f"PATH NOT FOUND from cell {my_map.my_cell} to cell {target_cell}")
