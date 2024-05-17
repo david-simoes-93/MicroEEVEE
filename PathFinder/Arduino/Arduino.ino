@@ -14,9 +14,9 @@ const int button0pin = 13;
 const int button1pin = 10;
 bool button0, button1;
 
-const int m2enA = 2;
+const int m2enA = 3;  // RIGHT
 const int m2enB = 11;
-const int m1enA = 3;
+const int m1enA = 2;  // LEFT
 const int m1enB = 12;
 int m1, m2, counterM1, counterM2;
 
@@ -31,6 +31,9 @@ void setup()
   // https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
   attachInterrupt(digitalPinToInterrupt(m1enA), m1_enc, RISING);
   attachInterrupt(digitalPinToInterrupt(m2enA), m2_enc, RISING);
+  
+  pinMode(m2enB, INPUT);
+  pinMode(m1enB, INPUT);
 
   Serial.begin(9600);
 }

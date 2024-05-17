@@ -48,33 +48,11 @@ def explore_loop(eevee: Eevee, arduino: ArduinoHandler, led0, led1, motors: Move
     my_cell = None
 
     path_curr_cell = my_map.my_cell
-    path_prev_cell = path_curr_cell
+    path_prev_cell = path_curr_cell.neighbor_left
 
     goal_detected_at = None
 
     while True:
-        # positive angle = to the right
-        if False:  # test gps adjustments on h-lines
-            eevee.update(Location(-9.80,0.15), Utils.to_radian(-179.17))
-            eevee.my_odom.adjust_sensors(Location(-9.80,0.15), Utils.to_radian(-179.17), eevee.sensor_positions, [1, 0, 1, 1, 0]) # ?
-            return
-        if False: # test theta adjustments on h-lines
-            odom.adjust_sensors(0, -3.8-2, Utils.to_radian(0), [0,0,0,0,1]) # should give positive delta
-            odom.adjust_sensors(0, 3.8+2, Utils.to_radian(0), [1,0,0,0,0]) # should give negative delta
-            odom.adjust_sensors(0, -3.8-0.01, Utils.to_radian(0), [0,0,0,0,0]) # should give negative delta
-            odom.adjust_sensors(0, 3.8+0.01, Utils.to_radian(0), [0,0,0,0,0]) # should give positive delta
-            return
-        if False: # test theta adjustments on v-lines
-            odom.adjust_sensors(-3.8-2, 0, Utils.to_radian(-90), [0,0,0,0,1]) # should give positive delta
-            odom.adjust_sensors(3.8+2, 0, Utils.to_radian(-90), [1,0,0,0,0]) # should give negative delta
-            my_map.my_cell.w_up = 1000
-            my_map.my_cell.neighbor_up.w_down = 1000
-            my_map.my_cell.w_down = 1000
-            my_map.my_cell.neighbor_down.w_up = 1000
-            odom.adjust_sensors(-3.8-0.01, 0, Utils.to_radian(-90), [0,0,0,0,0]) # should give negative delta
-            odom.adjust_sensors(3.8+0.01, 0, Utils.to_radian(-90), [0,0,0,0,0]) # should give positive delta
-            return
-        
         # safety check
         if not arduino.get():
             blink_panic(led0, led1, motors)
@@ -269,15 +247,15 @@ def main():
             
     cam = CameraHandler()
 
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BOARD)
+
     # LED
     led0 = LedActuator(26)
     led1 = LedActuator(29)
 
     my_map = load_map_based_on_button(led0, led1, arduino)
     my_odom = OdometryHandler(my_map, sim_maze)
-
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BOARD)
 
     # motors
     global m1, m2

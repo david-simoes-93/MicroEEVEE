@@ -74,7 +74,7 @@ class ArduinoHandler:
             return False
         # just debugging line, eventually remove after confirming
         if len(line) < self.min_mess_size:
-            print("min value is bugged", len(line))
+            print(f"min length {len(line)} is bugged for line {line}")
         sensors = line.decode().split(";")
         self.m1_encoder = 0
         self.m2_encoder = 0
