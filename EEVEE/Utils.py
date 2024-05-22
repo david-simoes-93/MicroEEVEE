@@ -3,12 +3,6 @@ import numpy as np
 
 MEDIAN_SIZE = 5
 
-STOPPED = 0
-FORWARD = 1
-TURNING_LEFT = 2
-TURNING_RIGHT = 3
-BACK = 4
-STOPPING = 5
 
 def normalize_radian_angle(angle):
     while angle < -math.pi:
@@ -38,8 +32,7 @@ def to_radian(degree):
     return degree*math.pi/180
 
 
-
-##----------------cyberEEVEE------------------
+# ----------------cyberEEVEE------------------
 
 # returns dot product of "v" and "w"
 def dist2(v, w):
@@ -79,8 +72,10 @@ def intersects(AB, CD, PQ, RS):
     if det == 0:
         return False
 
-    lambda_ = ((RS[1] - PQ[1]) * (RS[0] - AB[0]) + (PQ[0] - RS[0]) * (RS[1] - AB[1])) / det
-    gamma = ((AB[1] - CD[1]) * (RS[0] - AB[0]) + (CD[0] - AB[0]) * (RS[1] - AB[1])) / det
+    lambda_ = ((RS[1] - PQ[1]) * (RS[0] - AB[0]) +
+               (PQ[0] - RS[0]) * (RS[1] - AB[1])) / det
+    gamma = ((AB[1] - CD[1]) * (RS[0] - AB[0]) +
+             (CD[0] - AB[0]) * (RS[1] - AB[1])) / det
 
     return 0 < lambda_ < 1 and 0 < gamma < 1
 
@@ -92,6 +87,7 @@ def normalize_angle(a):
     while a > 180:
         a -= 360
     return a
+
 
 """
 # return a color scheme for each wall
@@ -153,6 +149,8 @@ def update_robot_pos_time_delay(prev_left, prev_right, in_lefts, in_rights, my_x
 """
 
 # returns angle between line [c,e] and x-axis in degrees
+
+
 def get_angle_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]
@@ -160,11 +158,15 @@ def get_angle_between_points(c, e):
     return theta * 180 / np.pi  # rads to degs
 
 # returns angle between line [c,e] and x-axis in degrees
+
+
 def get_radian_between_points(c, e):
     # dy = e[1] - c[1]
     # dx = e[0] - c[0]
     theta = np.arctan2(e[1] - c[1], e[0] - c[0])  # np.arctan(dy / dx)
     return theta
+
+
 """
 
 def filter_buffer(buffer, val):
@@ -183,7 +185,8 @@ def stop_speed(prev_left, prev_right):
     return stop_speed_val, stop_speed_val
 """
 
-def perp( a ) :
+
+def perp(a):
     b = np.empty_like(a)
     b[0] = -a[1]
     b[1] = a[0]
@@ -192,11 +195,13 @@ def perp( a ) :
 # line segment a given by endpoints a1, a2
 # line segment b given by endpoints b1, b2
 # return
-def seg_intersect(a1,a2, b1,b2):
+
+
+def seg_intersect(a1, a2, b1, b2):
     da = a2-a1
     db = b2-b1
     dp = a1-b1
     dap = perp(da)
-    denom = np.dot( dap, db)
-    num = np.dot( dap, dp )
+    denom = np.dot(dap, db)
+    num = np.dot(dap, dp)
     return (num / denom.astype(float))*db + b1

@@ -2,7 +2,7 @@ try:
     import RPi.GPIO as GPIO
 except Exception as e:
     print(e)
-    from fake_gpio import GPIO
+    from FakeGpio import GPIO
 
 
 # LED actuator

@@ -2,41 +2,41 @@ import numpy as np
 import math
 from pygame.locals import *
 import pygame
-from EEVEE.Utils import *
+import Utils
 
-cell_resolution = 16
-half_cell_resolution = int(cell_resolution / 2)
-cm_per_cell = 45
+CELL_RESOLUTION = 16
+HALF_CELL_RESOLUTION = int(CELL_RESOLUTION / 2)
+CM_PER_CELL = 45
 
+MAP_SIZE = 21
+HALF_MAP_SIZE = int(MAP_SIZE / 2)
+
+MAX_DIST_THRESHOLD = 1.5  # maximum sensor distance measured
+SENSOR_CUTOFF_POINT = 0.75  # we ignore wall measures beyond half a cell
+TRUST_VALUE = 10
 
 class Maze(object):
     """docstring for Maze"""
 
     def __init__(self):
-        self.width = 21
-        self.height = 21
-        self.half_map_width = 10
-
-        self.maze = [[Cell(x, y) for y in range(self.height)] for x in range(self.width)]
-        for x in range(0, self.width):
-            for y in range(0, self.height):
+        self.maze = [[Cell(x, y) for y in range(MAP_SIZE)] for x in range(MAP_SIZE)]
+        for x in range(0, MAP_SIZE):
+            for y in range(0, MAP_SIZE):
                 if y > 0:
                     self.maze[x][y].neighbor_north = self.maze[x][y - 1]
-                if y < self.height - 1:
+                if y < MAP_SIZE - 1:
                     self.maze[x][y].neighbor_south = self.maze[x][y + 1]
                 if x > 0:
                     self.maze[x][y].neighbor_west = self.maze[x - 1][y]
-                if x < self.width - 1:
+                if x < MAP_SIZE - 1:
                     self.maze[x][y].neighbor_east = self.maze[x + 1][y]
         self.screen = None
-        self.screen_res = [self.width * cell_resolution * 2, self.height * cell_resolution * 2]
-        self.max_dist_threshold = 1.5  # maximum sensor distance measured
-        self.sensor_cutoff_point = 0.75  # we ignore wall measures beyond half a cell
-
-        self.eevee = [self.width / 2, self.height / 2]  # pos in cell
-        self.my_cell = self.maze[int(self.width / 2)][int(self.height / 2)]
+        self.screen_res = [MAP_SIZE * CELL_RESOLUTION * 2, MAP_SIZE * CELL_RESOLUTION * 2]
+        
+        self.eevee = [MAP_SIZE / 2, MAP_SIZE / 2]  # pos in cell
+        self.my_cell = self.maze[HALF_MAP_SIZE][HALF_MAP_SIZE]
         self.sensor_dots, self.wall_dots, self.debug_dots = [], [], []
-        self.trust_val = 10
+        
         self.prev_side_odometry_reset_cell = None
 
         self.cheese = None
@@ -74,8 +74,8 @@ class Maze(object):
         if len(to_be_explored) > 0:
             return to_be_explored[0][1]
         else:
-            for x in range(0, self.width):
-                for y in range(0, self.height):
+            for x in range(0, MAP_SIZE):
+                for y in range(0, MAP_SIZE):
                     self.maze[x][y].explored = False
             self.my_cell.explored = True
             return self.pick_exploration_target(path_planner, degree_theta)
@@ -89,7 +89,7 @@ class Maze(object):
         if self.screen is None:
             pygame.init()
             self.screen = pygame.surface.Surface(
-                (self.width * cell_resolution, self.height * cell_resolution))  # original GF size
+                (MAP_SIZE * CELL_RESOLUTION, MAP_SIZE * CELL_RESOLUTION))  # original GF size
             self.gui_window = pygame.display.set_mode(self.screen_res, pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
             pygame.display.set_caption("Eevee Map")
 
@@ -97,57 +97,56 @@ class Maze(object):
 
         # Draw cheese, home
         pygame.draw.circle(self.screen, (0, 255, 0),
-                           [round(self.home.coords[0] * cell_resolution),
-                            round(self.home.coords[1] * cell_resolution)],
-                           int(half_cell_resolution / 2))
+                           [round(self.home.x * CELL_RESOLUTION),
+                            round(self.home.y * CELL_RESOLUTION)],
+                           int(HALF_CELL_RESOLUTION / 2))
         if self.cheese is not None:
             pygame.draw.circle(self.screen, (255, 255, 0),
-                               [round(self.cheese.coords[0] * cell_resolution),
-                                round(self.cheese.coords[1] * cell_resolution)],
-                               half_cell_resolution)
+                               [round(self.cheese.x * CELL_RESOLUTION),
+                                round(self.cheese.y * CELL_RESOLUTION)],
+                               HALF_CELL_RESOLUTION)
 
         # Draw obstacles
         for row in self.maze:
             for cell in row:
                 for wall in cell.walls:
-                    wall_color = get_wall_color(wall)
+                    wall_color = Utils.get_wall_color(wall)
                     pygame.draw.rect(self.screen, wall_color, wall.rect)
 
         # Draw eevee
         pygame.draw.circle(self.screen, (0, 0, 255),
-                           [int(round(self.eevee[0] * cell_resolution)),
-                            int(round(self.eevee[1] * cell_resolution))],
-                           int(half_cell_resolution / 2))
+                           [int(round(self.eevee[0] * CELL_RESOLUTION)),
+                            int(round(self.eevee[1] * CELL_RESOLUTION))],
+                           int(HALF_CELL_RESOLUTION / 2))
 
         for sensor_dot in self.sensor_dots:
             pygame.draw.rect(self.screen, (0, 255, 0),
-                             [round(sensor_dot[0] * cell_resolution), round(sensor_dot[1] * cell_resolution),
+                             [round(sensor_dot[0] * CELL_RESOLUTION), round(sensor_dot[1] * CELL_RESOLUTION),
                               1, 1])
         for wall_dot in self.wall_dots:
             pygame.draw.rect(self.screen, (255, 0, 0),
-                             [round(wall_dot[0] * cell_resolution), round(wall_dot[1] * cell_resolution),
+                             [round(wall_dot[0] * CELL_RESOLUTION), round(wall_dot[1] * CELL_RESOLUTION),
                               1, 1])
 
         # for debug_dot in self.debug_dots:
         #     pygame.draw.rect(self.screen, (255, 0, 255),
-        #                      [round(debug_dot[0] * cell_resolution), round(debug_dot[1] * cell_resolution),
+        #                      [round(debug_dot[0] * CELL_RESOLUTION), round(debug_dot[1] * CELL_RESOLUTION),
         #                       1, 1])
 
         self.gui_window.blit(pygame.transform.scale(self.screen, self.screen_res), (0, 0))
         pygame.display.flip()
 
     # def trust_based_on_distance(self, val):
-    #    val = np.min([self.max_dist_threshold, np.max([val, 0])])
+    #    val = np.min([MAX_DIST_THRESHOLD, np.max([val, 0])])
     #    return (1 - val) * 5  # 1 / val
 
     def get_gps_coords_from_cell_coords(self, cell_cords):
-        return [(cell_cords[0] - self.half_map_width) * 45, (cell_cords[1] - self.half_map_width) * 45]
+        return [(cell_cords[0] - HALF_MAP_SIZE) * 45, (cell_cords[1] - HALF_MAP_SIZE) * 45]
 
     def get_cell_coords_from_gps_coords(self, gps_coords):
         # gps_coords are measured in cm, [0,0] is initial robot position
-        # cell_coords is measured in cells (1 cell = 45cm),
-        #       [half_width, half_height] is initial robot position
-        return [gps_coords[0] / 45 + self.half_map_width, gps_coords[1] / 45 + self.half_map_width]
+        # cell_coords are measured in cells (1 cell = 45cm), [half_width, half_height] is initial robot position
+        return [gps_coords[0] / 45 + HALF_MAP_SIZE, gps_coords[1] / 45 + HALF_MAP_SIZE]
 
     def reset_debug_dots(self):
         self.debug_dots = []
@@ -159,15 +158,21 @@ class Maze(object):
                compass, ground):
         #print("mappign", my_x, my_y, left_sensor, front_sensor, right_sensor, back_sensor, ir_left_sensor, ir_right_sensor,
         #       compass, ground)
-        left_sensor /= cm_per_cell
-        front_sensor /= cm_per_cell
-        right_sensor /= cm_per_cell
-        back_sensor /= cm_per_cell
-        ir_left_sensor /= cm_per_cell
-        ir_right_sensor /= cm_per_cell
+        left_sensor /= CM_PER_CELL
+        front_sensor /= CM_PER_CELL
+        right_sensor /= CM_PER_CELL
+        back_sensor /= CM_PER_CELL
+        ir_left_sensor /= CM_PER_CELL
+        ir_right_sensor /= CM_PER_CELL
 
         self.eevee = self.get_cell_coords_from_gps_coords([my_x, my_y])
-        my_cell = self.maze[int(round(self.eevee[0]))][int(round(self.eevee[1]))]
+
+        my_cell_x = int(round(self.eevee[0]))
+        my_cell_y = int(round(self.eevee[1]))
+        if my_cell_x < 1 or my_cell_x >= MAP_SIZE - 1 or my_cell_y < 1 or my_cell_y >= MAP_SIZE - 1:
+            print("OUT OF BOUNDS!")
+            return
+        my_cell = self.maze[my_cell_x][my_cell_y]
         self.my_cell = my_cell
 
         # dist_to_cell_center = dist(self.eevee, my_cell.coords)
@@ -183,26 +188,26 @@ class Maze(object):
         self.sensor_dots, self.wall_dots = [], []
 
         nearby_cells = [my_cell,
-                        self.maze[my_cell.coords[0] + 1][my_cell.coords[1]],
-                        self.maze[my_cell.coords[0] - 1][my_cell.coords[1]],
-                        self.maze[my_cell.coords[0]][my_cell.coords[1] + 1],
-                        self.maze[my_cell.coords[0]][my_cell.coords[1] - 1]]
+                        self.maze[my_cell.x + 1][my_cell.y],
+                        self.maze[my_cell.x - 1][my_cell.y],
+                        self.maze[my_cell.x][my_cell.y + 1],
+                        self.maze[my_cell.x][my_cell.y - 1]]
 
         # US sensors
-        min_left_sensor = np.min([self.sensor_cutoff_point, left_sensor])
-        min_front_sensor = np.min([self.sensor_cutoff_point, front_sensor])
-        min_right_sensor = np.min([self.sensor_cutoff_point, right_sensor])
-        min_back_sensor = np.min([self.sensor_cutoff_point, back_sensor])
+        min_left_sensor = np.min([SENSOR_CUTOFF_POINT, left_sensor])
+        min_front_sensor = np.min([SENSOR_CUTOFF_POINT, front_sensor])
+        min_right_sensor = np.min([SENSOR_CUTOFF_POINT, right_sensor])
+        min_back_sensor = np.min([SENSOR_CUTOFF_POINT, back_sensor])
 
         # IR sensors
-        min_ir_left_sensor = np.min([self.sensor_cutoff_point, ir_left_sensor])
-        min_ir_right_sensor = np.min([self.sensor_cutoff_point, ir_right_sensor])
+        min_ir_left_sensor = np.min([SENSOR_CUTOFF_POINT, ir_left_sensor])
+        min_ir_right_sensor = np.min([SENSOR_CUTOFF_POINT, ir_right_sensor])
 
         # save points for front of sensor and 30º to left and right of each sensor (they're cone sensors)
         dist_sensor_from_robot_center = 10/45
         dist_ir_from_robot_center = 2/45 # [cm]
         # all sensors > max_dist_threshold do not computam
-        if min_front_sensor < self.max_dist_threshold: #abs(compass) < math.pi / 6:
+        if min_front_sensor < MAX_DIST_THRESHOLD: #abs(compass) < math.pi / 6:
             # 0º
             front_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass),
                                          self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass)]
@@ -213,7 +218,7 @@ class Maze(object):
 
 
         """# -45º
-        if min_left_sensor < self.max_dist_threshold: #abs(compass) > math.pi/6:
+        if min_left_sensor < MAX_DIST_THRESHOLD: #abs(compass) > math.pi/6:
             left45_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass - math.pi / 4),
                                           self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass - math.pi / 4)]
             left45_sensor_wall_pos = [left45_sensor_pos_in_eevee[0] + min_left_sensor * math.cos(compass - math.pi / 4),
@@ -228,7 +233,7 @@ class Maze(object):
         self.update_single_sensor(ir_left_sensor, nearby_cells, [left_sensor_wall_pos], left_sensor_pos_in_eevee)
 
         """# 45º
-        if min_right_sensor < self.max_dist_threshold: #abs(compass) > math.pi / 6:
+        if min_right_sensor < MAX_DIST_THRESHOLD: #abs(compass) > math.pi / 6:
             right45_sensor_pos_in_eevee = [self.eevee[0] + dist_sensor_from_robot_center * math.cos(compass + math.pi / 4),
                                            self.eevee[1] + dist_sensor_from_robot_center * math.sin(compass + math.pi / 4)]
             right45_sensor_wall_pos = [
@@ -276,15 +281,15 @@ class Maze(object):
         # if obstacle found within threshold
         weighted_walls = []
         #só faz isto se estiver no range de uma parede
-        if sensor_val < self.sensor_cutoff_point:  # self.max_dist_threshold:
+        if sensor_val < SENSOR_CUTOFF_POINT:  # MAX_DIST_THRESHOLD:
             # check closest ray to any wall
-            ray_dists = self.max_dist_threshold  # [, self.max_dist_threshold, self.max_dist_threshold]
+            ray_dists = MAX_DIST_THRESHOLD  # [, MAX_DIST_THRESHOLD, MAX_DIST_THRESHOLD]
             ray_walls = None
 
             # for index, dot in enumerate(sensor_positions):
             for cell in nearby_cells:
                 for wall in cell.walls:
-                    d = dist_to_line_segment(sensor_positions[0], wall.line[0], wall.line[1])
+                    d = Utils.dist_to_line_segment(sensor_positions[0], wall.line[0], wall.line[1])
                     if d < ray_dists:
                         ray_dists = d
                         ray_walls = wall
@@ -295,12 +300,13 @@ class Maze(object):
             closest_dot_cell_wall = ray_walls
             self.wall_dots.append(closest_dot_to_wall)
 
-            # trust_val = 5 #self.trust_based_on_distance(
+            # trust_val = 5 
+            # self.trust_based_on_distance(
             #    dist_to_line_segment(sensor_pos_in_eevee, closest_dot_cell_wall.line[0], closest_dot_cell_wall.line[1]))
             # print("found obs", closest_dot_cell_wall, trust_val)
 
-            closest_dot_cell_wall.weigh(self.trust_val)
-            closest_dot_cell_wall.get_adjacent_wall().weigh(self.trust_val)
+            closest_dot_cell_wall.weigh(TRUST_VALUE)
+            closest_dot_cell_wall.get_adjacent_wall().weigh(TRUST_VALUE)
             weighted_walls = [closest_dot_cell_wall, closest_dot_cell_wall.get_adjacent_wall()]
             #print("Cell", str(closest_dot_cell_wall.cell), "Wall", str(closest_dot_cell_wall), "Weighted",
             #      closest_dot_cell_wall.weight)
@@ -309,10 +315,10 @@ class Maze(object):
         # decrease all other wall intersections score
         for cell in nearby_cells:
             for wall in cell.walls:
-                if wall not in weighted_walls and intersects(wall.line[0], wall.line[1],
+                if wall not in weighted_walls and Utils.intersects(wall.line[0], wall.line[1],
                                                              sensor_pos_in_eevee, sensor_positions[0]):
-                    wall.weigh(-self.trust_val)
-                    wall.get_adjacent_wall().weigh(-self.trust_val)
+                    wall.weigh(-TRUST_VALUE)
+                    wall.get_adjacent_wall().weigh(-TRUST_VALUE)
                     weighted_walls.append(wall)
                     #print("Cell", str(wall.cell), "Wall", str(wall), "Cleared",
                     #      wall.weight)
@@ -325,8 +331,9 @@ max_val, min_val = 155, -155
 
 class Cell(object):
     def __init__(self, x, y):
-        self.center_in_pixels = [x * cell_resolution, y * cell_resolution]
-        self.coords = [x, y]
+        self.center_in_pixels = [x * CELL_RESOLUTION, y * CELL_RESOLUTION]
+        self.x = x
+        self.y = y
         self.wall_north = Wall([[x - .4375, y - .4375], [x + .4375, y - .4375]], self, "north")
         self.wall_south = Wall([[x - .4375, y + .4375], [x + .4375, y + .4375]], self, "south")
         self.wall_west = Wall([[x - .4375, y - .4375], [x - .4375, y + .4375]], self, "west")
@@ -337,7 +344,7 @@ class Cell(object):
         self.explored = False
 
     def __str__(self):
-        return str(self.coords)
+        return f"{self.x} {self.y}"
 
 
 class Wall(object):
@@ -345,9 +352,9 @@ class Wall(object):
         self.weight = 0
         self.wall, self.no_wall, self.confirmed_no_wall, self.confirmed_wall = False, False, False, False
         self.line = line_coords
-        self.rect = [line_coords[0][0] * cell_resolution, line_coords[0][1] * cell_resolution,
-                     cell_resolution if line_coords[1][0] != line_coords[0][0] else 1,
-                     cell_resolution if line_coords[1][1] != line_coords[0][1] else 1]
+        self.rect = [line_coords[0][0] * CELL_RESOLUTION, line_coords[0][1] * CELL_RESOLUTION,
+                     CELL_RESOLUTION if line_coords[1][0] != line_coords[0][0] else 1,
+                     CELL_RESOLUTION if line_coords[1][1] != line_coords[0][1] else 1]
         self.cell = cell
         self.wall_type = wall_type
 
@@ -380,4 +387,4 @@ class Wall(object):
             return self.cell.neighbor_east.wall_west
 
     def __str__(self):
-        return str(self.cell.coords[0]) + "/" + str(self.cell.coords[1]) + " " + self.wall_type
+        return str(self.cell.x) + "/" + str(self.cell.y) + " " + self.wall_type

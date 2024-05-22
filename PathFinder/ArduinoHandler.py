@@ -3,8 +3,9 @@ import random
 
 from Utils import MEDIAN_SIZE
 
+
 class EmptyArduino(object):
-    def __init__(self):
+    def __init__(self, simulator):
         self.ir0 = 0
         self.ir1 = 0
         self.button0 = False
@@ -17,26 +18,26 @@ class EmptyArduino(object):
         self.m1_encoder = 0
         self.m2_encoder = 0
 
-    def get(self):
-        self.ir0 = random.random() * 4
-        self.ir1 = random.random() * 4
+        self.simulator = simulator
 
+    def get(self):
         self.button0 = random.random() > 0.5
         self.button1 = random.random() > 0.5
 
-        self.ground0 = random.random() > 0.5
-        self.ground1 = random.random() > 0.5
-        self.ground2 = random.random() > 0.5
-        self.ground3 = random.random() > 0.5
-        self.ground4 = random.random() > 0.5
+        self.simulator.update_loc()
 
-        self.m1_encoder = 0 #+= random.random() * 0.8
-        self.m2_encoder = 0 #+= random.random() * 0.8
+        [self.ground0, self.ground1, self.ground2, self.ground3, self.ground4] = self.simulator.get_ground()
+
+        [self.m1_encoder, self.m2_encoder] = self.simulator.get_encoder()
 
         return True
 
     def get_ground_average(self):
-        return 0
+        ground_sensors = self.get_ground_sensors()
+        return sum(ground_sensors)/len(ground_sensors)
+
+    def get_ground_sensors(self):
+        return [self.ground0, self.ground1, self.ground2, self.ground3, self.ground4]
 
 # Arduino handler
 class ArduinoHandler:
@@ -63,9 +64,8 @@ class ArduinoHandler:
 
         self.arduino.readline()
 
-        self.buf = [[0]*MEDIAN_SIZE, [0]*MEDIAN_SIZE ]
-        self.i = [0,0]
-
+        self.buf = [[0]*MEDIAN_SIZE, [0]*MEDIAN_SIZE]
+        self.i = [0, 0]
 
     def get(self):
         try:
@@ -74,7 +74,7 @@ class ArduinoHandler:
             return False
         # just debugging line, eventually remove after confirming
         if len(line) < self.min_mess_size:
-            print("min value is bugged", len(line))
+            print(f"min length {len(line)} is bugged for line {line}")
         sensors = line.decode().split(";")
         self.m1_encoder = 0
         self.m2_encoder = 0
@@ -89,14 +89,10 @@ class ArduinoHandler:
             except:
                 return False
 
-        #self.ir0 = float(sensors[0])
-        self.ir0 = self.median( float(sensors[0]) , 0)
-        #self.ir1 = float(sensors[1])
-        self.ir1 = self.median(float(sensors[1]), 1)
-
         self.button0 = sensors[2] == '1'
         self.button1 = sensors[3] == '1'
 
+        # true if line detected
         self.ground0 = sensors[4] == '1'
         self.ground1 = sensors[5] == '1'
         self.ground2 = sensors[6] == '1'
@@ -115,22 +111,23 @@ class ArduinoHandler:
         self.arduino.flushInput()
         self.arduino.readline()
 
-    def median(self, newValue,index):
-
-
-        aux= [None] *MEDIAN_SIZE
+    def median(self, newValue, index):
+        aux = [None] * MEDIAN_SIZE
 
         k = self.i[index]
         self.buf[index][k] = newValue
         self.i[index] = (k + 1) % MEDIAN_SIZE
 
-        for j in range(0,MEDIAN_SIZE):
+        for j in range(0, MEDIAN_SIZE):
             aux[j] = self.buf[index][j]
 
-        aux.sort() #sort(aux, MEDIAN_SIZE);
+        aux.sort()  # sort(aux, MEDIAN_SIZE);
         return aux[int(MEDIAN_SIZE / 2)]
 
     def get_ground_average(self):
-        # ground1 is broken, always true
-        ground_sensors = [self.ground0, self.ground2, self.ground3, self.ground4]
+        ground_sensors = self.get_ground_sensors()
         return sum(ground_sensors)/len(ground_sensors)
+
+    def get_ground_sensors(self):
+        # ground1 is broken, always true
+        return [self.ground0, self.ground1, self.ground2, self.ground3, self.ground4]
